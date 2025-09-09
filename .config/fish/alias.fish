@@ -18,4 +18,4 @@ alias gcopy="git rev-parse --short HEAD | pbcopy"
 
 # make sure the --git-dir is the same as the
 # directory where you created the repo above.
-alias dotfiles="git --git-dir=$HOME/.dotfiles --work-tree=$HOME"
+abbr --add --position anywhere dfs -- --git-dir=$HOME/.dotfiles --work-tree=$HOME
