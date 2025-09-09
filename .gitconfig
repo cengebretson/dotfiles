@@ -1,0 +1,59 @@
+[core]
+	excludesfile = /Users/chris/.gitignore
+	editor = /usr/local/bin/vim
+	abbrev = 7
+	pager = diff-so-fancy | less --tabs=4 -RFX
+[mergetool]
+	keepBackup = false
+	prompt = false
+[alias]
+	# https://blog.chilcutt.com/2019/05/30/fzf_git_branch.html
+	cof  = !git for-each-ref --format='%(refname:short)' refs/heads | fzf | xargs git checkout
+	tags = !git log --tags --no-walk --date=short-local --pretty='%C(auto)%h %cd%d %s'
+	pt   = !git tag -l | xargs git tag -d && git fetch -t
+	co   = checkout
+	cob  = checkout -b
+	c    = commit -m
+	ca   = !git add -A && git commit -m
+	s    = status -sbu
+	rv   = remote -v
+	ba   = branch -avv
+	b    = branch -vv
+	bd   = branch -D
+	ls   = log --pretty=format:"%C(yellow)%h%Cred%d\\ %Creset%s%Cblue\\ [%cn]" --decorate --stat
+	ll   = log --color --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	lg   = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit
+	gh   = "!open `git remote -v | awk '/fetch/{print $2}' | sed -Ee 's#(git@|git://)#http://#' -e 's@com:@com/@'`| head -n1"
+	who  = shortlog -n -s --no-merges
+	hard = !git reset --hard && git clean -f -d
+	assume   = update-index --assume-unchanged
+	unassume = update-index --no-assume-unchanged
+	amend    = !git add -A && git commit --amend --no-edit
+	assumed  = "!git ls-files -v | grep ^h | cut -c 3-"
+	cleanup  = !git remote prune origin && git gc && git clean -f
+	save     = !git add -A && git commit -m 'SAVEPOINT'
+	track    = "!f() { ([ $# -eq 2 ] && ( git branch -u $1/$2 || git push -u $1 $2) || ([ $# -eq 0 ] && git for-each-ref --format=\"local: %(refname:short) | remote: %(upstream:short)\" refs/heads | awk -F '|' '{ printf \"%-35s <-> %s\\n\",$1,$2 }' && echo --Remotes && git remote -v)); }; f"
+	branch-name = "!git rev-parse --abbrev-ref HEAD"
+	publish     = "!git push -u origin $(git branch-name)"
+	unpublish   = "!git push origin :$(git branch-name)"
+	springclean = for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)'
+[push]
+	default = upstream
+[difftool "Kaleidoscope"]
+	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+[diff]
+	tool = Kaleidoscope
+[difftool]
+	prompt = false
+[mergetool "Kaleidoscope"]
+	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+	trustExitCode = true
+[merge]
+	tool = Kaleidoscope
+[user]
+	email = chris@mob.net
+	name = Chris Engebretson
+[filter "lfs"]
+	clean = git-lfs clean %f
+	smudge = git-lfs smudge %f
+	required = true

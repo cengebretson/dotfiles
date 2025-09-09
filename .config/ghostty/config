@@ -1,0 +1,85 @@
+# font settings
+font-size = 14
+font-family = "JetBrains Mono NL"
+adjust-cell-height = 10%
+bold-is-bright = true
+
+# theme
+theme = catppuccin-frappe
+background-opacity = .8
+background-blur-radius = 20 
+
+# cursor
+cursor-style = block
+
+# mouse settings
+mouse-hide-while-typing = true
+mouse-scroll-multiplier = 2
+
+# window settings
+window-padding-x = 10
+window-padding-y = 5
+window-padding-balance = true
+window-save-state = always
+window-colorspace = "display-p3"
+window-padding-color = extend
+#window-decoration = false
+unfocused-split-opacity = 0.4
+
+# keybindings
+keybind = cmd+s>r=reload_config
+keybind = cmd+s>x=close_surface
+keybind = cmd+s>n=new_window
+
+# tabs
+keybind = cmd+s>c=new_tab
+keybind = cmd+s>shift+l=next_tab
+keybind = cmd+s>shift+h=previous_tab
+keybind = cmd+s>comma=move_tab:-1
+keybind = cmd+s>period=move_tab:1
+
+# quick tab switch
+keybind = cmd+s>1=goto_tab:1
+keybind = cmd+s>2=goto_tab:2
+keybind = cmd+s>3=goto_tab:3
+keybind = cmd+s>4=goto_tab:4
+keybind = cmd+s>5=goto_tab:5
+keybind = cmd+s>6=goto_tab:6
+keybind = cmd+s>7=goto_tab:7
+keybind = cmd+s>8=goto_tab:8
+keybind = cmd+s>9=goto_tab:9
+
+# split
+keybind = cmd+s>\=new_split:right
+keybind = cmd+s>-=new_split:down
+keybind = cmd+s>j=goto_split:bottom
+keybind = cmd+s>k=goto_split:top
+keybind = cmd+s>h=goto_split:left
+keybind = cmd+s>l=goto_split:right
+keybind = cmd+s>z=toggle_split_zoom
+keybind = cmd+s>e=equalize_splits
+
+# quick terminal
+keybind = global:cmd+grave_accent=toggle_quick_terminal
+
+# other/misc
+shell-integration = fish
+copy-on-select = clipboard
+shell-integration-features = no-cursor,sudo,no-title
+
+# macos settings
+macos-titlebar-style = transparent
+macos-icon = custom
+macos-option-as-alt = true
+
+# shaders
+#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear.glsl
+custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze_no_trail.glsl
+#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear_fade.glsl
+#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_frozen.glsl
+#custom-shader = /Users/chris/.config/ghostty/shaders/just-snow.glsl
+#custom-shader = /Users/chris/.config/ghostty/shaders/inside-the-matrix.glsl
+
+# only set this during testing, defaults to "true" which animates only active windows
+custom-shader-animation = always
+
