@@ -9,12 +9,13 @@ alias moon="curl -4 wttr.in/Moon"
 alias setaws='set -x -g AWS_PROFILE'
 
 # CLI Tools
-alias ipx="curl https://ipinfo.io/ip"
-alias cat="bat"
-alias ping="prettyping --nolegend"
-alias find="fd"
+alias ipx "curl https://ipinfo.io/ip"
+alias cat "bat"
+alias ping "prettyping --nolegend"
+alias find "fd"
 alias mkdir "mkdir -p"
-alias gcopy="git rev-parse --short HEAD | pbcopy"
+alias gcopy "git rev-parse --short HEAD | pbcopy"
+alias vi "nvim"
 
 # make sure the --git-dir is the same as the
 # directory where you created the repo above.
