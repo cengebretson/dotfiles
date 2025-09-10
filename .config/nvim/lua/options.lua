@@ -1,6 +1,15 @@
 require "nvchad.options"
 
--- add yours here!
-
 local o = vim.o
-o.cursorlineopt ='both' -- to enable cursorline!
+
+-- turn off wrappiung
+o.wrap = false
+
+-- to enable cursorline!
+o.cursorlineopt ='both'
+
+-- enable relatiove number
+o.relativenumber = true
+
+-- disable swap file
+o.swapfile = false
