@@ -9,6 +9,10 @@ source ~/.config/fish/alias.fish
 # volta setup
 set -gx VOLTA_HOME "$HOME/.volta"
 
+# make nvim the default editor
+set -gx EDITOR nvim
+set -gx TERMINAL ghostty
+
 # fzf settings
 fzf_configure_bindings --directory=\ct
 
