@@ -10,7 +10,7 @@ function dotfiles {
 }
 
 # clone repo
-git clone --bare git@github.com:mrjones2014/dotfiles.git $HOME/.dotfiles
+git clone --bare git@github.com:cengebretson/dotfiles.git $HOME/.dotfiles
 dotfiles config status.showUntrackedFiles no
 
 # create a directory to backup existing dotfiles to
