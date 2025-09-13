@@ -10,19 +10,20 @@ alias moon "curl -4 wttr.in/Moon"
 alias setaws 'set -x -g AWS_PROFILE'
 
 # updates
-alias updates 'brew update && brew upgrade && fish_update_completions -v && brew cleanup'
+alias updates 'brew update && brew upgrade && fish_update_completions -v && brew cleanup && confetti'
 
 # eza shortcuts
 alias l 'eza --long --all --header --git --icons --no-permissions --no-time --no-user --no-filesize --group-directories-first'
 alias ll 'eza -lagh --git --icons --group-directories-first'
 alias la 'eza -lagh --git --icons --group-directories-first --sort modified'
-alias cll 'clear; and eza --long --all --header --git --icons --no-permissions --no-time --no-user --no-filesize --group-directories-first'
-alias tree 'eza -Ta --icons --ignore-glob="node_modules|.git|.vscode|.DS_Store"'
+alias lc 'clear; and eza --long --all --header --git --icons --no-permissions --no-time --no-user --no-filesize --group-directories-first'
+alias lt 'eza -Ta --icons --ignore-glob="node_modules|.git|.vscode|.DS_Store"'
 alias ltd 'eza -TaD --icons --ignore-glob="node_modules|.git|.vscode|.DS_Store"'
 
 # networking
 alias ipl "ipconfig getifaddr en0" 
 alias ipx "curl https://ipinfo.io/ip"
+alias flush "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
 # CLI Tools
 alias cat "bat"
@@ -30,10 +31,9 @@ alias ping "prettyping --nolegend"
 alias find "fd"
 alias mkdir "mkdir -p"
 alias vi "nvim"
+alias vim "nvim"
 
 # git
 alias gcopy "git rev-parse --short HEAD | pbcopy"
-
-# make sure the --git-dir is the same as the
-# directory where you created the repo above.
 abbr --add --position anywhere dots -- --git-dir=$HOME/.dotfiles --work-tree=$HOME
+
