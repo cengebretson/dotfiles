@@ -5,8 +5,8 @@ local o = vim.o
 -- turn off wrappiung
 o.wrap = false
 
--- to enable cursorline!
-o.cursorlineopt = "both"
+-- show cursorline
+o.cursorline = true
 
 -- enable relatiove number
 o.relativenumber = true

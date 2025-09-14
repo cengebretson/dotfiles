@@ -6,22 +6,27 @@
 local M = {}
 
 M.base46 = {
-  theme = "aquarium",
-
+  theme = "nord",
   hl_override = {
     Comment = { italic = true },
     ["@comment"] = { italic = true },
   },
 }
 
-M.nvdash = { load_on_startup = true }
+M.nvdash = {
+  header = require("configs.headers").get_header(0, true),
+  load_on_startup = true,
+}
 
 M.ui = {
+  telescope = {
+    style = "bordered",
+  },
   tabufline = {
     lazyload = false,
   },
   statusline = {
-    separator_style = "round",
+    separator_style = "default",
   },
 }
 
