@@ -11,6 +11,7 @@ alias setaws 'set -x -g AWS_PROFILE'
 
 # updates
 alias updates 'brew update && brew upgrade && fish_update_completions -v && brew cleanup && confetti'
+alias center "open -g 'raycast://customWindowManagementCommand?&name=Reasonable%20Center&position=center'"
 
 # eza shortcuts
 alias l 'eza --long --all --header --git --icons --no-permissions --no-time --no-user --no-filesize --group-directories-first'
