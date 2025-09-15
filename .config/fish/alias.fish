@@ -13,7 +13,7 @@ alias moon "curl -4 wttr.in/Moon"
 alias setaws 'set -x -g AWS_PROFILE'
 
 # updates
-alias updates 'brew update && brew upgrade && fish_update_completions -v && brew cleanup && confetti'
+alias updates 'brew update && brew upgrade && fish_update_completions && brew cleanup && confetti'
 alias center "open -g 'raycast://customWindowManagementCommand?&name=Reasonable%20Center&position=center'"
 
 # eza shortcuts
