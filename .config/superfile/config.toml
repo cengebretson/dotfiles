@@ -52,7 +52,7 @@ ignore_missing_fields = false
 # ================   Style =================
 #
 # Whether to use the builtin syntax highlighting with chroma or use bat. Values: "" for builtin chroma, "bat" for bat
-code_previewer = ''
+code_previewer = 'bat'
 #
 # If you don't have or don't want Nerdfont installed you can turn this off
 nerdfont = true
