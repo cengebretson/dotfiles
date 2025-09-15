@@ -2,6 +2,9 @@ alias reload 'exec fish'
 alias o 'open'
 alias oo 'open .'
 
+# pico8
+alias pico8="/Applications/PICO-8.app/Contents/MacOS/pico8"
+
 # misc weather
 alias weather "curl -4 'wttr.in/des+moines?format=4'"
 alias moon "curl -4 wttr.in/Moon"
