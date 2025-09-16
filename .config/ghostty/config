@@ -5,7 +5,7 @@ adjust-cell-height = 10%
 bold-is-bright = true
 
 # theme
-theme = catppuccin-frappe
+theme = Catppuccin Frappe
 background-opacity = .9
 background-blur-radius = 20 
 
@@ -88,4 +88,8 @@ custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze_no_trail.glsl
 
 # only set this during testing, defaults to "true" which animates only active windows
 custom-shader-animation = always
+
+# updates
+auto-update = check
+auto-update-channel = stable
 
