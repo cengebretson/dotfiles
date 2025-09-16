@@ -1,7 +1,7 @@
 
 # 🌟 My Setup
 
-![Last Commit](https://img.shields.io/github/last-commit/yourusername/yourrepo?style=for-the-badge&color=green)
+![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)
 ![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)
 ![Terminal](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)
 ![Fish](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)
@@ -10,9 +10,6 @@
 A curated collection of tools and configs that power my daily workflow.  
 
 ---
-
-## 🛠️ Projects
-
 
 ### 🌀 Lazygit  
 A simple, fast, and powerful Git UI for the terminal.  
