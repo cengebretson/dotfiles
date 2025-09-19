@@ -6,7 +6,8 @@
 local M = {}
 
 M.base46 = {
-  theme = "nord",
+  theme = "tokyonight",
+  transparency = true,
   hl_override = {
     Comment = { italic = true },
     ["@comment"] = { italic = true },
@@ -23,10 +24,11 @@ M.ui = {
     style = "bordered",
   },
   tabufline = {
+    order = { "treeOffset", "buffers", "tabs" },
     lazyload = false,
   },
   statusline = {
-    separator_style = "default",
+    enabled = false, -- using lualine instead
   },
 }
 

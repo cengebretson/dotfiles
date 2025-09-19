@@ -7,6 +7,7 @@ o.wrap = false
 
 -- show cursorline
 o.cursorline = true
+o.cursorlineopt = "both"
 
 -- enable relatiove number
 o.relativenumber = true

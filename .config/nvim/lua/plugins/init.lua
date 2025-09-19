@@ -6,11 +6,34 @@ return {
   },
 
   {
-    "nvzone/floaterm",
-    dependencies = "nvzone/volt",
-    opts = {},
-    cmd = "FloatermToggle",
+    "nvim-lualine/lualine.nvim",
+    lazy = false,
+    opts = require "configs.lualine",
   },
+
+  -- {
+  --   "sschleemilch/slimline.nvim",
+  --   enabled = false,
+  --   opts = {},
+  --   lazy = false,
+  -- },
+
+  {
+    "nvzone/timerly",
+    dependencies = "nvzone/volt",
+    cmd = "TimerlyToggle",
+    opts = {}, -- optional
+  },
+
+  {
+    "folke/which-key.nvim",
+    event = "VeryLazy",
+    opts = {
+      preset = "helix",
+    },
+  },
+
+  { "folke/neodev.nvim", opts = {} },
 
   {
     "nvzone/typr",
@@ -69,12 +92,16 @@ return {
   },
 
   {
-    "kevinhwang91/nvim-ufo",
-    event = "BufRead",
-    dependencies = "kevinhwang91/promise-async",
-    config = function()
-      require "configs.ufo"
-    end,
+    "folke/noice.nvim",
+    event = "VeryLazy",
+    opts = {},
+    dependencies = {
+      "MunifTanjim/nui.nvim",
+      -- OPTIONAL:
+      --   `nvim-notify` is only needed, if you want to use the notification view.
+      --   If not available, we use `mini` as the fallback
+      -- "rcarriga/nvim-notify",
+    },
   },
 
   { "tpope/vim-repeat", event = "VeryLazy" },

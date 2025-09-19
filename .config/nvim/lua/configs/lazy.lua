@@ -2,7 +2,13 @@ return {
   defaults = { lazy = true },
   install = { colorscheme = { "nvchad" } },
 
+  -- ui config
   ui = {
+    border = "single",
+    size = {
+      width = 0.8,
+      height = 0.8,
+    },
     icons = {
       ft = "",
       lazy = "󰂠 ",
