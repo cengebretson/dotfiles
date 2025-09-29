@@ -6,12 +6,16 @@
 local M = {}
 
 M.base46 = {
-  theme = "tokyonight",
+  theme = "nord",
   transparency = true,
   hl_override = {
     Comment = { italic = true },
     ["@comment"] = { italic = true },
   },
+}
+
+M.lsp = {
+  signature = false,
 }
 
 M.nvdash = {
@@ -20,6 +24,9 @@ M.nvdash = {
 }
 
 M.ui = {
+  cmp = {
+    style = "atom",
+  },
   telescope = {
     style = "bordered",
   },
