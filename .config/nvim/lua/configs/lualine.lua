@@ -138,6 +138,17 @@ return function(_, opts)
       separator(),
       {
         function()
+          return require("lsp-progress").progress {
+            max_size = 50,
+          }
+        end,
+        color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
+        padding = { left = 1, right = 1 },
+      },
+    },
+    lualine_x = {
+      {
+        function()
           local bufnr_list = vim.fn.getbufinfo { buflisted = 1 }
           local total = #bufnr_list
           local current_bufnr = vim.api.nvim_get_current_buf()
@@ -152,11 +163,10 @@ return function(_, opts)
 
           return string.format(" %d/%d", current_index, total)
         end,
-        color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
+        color = { fg = colors.blue, bg = bgColor, gui = "bold" },
         padding = { left = 1, right = 1 },
       },
-    },
-    lualine_x = {
+      separator(),
       {
         "fileformat",
         color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
@@ -170,27 +180,6 @@ return function(_, opts)
       {
         "encoding",
         color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
-        padding = { left = 1, right = 1 },
-      },
-      separator(),
-      {
-        function()
-          local size = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
-          if size < 0 then
-            return "-"
-          else
-            if size < 1024 then
-              return size .. "B"
-            elseif size < 1024 * 1024 then
-              return string.format("%.1fK", size / 1024)
-            elseif size < 1024 * 1024 * 1024 then
-              return string.format("%.1fM", size / (1024 * 1024))
-            else
-              return string.format("%.1fG", size / (1024 * 1024 * 1024))
-            end
-          end
-        end,
-        color = { fg = colors.blue, bg = bgColor, gui = "bold" },
         padding = { left = 1, right = 1 },
       },
     },
@@ -233,7 +222,22 @@ return function(_, opts)
     lualine_z = {
       separator(),
       {
-        "progress",
+        function()
+          local size = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
+          if size < 0 then
+            return "-"
+          else
+            if size < 1024 then
+              return size .. "B"
+            elseif size < 1024 * 1024 then
+              return string.format("%.1fK", size / 1024)
+            elseif size < 1024 * 1024 * 1024 then
+              return string.format("%.1fM", size / (1024 * 1024))
+            else
+              return string.format("%.1fG", size / (1024 * 1024 * 1024))
+            end
+          end
+        end,
         color = { fg = colors.red, bg = bgColor, gui = "bold" },
         padding = { left = 1, right = 0 },
       },
