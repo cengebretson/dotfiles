@@ -1,20 +1,39 @@
 return {
 
   {
+    "stevearc/quicker.nvim",
+    ft = "qf",
+    opts = {},
+    keys = {
+      {
+        ">",
+        function()
+          require("quicker").expand { before = 2, after = 2, add_to_existing = true }
+        end,
+        desc = "Expand quickfix context",
+      },
+      {
+        "<",
+        function()
+          require("quicker").collapse()
+        end,
+        desc = "Collapse quickfix context",
+      },
+    },
+  },
+
+  { "Bakudankun/PICO-8.vim", opts = {} },
+
+  { "linrongbin16/lsp-progress.nvim", opts = require "configs.lspprogress" },
+
+  {
     "alexghergh/nvim-tmux-navigation",
+    lazy = false,
     config = function()
       local nvim_tmux_nav = require "nvim-tmux-navigation"
-
       nvim_tmux_nav.setup {
         disable_when_zoomed = true, -- defaults to false
       }
-
-      vim.keymap.set("n", "<C-h>", nvim_tmux_nav.NvimTmuxNavigateLeft)
-      vim.keymap.set("n", "<C-j>", nvim_tmux_nav.NvimTmuxNavigateDown)
-      vim.keymap.set("n", "<C-k>", nvim_tmux_nav.NvimTmuxNavigateUp)
-      vim.keymap.set("n", "<C-l>", nvim_tmux_nav.NvimTmuxNavigateRight)
-      vim.keymap.set("n", "<C-\\>", nvim_tmux_nav.NvimTmuxNavigateLastActive)
-      vim.keymap.set("n", "<C-Space>", nvim_tmux_nav.NvimTmuxNavigateNext)
     end,
   },
 
@@ -99,8 +118,7 @@ return {
   {
     "folke/todo-comments.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
-    lazy = false,
-    opts = {},
+    event = "VeryLazy",
   },
 
   {
@@ -109,8 +127,7 @@ return {
     opts = {},
     dependencies = {
       "MunifTanjim/nui.nvim",
-      -- OPTIONAL:
-      -- "rcarriga/nvim-notify",
+      "rcarriga/nvim-notify",
     },
   },
 
@@ -141,6 +158,11 @@ return {
         "vimdoc",
         "html",
         "css",
+        "dart",
+        "javascript",
+        "typescript",
+        "go",
+        "python",
       },
     },
   },
