@@ -73,7 +73,11 @@ return function(_, opts)
       {
         "mode",
         fmt = function(str)
-          return str:sub(1, 1)
+          local reg = vim.fn.reg_recording()
+          if reg ~= "" then
+            reg = "@" .. reg .. " "
+          end
+          return reg .. str:sub(1, 1)
         end,
         color = function()
           local mode = vim.fn.mode()

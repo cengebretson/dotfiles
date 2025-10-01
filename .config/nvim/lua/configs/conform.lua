@@ -14,7 +14,7 @@ local options = {
     markdown = { "prettierd", "prettier", stop_after_first = true },
     erb = { "htmlbeautifier" },
     html = { "htmlbeautifier" },
-    python = { "ruff" },
+    python = { "ruff_organize_imports", "ruff_format" },
     bash = { "beautysh" },
     proto = { "buf" },
     rust = { "rustfmt" },

@@ -1,30 +1,39 @@
 return {
+  {
+    "kawre/leetcode.nvim",
+    cmd = "Leet",
+    build = ":TSUpdate html", -- if you have `nvim-treesitter` installed
+    dependencies = {
+      "nvim-lua/plenary.nvim",
+      "MunifTanjim/nui.nvim",
+    },
+    opts = {
+      lang = "python3",
+      picker = { provider = "telescope" },
+    },
+  },
+
+  {
+    "benfowler/telescope-luasnip.nvim",
+    module = "telescope._extensions.luasnip",
+  },
 
   {
     "stevearc/quicker.nvim",
     ft = "qf",
     opts = {},
-    keys = {
-      {
-        ">",
-        function()
-          require("quicker").expand { before = 2, after = 2, add_to_existing = true }
-        end,
-        desc = "Expand quickfix context",
-      },
-      {
-        "<",
-        function()
-          require("quicker").collapse()
-        end,
-        desc = "Collapse quickfix context",
-      },
-    },
+    keys = require "configs.quicker",
   },
 
-  { "Bakudankun/PICO-8.vim", opts = {} },
+  { "Bakudankun/PICO-8.vim", ft = "pico8", opts = {} },
 
   { "linrongbin16/lsp-progress.nvim", opts = require "configs.lspprogress" },
+
+  {
+    "pmizio/typescript-tools.nvim",
+    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+    opts = {},
+  },
 
   {
     "alexghergh/nvim-tmux-navigation",
@@ -50,13 +59,6 @@ return {
   },
 
   {
-    "nvzone/timerly",
-    dependencies = "nvzone/volt",
-    cmd = "TimerlyToggle",
-    opts = {}, -- optional
-  },
-
-  {
     "folke/which-key.nvim",
     event = "VeryLazy",
     opts = {
@@ -64,7 +66,11 @@ return {
     },
   },
 
-  { "folke/neodev.nvim", opts = {} },
+  {
+    "folke/lazydev.nvim",
+    ft = "lua", -- only load on lua files
+    opts = {},
+  },
 
   {
     "nvzone/typr",
@@ -113,8 +119,6 @@ return {
     end,
   },
 
-  { "nvim-mini/mini.ai", lazy = false, opts = {} },
-
   {
     "folke/todo-comments.nvim",
     dependencies = { "nvim-lua/plenary.nvim" },
@@ -124,10 +128,10 @@ return {
   {
     "folke/noice.nvim",
     event = "VeryLazy",
-    opts = {},
+    opts = require "configs.noice",
     dependencies = {
       "MunifTanjim/nui.nvim",
-      "rcarriga/nvim-notify",
+      -- "rcarriga/nvim-notify",
     },
   },
 
@@ -138,7 +142,7 @@ return {
     event = "VeryLazy",
     opts = {},
     ft = { "markdown", "codecompanion" },
-    dependencies = { "ynvim-treesitter/nvim-treesitter", "echasnovski/mini.icons" },
+    dependencies = { "nvim-treesitter/nvim-treesitter", "echasnovski/mini.icons" },
   },
 
   {
@@ -151,19 +155,6 @@ return {
 
   {
     "nvim-treesitter/nvim-treesitter",
-    opts = {
-      ensure_installed = {
-        "vim",
-        "lua",
-        "vimdoc",
-        "html",
-        "css",
-        "dart",
-        "javascript",
-        "typescript",
-        "go",
-        "python",
-      },
-    },
+    opts = require "configs.treesitter",
   },
 }

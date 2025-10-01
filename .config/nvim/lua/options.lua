@@ -9,6 +9,9 @@ o.wrap = false
 o.cursorline = true
 o.cursorlineopt = "both"
 
+-- border on windows
+o.winborder = "rounded"
+
 -- enable relatiove number
 o.relativenumber = true
 

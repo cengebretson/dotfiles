@@ -2,8 +2,13 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+-- essential keymaps
 map("n", ";", ":", { desc = "CMD enter command mode" })
-map("i", "jk", "<ESC>")
+map("i", "jk", "<ESC>", { desc = "Exit insert mode" })
+map("v", "p", '"_dP', { desc = "Better paste" })
+map("n", "Y", "y$", { desc = "Yank to end of line" })
+map("v", "J", ":m '>+1<CR>gv=gv", { desc = "Move selection up" })
+map("v", "K", ":m '<-2<CR>gv=gv", { desc = "Move selection down" })
 
 -- quickfix and loclist maps
 map("n", "<leader>qf", vim.diagnostic.setqflist, { desc = "Set QuickFix List" })
@@ -79,6 +84,10 @@ map("n", "<leader>fd", "<cmd>Telescope diagnostics<cr>", {
 
 map("n", "<leader>ft", "<cmd>TodoTelescope<cr>", {
   desc = "Telescope Find Todo",
+})
+
+map("n", "<leader>fs", "<cmd>Telescope luasnip<cr>", {
+  desc = "Telescope Find snippets",
 })
 
 -- page movement
