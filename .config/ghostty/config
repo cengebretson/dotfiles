@@ -6,7 +6,7 @@ bold-is-bright = true
 
 # theme
 theme = Catppuccin Mocha
-background-opacity = .85
+background-opacity = .90
 background-blur-radius = 25
 
 # cursor
