@@ -2,6 +2,11 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+-- overwriting the same lines in NvChad mapping file, in order to add 'async = true'
+map("n", "<leader>fm", function()
+  require("conform").format { async = true, lsp_fallback = true }
+end, { desc = "custom format files" })
+
 -- essential keymaps
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>", { desc = "Exit insert mode" })

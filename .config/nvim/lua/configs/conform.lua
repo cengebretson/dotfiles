@@ -7,17 +7,11 @@ local options = {
     javascriptreact = { "prettierd", "prettier", stop_after_first = true },
     typescriptreact = { "prettierd", "prettier", stop_after_first = true },
     json = { "prettierd", "prettier", stop_after_first = true },
-    graphql = { "prettierd", "prettier", stop_after_first = true },
     java = { "google-java-format" },
-    kotlin = { "ktlint" },
-    -- ruby = { "standardrb" },
     markdown = { "prettierd", "prettier", stop_after_first = true },
-    erb = { "htmlbeautifier" },
     html = { "htmlbeautifier" },
     python = { "ruff_organize_imports", "ruff_format" },
     bash = { "beautysh" },
-    proto = { "buf" },
-    rust = { "rustfmt" },
     yaml = { "yamlfix" },
     toml = { "taplo" },
     css = { "prettierd", "prettier", stop_after_first = true },
@@ -29,7 +23,6 @@ local options = {
   },
 
   format_on_save = {
-    -- These options will be passed to conform.format()
     timeout_ms = 500,
     lsp_fallback = true,
   },
