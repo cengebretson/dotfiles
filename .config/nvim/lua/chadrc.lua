@@ -6,9 +6,12 @@
 local M = {}
 
 M.base46 = {
-  theme = "nord",
+  theme = "tokyonight",
   transparency = true,
   hl_override = {
+    CursorLine = {
+      bg = "black2",
+    },
     Comment = { italic = true },
     ["@comment"] = { italic = true },
   },
@@ -19,6 +22,8 @@ M.lsp = {
 }
 
 M.nvdash = {
+  ---@diagnostic disable-next-line: assign-type-mismatch
+  buttons = require "configs.nvdash",
   header = require("configs.headers").get_header(0, true),
   load_on_startup = true,
 }
