@@ -18,7 +18,7 @@ mouse-scroll-multiplier = 2
 
 # window settings
 window-padding-x = 10
-window-padding-y = 0
+window-padding-y = 5
 window-padding-balance = true
 window-save-state = always
 window-colorspace = "display-p3"
