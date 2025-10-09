@@ -1,3 +1,13 @@
+```
+#
+#       ▄▄▄▖▐                    ▝                          ▝▜                  ▝▜   ▝  ▐                  ▖
+#        ▐  ▐▗▖  ▄▖  ▖▄  ▄▖     ▗▄   ▄▖     ▗▗▖  ▄▖     ▗▄▖  ▐   ▄▖  ▄▖  ▄▖      ▐  ▗▄  ▐ ▗  ▄▖           ▐
+#        ▐  ▐▘▐ ▐▘▐  ▛ ▘▐▘▐      ▐  ▐ ▝     ▐▘▐ ▐▘▜     ▐▘▜  ▐  ▝ ▐ ▐▘▝ ▐▘▐      ▐   ▐  ▐▗▘ ▐▘▐     ▗▄ ▖  ▌
+#        ▐  ▐ ▐ ▐▀▀  ▌  ▐▀▀      ▐   ▀▚     ▐ ▐ ▐ ▐     ▐ ▐  ▐  ▗▀▜ ▐   ▐▀▀      ▐   ▐  ▐▜  ▐▀▀     ▝ ▀▘ ▐
+#        ▐  ▐ ▐ ▝▙▞  ▌  ▝▙▞     ▗▟▄ ▝▄▞     ▐ ▐ ▝▙▛     ▐▙▛  ▝▄ ▝▄▜ ▝▙▞ ▝▙▞      ▝▄ ▗▟▄ ▐ ▚ ▝▙▞          ▌
+#                                                       ▐                                               ▝
+#                                                       ▝
+```
 
 ## 🌟 My Setup
 
@@ -7,62 +17,90 @@
 [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit)
 [![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles)
 
-A curated collection of tools and configs that power my daily workflow.  
+A curated collection of tools and configs that power my daily workflow.
 
-### 🌀 Lazygit 
-A simple, fast, and powerful Git UI for the terminal.  
-- Streamlined staging, commits, and branches  
-- Interactive rebasing & conflict resolution  
-- Keyboard-first, minimal interface  
+### 🌀 Lazygit
+
+A simple, fast, and powerful Git UI for the terminal.
+
+- Streamlined staging, commits, and branches
+- Interactive rebasing & conflict resolution
+- Keyboard-first, minimal interface
 - Integrates smoothly with Fish & Neovim
 
-### 🐟 Fish Shell  
-My interactive shell for a smooth terminal experience.  
-- Smart suggestions & autosuggestions  
-- User-friendly scripting  
-- Fast and modern alternative to Bash/Zsh  
+### 🐟 Fish Shell
+
+My interactive shell for a smooth terminal experience.
+
+- Smart suggestions & autosuggestions
+- User-friendly scripting
+- Fast and modern alternative to Bash/Zsh
 - Customized with aliases, functions, and themes
 
-### 👻 Ghostty  
-My terminal of choice — modern, GPU-accelerated, and lightning fast.  
-- Clean and minimal design  
-- High-performance rendering  
-- Configurable and lightweight  
-- Plays beautifully with Neovim & Superfile  
+### 👻 Ghostty
 
-### 📝 Neovim  
-My main editor — lightweight yet powerful.  
-- Custom keymaps & plugins  
-- LSP + Treesitter + formatting  
-- Designed for speed & focus  
+My terminal of choice — modern, GPU-accelerated, and lightning fast.
 
-### ⚡ NvChad  
-A Neovim distribution I extend with my own tweaks.  
-- Beautiful UI out of the box  
-- Powerful defaults, minimal bloat  
+- Clean and minimal design
+- High-performance rendering
+- Configurable and lightweight
+- Plays beautifully with Neovim & Superfile
+
+### 📝 Neovim
+
+My main editor — lightweight yet powerful.
+
+- Custom keymaps & plugins
+- LSP + Treesitter + formatting
+- Designed for speed & focus
+
+### ⚡ NvChad
+
+A Neovim distribution I extend with my own tweaks.
+
+- Beautiful UI out of the box
+- Powerful defaults, minimal bloat
 - Extra plugins layered on top  
+  [Website](https://nvchad.com/)
 
-### 📂 Superfile  
-A modern, terminal file manager.  
-- Keyboard-driven navigation  
-- Fast + clean interface  
+### 📂 Superfile
+
+A modern, terminal file manager.
+
+- Keyboard-driven navigation
+- Fast + clean interface
 - Integrated with my Neovim workflow  
+  [GitHub](https://github.com/yorukot/superfile)
 
-### 💻 Neofetch  
-For showing off system info in style.  
-- Custom ASCII logos  
-- Minimalist configs  
+### 💻 Neofetch
+
+For showing off system info in style.
+
+- Custom ASCII logos
+- Minimalist configs
 - Perfect for screenshots  
+  [GitHub](https://github.com/dylanaraps/neofetch)
 
 ---
 
-### 📦 Usage
+### 📦 Installation
 
-Note to future self, run the following command to install dotfiles using a bare git repo
+Note to future self.....
+
+- Run the following command to install dotfiles (using a bare git repo)
 
 ```bash
 curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setup.sh | bash
 ```
 
+- Install applications using brew
 
+```bash
+brew bundle install --file=~/.config/Brewfile
+```
 
+- Run fish command for fish plugins
+
+```bash
+fisher update
+```
