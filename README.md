@@ -76,7 +76,7 @@ For showing off system info in style.
 
 Note to future self.....
 
-- Run the following command to install dotfiles (using a bare git repo)
+- Run the following command to install dotfiles and packages (using a bare git repo)
 
 ```bash
 curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setup.sh | bash
@@ -93,3 +93,12 @@ brew bundle install --file=~/.config/Brewfile
 ```bash
 fisher update
 ```
+
+--- 
+
+### Gallery
+
+ <img width="1480" height="1022" alt="screen" src="https://github.com/user-attachments/assets/67b05dc3-6296-48ab-a74b-27c4a3c1b21f" />
+
+
+
