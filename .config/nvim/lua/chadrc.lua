@@ -6,7 +6,7 @@
 local M = {}
 
 M.base46 = {
-  theme = "tokyonight",
+  theme = "catppuccin",
   transparency = true,
   hl_override = {
     CursorLine = {
@@ -23,15 +23,16 @@ M.lsp = {
 
 M.nvdash = {
   ---@diagnostic disable-next-line: assign-type-mismatch
-  buttons = require "configs.nvdash",
+  --- buttons = require "configs.nvdash",
   header = require("configs.headers").get_header(0, true),
   load_on_startup = true,
 }
 
+M.cheatsheet = {
+  theme = "grid",
+}
+
 M.ui = {
-  cmp = {
-    style = "atom",
-  },
   telescope = {
     style = "bordered",
   },

@@ -1,4 +1,6 @@
 return {
+  { import = "nvchad.blink.lazyspec" },
+
   {
     "kawre/leetcode.nvim",
     cmd = "Leet",
