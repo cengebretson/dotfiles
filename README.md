@@ -1,40 +1,10 @@
 # 🅃🄷🄴🅁🄴 🄸🅂 🄽🄾 🄿🄻🄰🄲🄴 🄻🄸🄺🄴 ~
 
-<table>
-  <tr>
-    <td>
-      <a href="https://neovim.io/"><img src="https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white" alt="Neovim"></a>
-    </td>
-    <td>
-      <a href="https://ghostty.org/"><img src="https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white" alt="Ghostty"></a>
-    </td>
-    <td>
-      <a href="https://fishshell.com/"><img src="https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white" alt="Fish Shell"></a>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://github.com/jesseduffield/lazygit"><img src="https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white" alt="Lazygit"></a>
-    </td>
-    <td>
-      <a href="https://github.com/cengebretson/dotfiles"><img src="https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green" alt="Last Commit"></a>
-    </td>
-    <td>
-      <a href="https://nvchad.com/"><img src="https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white" alt="NvChad"></a>
-    </td>
-  </tr>
-  <tr>
-    <td>
-      <a href="https://github.com/yorukot/superfile"><img src="https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white" alt="Superfile"></a>
-    </td>
-    <td>
-      <a href="https://github.com/dylanaraps/neofetch"><img src="https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white" alt="Neofetch"></a>
-    </td>
-    <td>
-      <a href="https://opencode.ai"><img src="https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white" alt="Opencode"></a>
-    </td>
-  </tr>
-</table>
+| [![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) | [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) | [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) |
+| --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) | [![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles) | [![NvChad](https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white)](https://nvchad.com/) |
+| --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- |
+| [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile) | [![Neofetch](https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dylanaraps/neofetch) | [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai) |
 
 A curated collection of tools and configs that power my daily workflow.
 
