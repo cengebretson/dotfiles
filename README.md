@@ -3,35 +3,35 @@
 <table>
   <tr>
     <td>
-      [![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/)
+      <a href="https://neovim.io/"><img src="https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white" alt="Neovim"></a>
     </td>
     <td>
-      [![Terminal](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/)
+      <a href="https://ghostty.org/"><img src="https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white" alt="Ghostty"></a>
     </td>
     <td>
-      [![Fish](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/)
-    </td>
-  </tr>
-  <tr>
-    <td>
-      [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit)
-    </td>
-    <td>
-      [![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles)
-    </td>
-    <td>
-      [![NvChad](https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white)](https://nvchad.com/)
+      <a href="https://fishshell.com/"><img src="https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white" alt="Fish Shell"></a>
     </td>
   </tr>
   <tr>
     <td>
-      [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile)
+      <a href="https://github.com/jesseduffield/lazygit"><img src="https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white" alt="Lazygit"></a>
     </td>
     <td>
-      [![Neofetch](https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dylanaraps/neofetch)
+      <a href="https://github.com/cengebretson/dotfiles"><img src="https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green" alt="Last Commit"></a>
     </td>
     <td>
-      [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
+      <a href="https://nvchad.com/"><img src="https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white" alt="NvChad"></a>
+    </td>
+  </tr>
+  <tr>
+    <td>
+      <a href="https://github.com/yorukot/superfile"><img src="https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white" alt="Superfile"></a>
+    </td>
+    <td>
+      <a href="https://github.com/dylanaraps/neofetch"><img src="https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white" alt="Neofetch"></a>
+    </td>
+    <td>
+      <a href="https://opencode.ai"><img src="https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white" alt="Opencode"></a>
     </td>
   </tr>
 </table>
