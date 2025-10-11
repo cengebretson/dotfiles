@@ -1,14 +1,40 @@
 # 🅃🄷🄴🅁🄴 🄸🅂 🄽🄾 🄿🄻🄰🄲🄴 🄻🄸🄺🄴 ~
 
-[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/)
-[![Terminal](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/)
-[![Fish](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/)
-[![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit)
-[![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles)
-[![NvChad](https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white)](https://nvchad.com/)
-[![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile)
-[![Neofetch](https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dylanaraps/neofetch)
-[![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
+<table>
+  <tr>
+    <td>
+      [![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/)
+    </td>
+    <td>
+      [![Terminal](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/)
+    </td>
+    <td>
+      [![Fish](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/)
+    </td>
+  </tr>
+  <tr>
+    <td>
+      [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit)
+    </td>
+    <td>
+      [![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles)
+    </td>
+    <td>
+      [![NvChad](https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white)](https://nvchad.com/)
+    </td>
+  </tr>
+  <tr>
+    <td>
+      [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile)
+    </td>
+    <td>
+      [![Neofetch](https://img.shields.io/badge/Neofetch-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/dylanaraps/neofetch)
+    </td>
+    <td>
+      [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
+    </td>
+  </tr>
+</table>
 
 A curated collection of tools and configs that power my daily workflow.
 
