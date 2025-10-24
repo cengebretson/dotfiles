@@ -1,7 +1,7 @@
 # font settings
 font-size = 16
 font-family = "JetBrains Mono NL"
-adjust-cell-height = 15%
+adjust-cell-height = 25%
 bold-is-bright = true
 
 # theme
