@@ -22,3 +22,7 @@ starship init fish | source
 
 # zoxide integration to use j and ji keys
 zoxide init --cmd j fish | source
+
+# bun
+set --export BUN_INSTALL "$HOME/.bun"
+set --export PATH $BUN_INSTALL/bin $PATH
