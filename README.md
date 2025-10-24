@@ -8,68 +8,33 @@ A curated collection of tools and configs that power my daily workflow.
 
 A simple, fast, and powerful Git UI for the terminal.
 
-- Streamlined staging, commits, and branches
-- Interactive rebasing & conflict resolution
-- Keyboard-first, minimal interface
-- Integrates smoothly with Fish & Neovim
-
 ### 🐟 Fish Shell
 
 My interactive shell for a smooth terminal experience.
-
-- Smart suggestions & autosuggestions
-- User-friendly scripting
-- Fast and modern alternative to Bash/Zsh
-- Customized with aliases, functions, and themes
 
 ### 👻 Ghostty
 
 My terminal of choice — modern, GPU-accelerated, and lightning fast.
 
-- Clean and minimal design
-- High-performance rendering
-- Configurable and lightweight
-- Plays beautifully with Neovim & Superfile
-
 ### 📝 Neovim
 
 My main editor — lightweight yet powerful.
-
-- Custom keymaps & plugins
-- LSP + Treesitter + formatting
-- Designed for speed & focus
 
 ### ⚡ NvChad
 
 A Neovim distribution I extend with my own tweaks.
 
-- Beautiful UI out of the box
-- Powerful defaults, minimal bloat
-- Extra plugins layered on top
-
 ### 📂 Superfile
 
 A modern, terminal file manager.
-
-- Keyboard-driven navigation
-- Fast + clean interface
-- Integrated with my Neovim workflow
 
 ### 💻 Neofetch
 
 For showing off system info in style.
 
-- Custom ASCII logos
-- Minimalist configs
-- Perfect for screenshots
-
 ### 🤖 Opencode
 
 An interactive CLI tool that helps with software engineering tasks.
-
-- Assists with coding, debugging, and more
-- Uses AI to provide guidance
-- Integrated with various tools
 
 ---
 
