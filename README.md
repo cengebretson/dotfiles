@@ -6,35 +6,35 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🌀 Lazygit
 
-A simple, fast, and powerful Git UI for the terminal.
+ * A simple, fast, and powerful Git UI for the terminal.
 
 #### 🐟 Fish Shell
 
-My interactive shell for a smooth terminal experience.
+ * My interactive shell for a smooth terminal experience.
 
 #### 👻 Ghostty
 
-My terminal of choice — modern, GPU-accelerated, and lightning fast.
+ * My terminal of choice — modern, GPU-accelerated, and lightning fast.
 
 #### 📝 Neovim
 
-My main editor — lightweight yet powerful.
+ * My main editor — lightweight yet powerful.
 
 #### ⚡ NvChad
 
-A Neovim distribution I extend with my own tweaks.
+ * A Neovim distribution I extend with my own tweaks.
 
 #### 📂 Superfile
 
-A modern, terminal file manager.
+ * A modern, terminal file manager.
 
 #### 💻 Neofetch
 
-For showing off system info in style.
+ *F or showing off system info in style.
 
 #### 🤖 Opencode
 
-An interactive CLI tool that helps with software engineering tasks.
+ * An interactive CLI tool that helps with software engineering tasks.
 
 ---
 
