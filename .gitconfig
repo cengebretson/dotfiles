@@ -2,7 +2,11 @@
 	excludesfile = /Users/chris/.gitignore
 	editor = /usr/local/bin/vim
 	abbrev = 7
-	pager = delta
+  pager = delta
+[include]
+	path = /Users/chris/.config/delta/catppuccin.gitconfig
+[delta]
+	features = catppuccin-frappe
 [mergetool]
 	keepBackup = false
 	prompt = false
