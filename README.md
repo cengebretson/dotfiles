@@ -4,35 +4,35 @@
 
 A curated collection of tools and configs that power my daily workflow.
 
-### 🌀 Lazygit
+#### 🌀 Lazygit
 
 A simple, fast, and powerful Git UI for the terminal.
 
-### 🐟 Fish Shell
+#### 🐟 Fish Shell
 
 My interactive shell for a smooth terminal experience.
 
-### 👻 Ghostty
+#### 👻 Ghostty
 
 My terminal of choice — modern, GPU-accelerated, and lightning fast.
 
-### 📝 Neovim
+#### 📝 Neovim
 
 My main editor — lightweight yet powerful.
 
-### ⚡ NvChad
+#### ⚡ NvChad
 
 A Neovim distribution I extend with my own tweaks.
 
-### 📂 Superfile
+#### 📂 Superfile
 
 A modern, terminal file manager.
 
-### 💻 Neofetch
+#### 💻 Neofetch
 
 For showing off system info in style.
 
-### 🤖 Opencode
+#### 🤖 Opencode
 
 An interactive CLI tool that helps with software engineering tasks.
 
@@ -69,4 +69,3 @@ fisher update
 ---
 
 [![Last Commit](https://img.shields.io/github/last-commit/cengebretson/dotfiles?style=for-the-badge&color=green)](https://github.com/cengebretson/dotfiles)
-
