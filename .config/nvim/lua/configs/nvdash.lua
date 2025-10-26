@@ -108,10 +108,10 @@ return function()
       multicolumn = true,
       pad = 3,
       content = "fit",
-      { txt = "  Update [u]", hl = "changed", keys = "u", cmd = ":Lazy sync <cr>" },
+      { txt = "  Update [U]", hl = "changed", keys = "U", cmd = ":Lazy sync <cr>" },
       { txt = "  Files [F]", hl = "Added", keys = "F", cmd = ":Telescope find_files <cr>" },
-      { txt = "  Config [c]", hl = "nviminternalError", keys = "c", cmd = ":e ~/.config/nvim/init.lua <cr>" },
-      { txt = "󱥚  Themes [t]", keys = "t", cmd = ":Telescope themes <cr>" },
+      { txt = "  Config [C]", hl = "nviminternalError", keys = "C", cmd = ":e ~/.config/nvim/init.lua <cr>" },
+      { txt = "󱥚  Themes [T]", keys = "T", cmd = ":Telescope themes <cr>" },
     },
 
     {
@@ -135,21 +135,21 @@ return function()
   }
 
   set_recent_files(layout)
-  table.insert(layout, { txt = "", no_gap = true })
+  -- table.insert(layout, { txt = "", no_gap = true })
 
-  table.insert(layout, {
-    txt = "  Recent Projects",
-    hl = "String",
-    no_gap = true,
-    group = "recent_files",
-  })
-
-  table.insert(
-    layout,
-    { txt = "─", hl = "comment", no_gap = true, rep = true, group = "recent_files", content = "fit" }
-  )
-
-  set_recent_folders(layout)
+  -- table.insert(layout, {
+  --   txt = "  Recent Projects",
+  --   hl = "String",
+  --   no_gap = true,
+  --   group = "recent_files",
+  -- })
+  --
+  -- table.insert(
+  --   layout,
+  --   { txt = "─", hl = "comment", no_gap = true, rep = true, group = "recent_files", content = "fit" }
+  -- )
+  --
+  -- set_recent_folders(layout)
 
   return layout
 end

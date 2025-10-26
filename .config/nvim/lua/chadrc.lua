@@ -23,7 +23,7 @@ M.lsp = {
 
 M.nvdash = {
   ---@diagnostic disable-next-line: assign-type-mismatch
-  --- buttons = require "configs.nvdash",
+  buttons = require "configs.nvdash",
   header = require("configs.headers").get_header(0, true),
   load_on_startup = true,
 }

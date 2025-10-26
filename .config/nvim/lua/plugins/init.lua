@@ -27,7 +27,7 @@ return {
       "MunifTanjim/nui.nvim",
     },
     opts = {
-      lang = "python3",
+      lang = "typescript",
       picker = { provider = "telescope" },
     },
   },
