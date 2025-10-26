@@ -7,6 +7,11 @@ map("n", "<leader>fm", function()
   require("conform").format { async = true, lsp_fallback = true }
 end, { desc = "custom format files" })
 
+-- trigger tiny code action
+map({ "n", "x" }, "<leader>ca", function()
+  require("tiny-code-action").code_action {}
+end, { noremap = true, silent = true, desc = "tiny code action" })
+
 -- essential keymaps
 map("n", ";", ":", { desc = "CMD enter command mode" })
 map("i", "jk", "<ESC>", { desc = "Exit insert mode" })

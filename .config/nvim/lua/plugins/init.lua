@@ -2,6 +2,23 @@ return {
   { import = "nvchad.blink.lazyspec" },
 
   {
+    "rachartier/tiny-code-action.nvim",
+    dependencies = {
+      { "nvim-lua/plenary.nvim" },
+      { "nvim-telescope/telescope.nvim" },
+    },
+    event = "LspAttach",
+    opts = {
+      backend = "delta",
+      backend_opts = {
+        delta = {
+          args = {},
+        },
+      },
+    },
+  },
+
+  {
     "kawre/leetcode.nvim",
     cmd = "Leet",
     build = ":TSUpdate html", -- if you have `nvim-treesitter` installed
