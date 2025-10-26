@@ -6,5 +6,14 @@ vim.lsp.config("pico8_ls", {
   filetypes = { "p8", "pico8" },
 })
 
-local servers = { "html", "cssls", "pico8_ls", "basedpyright", "ts_ls", "eslint", "ruff" }
+-- allow biome to perform diagnostics
+vim.lsp.config("ts_ls", {
+  settings = {
+    format = { enable = false },
+    diagnostics = { ignoredCodes = { 6133 } },
+  },
+})
+
+-- enable servers
+local servers = { "html", "cssls", "pico8_ls", "basedpyright", "ts_ls", "biome", "ruff" }
 vim.lsp.enable(servers)
