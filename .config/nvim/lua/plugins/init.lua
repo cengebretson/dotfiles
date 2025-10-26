@@ -10,11 +10,7 @@ return {
     event = "LspAttach",
     opts = {
       backend = "delta",
-      backend_opts = {
-        delta = {
-          args = {},
-        },
-      },
+      backend_opts = { delta = { args = {} } },
     },
   },
 
@@ -47,12 +43,6 @@ return {
   { "Bakudankun/PICO-8.vim", ft = "pico8", opts = {} },
 
   { "linrongbin16/lsp-progress.nvim", opts = require "configs.lspprogress" },
-
-  {
-    "pmizio/typescript-tools.nvim",
-    dependencies = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-    opts = {},
-  },
 
   {
     "alexghergh/nvim-tmux-navigation",

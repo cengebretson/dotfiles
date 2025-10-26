@@ -17,3 +17,9 @@ o.relativenumber = true
 
 -- disable swap file
 o.swapfile = false
+
+-- show search matches as you type
+o.incsearch = true
+
+-- show live preview of substitute command
+o.inccommand = "split"

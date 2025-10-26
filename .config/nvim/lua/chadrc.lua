@@ -6,11 +6,20 @@
 local M = {}
 
 M.base46 = {
-  theme = "tokyonight",
+  theme = "nord",
   transparency = true,
   hl_override = {
+    TbBufOff = {
+      bg = "base00",
+    },
+    TbBufOffClose = {
+      bg = "one_bg",
+    },
+    TbBufOffModified = {
+      bg = "one_bg",
+    },
     CursorLine = {
-      bg = "black2",
+      bg = "one_bg",
     },
     Comment = { italic = true },
     ["@comment"] = { italic = true },

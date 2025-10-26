@@ -109,6 +109,9 @@ map("n", "<C-u>", "<C-u>zz", {
   desc = "Jump Half page up",
 })
 
+map("n", "n", "nzzzv") -- Keeps the search result in the center after jumping to next result
+map("n", "N", "Nzzzv") -- Keeps the search result in the center after jumping to previous result
+
 -- tmux navigator
 map("n", "<C-h>", "<cmd> NvimTmuxNavigateLeft<CR>", { desc = "window left" })
 map("n", "<C-l>", "<cmd> NvimTmuxNavigateRight<CR>", { desc = "window right" })
@@ -119,3 +122,15 @@ map("n", "<C-k>", "<cmd> NvimTmuxNavigateUp<CR>", { desc = "window up" })
 map("n", "<leader>X", function()
   require("nvchad.tabufline").closeAllBufs(false)
 end, { desc = "Close other buffers" })
+
+-- gitsigns
+map("n", "<leader>hn", "<cmd>lua require'gitsigns'.next_hunk()<CR>", { desc = "Next hunk" })
+map("n", "<leader>hp", "<cmd>lua require'gitsigns'.prev_hunk()<CR>", { desc = "Previous hunk" })
+map("n", "<leader>hs", "<cmd>lua require'gitsigns'.stage_hunk()<CR>", { desc = "Stage hunk" })
+map("n", "<leader>hu", "<cmd>lua require'gitsigns'.undo_stage_hunk()<CR>", { desc = "Undo stage hunk" })
+map("n", "<leader>hr", "<cmd>lua require'gitsigns'.reset_hunk()<CR>", { desc = "Reset hunk" })
+map("n", "<leader>hR", "<cmd>lua require'gitsigns'.reset_buffer()<CR>", { desc = "Reset buffer" })
+map("n", "<leader>hp", "<cmd>lua require'gitsigns'.preview_hunk()<CR>", { desc = "Preview hunk" })
+map("n", "<leader>hb", "<cmd>lua require'gitsigns'.blame_line()<CR>", { desc = "Blame line" })
+map("n", "<leader>hS", "<cmd>lua require'gitsigns'.stage_buffer()<CR>", { desc = "Stage buffer" })
+map("n", "<leader>hU", "<cmd>lua require'gitsigns'.reset_buffer_index()<CR>", { desc = "Reset buffer index" })
