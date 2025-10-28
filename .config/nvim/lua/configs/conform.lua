@@ -16,7 +16,8 @@ local options = {
     toml = { "taplo" },
     sh = { "shellcheck" },
     go = { "gofmt" },
-    xml = { "xmllint" },
+    xml = { "xmlformat" },
+    xslt = { "xmlformat" },
     dart = { "dart_format" },
   },
 

@@ -11,6 +11,7 @@ local opts = {
     "tsx",
     "go",
     "python",
+    "xml",
   },
   incremental_selection = {
     enable = true,

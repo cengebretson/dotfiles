@@ -15,5 +15,5 @@ vim.lsp.config("ts_ls", {
 })
 
 -- enable servers
-local servers = { "html", "cssls", "pico8_ls", "basedpyright", "ts_ls", "biome", "ruff" }
+local servers = { "html", "lemminx", "cssls", "pico8_ls", "basedpyright", "ts_ls", "biome", "ruff" }
 vim.lsp.enable(servers)
