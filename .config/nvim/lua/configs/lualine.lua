@@ -5,7 +5,7 @@ return function(_, opts)
   local colors = require("catppuccin.palettes").get_palette "frappe"
 
   -- TODO: move this to autocommand, and make it transparent for nvdash
-  vim.api.nvim_set_hl(0, "StatusLine", { bg = colors.mantle })
+  vim.api.nvim_set_hl(0, "StatusLine", { bg = colors.crust })
 
   local function separator()
     return {
@@ -21,9 +21,9 @@ return function(_, opts)
     local gitsigns = vim.b.gitsigns_head
     local branch = gitsigns
     if branch == nil or branch == "" then
-      return ""
+      return ""
     else
-      return " " .. branch
+      return " " .. branch
     end
   end
 
@@ -39,7 +39,6 @@ return function(_, opts)
     component_separators = "",
     section_separators = "",
     globalstatus = true,
-    -- disabled_filetypes = { statusline = { "nvdash" } },
   })
 
   opts.sections = {
@@ -49,7 +48,7 @@ return function(_, opts)
         fmt = function(str)
           local reg = vim.fn.reg_recording()
           if reg ~= "" then
-            reg = "@" .. reg .. " "
+            reg = " " .. reg .. ""
           end
           return reg .. str:sub(1, 1)
         end,
@@ -79,14 +78,14 @@ return function(_, opts)
       {
         "filetype",
         icon_only = true,
-        colored = false,
+        colored = true,
         color = { fg = colors.blue, bg = "none" },
         padding = { left = 1, right = 0 },
       },
       {
         "filename",
         file_status = true,
-        path = 4,
+        path = 0,
         shorting_target = 20,
         symbols = {
           modified = "[+]",
@@ -143,7 +142,7 @@ return function(_, opts)
       },
     },
     lualine_z = {
-      separator(),
+      separator(true),
       {
         function()
           return " " .. vim.fn.line "." .. ":" .. vim.fn.col "." -- Example with line/column icon
