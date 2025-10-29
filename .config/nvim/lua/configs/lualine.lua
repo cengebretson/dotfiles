@@ -12,7 +12,7 @@ return function(_, opts)
       function()
         return "󰇝"
       end,
-      color = { fg = colors.surface2, bg = "NONE", gui = "bold" },
+      color = { fg = colors.surface2, bg = "NONE" },
       padding = { left = 0, right = 0 },
     }
   end
@@ -41,19 +41,33 @@ return function(_, opts)
     globalstatus = true,
   })
 
+  local icons = {
+    ["NORMAL"] = " ",
+    ["INSERT"] = " ",
+    ["VISUAL"] = " ",
+    ["REPLACE"] = "󰬳 ",
+    ["COMMAND"] = " ",
+    ["INACTIVE"] = "󰒲 ",
+    ["TERMINAL"] = " ",
+    ["V-BLOCK"] = " ",
+    ["V-LINE"] = "󰒉 ",
+  }
+
   opts.sections = {
     lualine_a = {
       {
         "mode",
+        color = { fg = colors.green, bg = "NONE", gui = "bold" },
         fmt = function(str)
           local reg = vim.fn.reg_recording()
           if reg ~= "" then
-            reg = " " .. reg .. ""
+            reg = " " .. reg .. "  "
           end
-          return reg .. str:sub(1, 1)
+          return reg .. (icons[str] or str)
         end,
         padding = { left = 1, right = 1 },
       },
+      separator(),
     },
     lualine_b = {
       {
@@ -142,7 +156,7 @@ return function(_, opts)
       },
     },
     lualine_z = {
-      separator(true),
+      separator(),
       {
         function()
           return " " .. vim.fn.line "." .. ":" .. vim.fn.col "." -- Example with line/column icon
