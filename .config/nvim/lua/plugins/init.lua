@@ -1,6 +1,8 @@
 return {
   { import = "nvchad.blink.lazyspec" },
 
+  { "catppuccin/nvim", name = "catppuccin", priority = 1000 },
+
   {
     "rachartier/tiny-code-action.nvim",
     dependencies = {

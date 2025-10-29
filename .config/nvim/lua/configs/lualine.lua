@@ -1,53 +1,27 @@
 return function(_, opts)
+  -- Adapted from:
+  -- https://github.com/catppuccin/tmux/discussions/317#discussioncomment-14030975
   local auto = require "lualine.themes.auto"
+  local colors = require("catppuccin.palettes").get_palette "frappe"
 
-  local colors = {
-    rosewater = "#f2d5cf",
-    flamingo = "#eebebe",
-    pink = "#f4b8e4",
-    mauve = "#ca9ee6",
-    red = "#e78284",
-    maroon = "#ea999c",
-    peach = "#ef9f76",
-    yellow = "#e5c890",
-    green = "#a6d189",
-    teal = "#81c8be",
-    sky = "#99d1db",
-    sapphire = "#85c1dc",
-    blue = "#8caaee",
-    lavender = "#babbf1",
-    text = "#c6d0f5",
-    subtext1 = "#b5bfe2",
-    subtext0 = "#a5adce",
-    overlay2 = "#949cbb",
-    overlay1 = "#838ba7",
-    overlay0 = "#737994",
-    surface2 = "#626880",
-    surface1 = "#51576d",
-    surface0 = "#414559",
-    base = "#303446",
-    mantle = "#292c3c",
-    crust = "#232634",
-  }
-
-  local bgColor = colors.crust
+  -- TODO: move this to autocommand, and make it transparent for nvdash
+  vim.api.nvim_set_hl(0, "StatusLine", { bg = colors.mantle })
 
   local function separator()
     return {
       function()
-        return "│"
+        return "󰇝"
       end,
-      color = { fg = colors.surface0, bg = bgColor, gui = "bold" },
+      color = { fg = colors.surface2, bg = "NONE", gui = "bold" },
       padding = { left = 0, right = 0 },
     }
   end
 
   local function custom_branch()
     local gitsigns = vim.b.gitsigns_head
-    local fugitive = vim.fn.exists "*FugitiveHead" == 1 and vim.fn.FugitiveHead() or ""
-    local branch = gitsigns or fugitive
+    local branch = gitsigns
     if branch == nil or branch == "" then
-      return " "
+      return ""
     else
       return " " .. branch
     end
@@ -56,7 +30,7 @@ return function(_, opts)
   local modes = { "normal", "insert", "visual", "replace", "command", "inactive", "terminal" }
   for _, mode in ipairs(modes) do
     if auto[mode] and auto[mode].c then
-      auto[mode].c.bg = bgColor
+      auto[mode].c.bg = "NONE"
     end
   end
 
@@ -65,7 +39,7 @@ return function(_, opts)
     component_separators = "",
     section_separators = "",
     globalstatus = true,
-    disabled_filetypes = { statusline = {}, winbar = {} },
+    -- disabled_filetypes = { statusline = { "nvdash" } },
   })
 
   opts.sections = {
@@ -79,56 +53,40 @@ return function(_, opts)
           end
           return reg .. str:sub(1, 1)
         end,
-        color = function()
-          local mode = vim.fn.mode()
-          if mode == "\22" then
-            return { fg = "none", bg = colors.red, gui = "bold" }
-          elseif mode == "c" then
-            return { fg = "none", bg = colors.green, gui = "bold" }
-          elseif mode == "i" then
-            return { fg = "none", bg = colors.blue, gui = "bold" }
-          elseif mode == "V" then
-            return { fg = colors.red, bg = bgColor, gui = "underline,bold" }
-          else
-            return { fg = colors.red, bg = bgColor, gui = "bold" }
-          end
-        end,
         padding = { left = 1, right = 1 },
       },
     },
     lualine_b = {
-      separator(),
       {
         custom_branch,
-        color = { fg = colors.green, bg = bgColor, gui = "bold" },
+        color = { fg = colors.green, bg = "none" },
         padding = { left = 1, right = 1 },
       },
       {
         "diff",
         colored = true,
         diff_color = {
-          added = { fg = colors.teal, bg = bgColor, gui = "bold" },
-          modified = { fg = colors.yellow, bg = bgColor, gui = "bold" },
-          removed = { fg = colors.red, bg = bgColor, gui = "bold" },
+          added = { fg = colors.teal, bg = "none", gui = "bold" },
+          modified = { fg = colors.yellow, bg = "none", gui = "bold" },
+          removed = { fg = colors.red, bg = "none", gui = "bold" },
         },
-        symbols = { added = "+", modified = "~", removed = "-" },
         source = nil,
-        padding = { left = 1, right = 1 },
+        padding = { left = 0, right = 1 },
       },
+      separator(),
     },
     lualine_c = {
-      separator(),
       {
         "filetype",
         icon_only = true,
         colored = false,
-        color = { fg = colors.blue, bg = bgColor, gui = "bold" },
+        color = { fg = colors.blue, bg = "none" },
         padding = { left = 1, right = 0 },
       },
       {
         "filename",
         file_status = true,
-        path = 0,
+        path = 4,
         shorting_target = 20,
         symbols = {
           modified = "[+]",
@@ -136,79 +94,29 @@ return function(_, opts)
           unnamed = "[?]",
           newfile = "[!]",
         },
-        color = { fg = colors.blue, colors.surface0, gui = "bold" },
-        padding = { left = 1, right = 1 },
-      },
-      separator(),
-      {
-        function()
-          return require("lsp-progress").progress {
-            max_size = 50,
-          }
-        end,
-        color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
-        padding = { left = 1, right = 1 },
-      },
-    },
-    lualine_x = {
-      {
-        function()
-          local bufnr_list = vim.fn.getbufinfo { buflisted = 1 }
-          local total = #bufnr_list
-          local current_bufnr = vim.api.nvim_get_current_buf()
-          local current_index = 0
-
-          for i, buf in ipairs(bufnr_list) do
-            if buf.bufnr == current_bufnr then
-              current_index = i
-              break
-            end
-          end
-
-          return string.format(" %d/%d", current_index, total)
-        end,
-        color = { fg = colors.blue, bg = bgColor, gui = "bold" },
-        padding = { left = 1, right = 1 },
-      },
-      separator(),
-      {
-        "fileformat",
-        color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
-        symbols = {
-          unix = "",
-          dos = "",
-          mac = "",
-        },
+        color = { fg = colors.blue, bg = "none" },
         padding = { left = 0, right = 1 },
       },
       {
-        "encoding",
-        color = { fg = colors.yellow, bg = bgColor, gui = "bold" },
-        padding = { left = 1, right = 1 },
-      },
-    },
-    lualine_y = {
-      separator(),
-      {
         "diagnostics",
-        sources = { "nvim_diagnostic", "coc" },
+        sources = { "nvim_diagnostic" },
         sections = { "error", "warn", "info", "hint" },
         diagnostics_color = {
           error = function()
             local count = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.ERROR })
-            return { fg = (count == 0) and colors.green or colors.red, bg = bgColor, gui = "bold" }
+            return { fg = (count == 0) and colors.green or colors.red, bg = "none", gui = "bold" }
           end,
           warn = function()
             local count = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.WARN })
-            return { fg = (count == 0) and colors.green or colors.yellow, bg = bgColor, gui = "bold" }
+            return { fg = (count == 0) and colors.green or colors.yellow, bg = "none", gui = "bold" }
           end,
           info = function()
             local count = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.INFO })
-            return { fg = (count == 0) and colors.green or colors.blue, bg = bgColor, gui = "bold" }
+            return { fg = (count == 0) and colors.green or colors.blue, bg = "none", gui = "bold" }
           end,
           hint = function()
             local count = #vim.diagnostic.get(0, { severity = vim.diagnostic.severity.HINT })
-            return { fg = (count == 0) and colors.green or colors.teal, bg = bgColor, gui = "bold" }
+            return { fg = (count == 0) and colors.green or colors.teal, bg = "none", gui = "bold" }
           end,
         },
         symbols = {
@@ -219,35 +127,28 @@ return function(_, opts)
         },
         colored = true,
         update_in_insert = false,
-        always_visible = true,
+        always_visible = false,
+        padding = { left = 0, right = 1 },
+      },
+    },
+    lualine_x = {},
+    lualine_y = {
+      {
+        function()
+          return require("lsp-progress").progress()
+        end,
+        color = { fg = colors.yellow, bg = "none" },
         padding = { left = 1, right = 1 },
+        icon = { " ", align = "right" },
       },
     },
     lualine_z = {
       separator(),
       {
         function()
-          local size = vim.fn.getfsize(vim.api.nvim_buf_get_name(0))
-          if size < 0 then
-            return "-"
-          else
-            if size < 1024 then
-              return size .. "B"
-            elseif size < 1024 * 1024 then
-              return string.format("%.1fK", size / 1024)
-            elseif size < 1024 * 1024 * 1024 then
-              return string.format("%.1fM", size / (1024 * 1024))
-            else
-              return string.format("%.1fG", size / (1024 * 1024 * 1024))
-            end
-          end
+          return " " .. vim.fn.line "." .. ":" .. vim.fn.col "." -- Example with line/column icon
         end,
-        color = { fg = colors.red, bg = bgColor, gui = "bold" },
-        padding = { left = 1, right = 0 },
-      },
-      {
-        "location",
-        color = { fg = colors.red, bg = bgColor, gui = "bold" },
+        color = { fg = colors.red, bg = "none" },
         padding = { left = 1, right = 1 },
       },
     },
