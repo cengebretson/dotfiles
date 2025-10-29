@@ -42,7 +42,7 @@ return function(_, opts)
   })
 
   local icons = {
-    ["NORMAL"] = " ",
+    ["NORMAL"] = " ",
     ["INSERT"] = " ",
     ["VISUAL"] = " ",
     ["REPLACE"] = "󰬳 ",
@@ -57,7 +57,7 @@ return function(_, opts)
     lualine_a = {
       {
         "mode",
-        color = { fg = colors.green, bg = "NONE", gui = "bold" },
+        color = { fg = colors.flamingo, bg = "NONE", gui = "bold" },
         fmt = function(str)
           local reg = vim.fn.reg_recording()
           if reg ~= "" then

@@ -10,16 +10,13 @@ M.base46 = {
   transparency = true,
   hl_override = {
     TbBufOff = {
-      bg = "base00",
+      bg = "black",
     },
     TbBufOffClose = {
-      bg = "one_bg",
+      bg = "black2",
     },
     TbBufOffModified = {
-      bg = "one_bg",
-    },
-    CursorLine = {
-      bg = "one_bg",
+      bg = "black2",
     },
     Comment = { italic = true },
     ["@comment"] = { italic = true },
