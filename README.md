@@ -60,6 +60,12 @@ brew bundle install --file=~/.config/Brewfile
 fisher update
 ```
 
+- Run Lazy sync in neovim the first time starting up
+
+- ```vim
+  Lazy sync
+  ```
+
 ---
 
 ### Gallery
