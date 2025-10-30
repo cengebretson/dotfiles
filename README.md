@@ -62,9 +62,9 @@ fisher update
 
 - Run Lazy sync in neovim the first time starting up
 
-- ```vim
-  Lazy sync
-  ```
+```vim
+Lazy sync
+```
 
 ---
 
