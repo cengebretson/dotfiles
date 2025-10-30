@@ -64,7 +64,15 @@ fisher update
 
 ### Gallery
 
- <img width="1480" height="1022" alt="screen" src="https://github.com/user-attachments/assets/67b05dc3-6296-48ab-a74b-27c4a3c1b21f" />
+<img width="1258" height="859" alt="Screenshot 2025-10-29 at 10 59 10 PM" src="https://github.com/user-attachments/assets/2af07b3e-fe62-47bf-850e-533a8ae1ae53" />
+
+---
+
+### Inspiration
+
+Many of the ideas for the tmux/nvim setup were inspired by discussions in the following repositories…
+* https://github.com/catppuccin/tmux/discussions/317
+* https://github.com/89iuv/dotfiles
 
 ---
 
