@@ -1,4 +1,25 @@
 return {
+
+  {
+    "nvim-neotest/neotest",
+    event = { "BufReadPost", "BufNewFile" },
+    dependencies = {
+      "nvim-neotest/nvim-nio",
+      "nvim-lua/plenary.nvim",
+      "antoinemadec/FixCursorHold.nvim",
+      "nvim-treesitter/nvim-treesitter",
+      "cengebretson/neotest-bun",
+    },
+    config = function()
+      ---@diagnostic disable-next-line: missing-fields
+      require("neotest").setup {
+        adapters = {
+          require "neotest-bun",
+        },
+      }
+    end,
+  },
+
   { import = "nvchad.blink.lazyspec" },
 
   { "catppuccin/nvim", name = "catppuccin", priority = 1000 },

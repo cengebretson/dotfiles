@@ -2,6 +2,23 @@ require "nvchad.mappings"
 
 local map = vim.keymap.set
 
+-- keymappings for Neotest
+map("n", "<leader>ta", function()
+  require("neotest").run.run { suite = true }
+end, { desc = "Run all tests" })
+map("n", "<leader>tr", function()
+  require("neotest").run.run()
+end, { desc = "Run current test" })
+map("n", "<leader>tx", function()
+  require("neotest").run.stop()
+end, { desc = "Stop Neotest" })
+map("n", "<leader>to", function()
+  require("neotest").output_panel.toggle()
+end, { desc = "Open Neotest output" })
+map("n", "<leader>ts", function()
+  require("neotest").summary.toggle()
+end, { desc = "Open Neotest summary" })
+
 -- overwriting the same lines in NvChad mapping file, in order to add 'async = true'
 map("n", "<leader>fm", function()
   require("conform").format { async = true, lsp_fallback = true }

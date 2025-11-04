@@ -1,5 +1,15 @@
 require "nvchad.autocmds"
 
+-- summary focus
+vim.api.nvim_create_autocmd("User", {
+  pattern = "NeotestSummaryOpen",
+  callback = function()
+    vim.defer_fn(function()
+      vim.api.nvim_set_current_win(vim.fn.bufwinid "Neotest Summary")
+    end, 1)
+  end,
+})
+
 -- listen lsp-progress event and refresh lualine
 vim.api.nvim_create_augroup("lualine_augroup", { clear = true })
 vim.api.nvim_create_autocmd("User", {

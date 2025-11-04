@@ -6,7 +6,7 @@
 local M = {}
 
 M.base46 = {
-  theme = "nord",
+  theme = "catppuccin",
   transparency = true,
   hl_override = {
     TbBufOff = {
