@@ -1,7 +1,8 @@
 # font settings
 font-size = 16
-font-family = "JetBrains Mono NL"
-adjust-cell-height = 15
+#font-family = "Iosevka Light"
+font-family="JetBrains Mono ExtraLight"
+adjust-cell-height = 17
 bold-is-bright = true
 
 # theme
@@ -74,6 +75,7 @@ macos-option-as-alt = true
 
 # shaders
 #custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear.glsl
+#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze.glsl
 custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze_no_trail.glsl
 #custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear_fade.glsl
 #custom-shader = /Users/chris/.config/ghostty/shaders/cursor_frozen.glsl
