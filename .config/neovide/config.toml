@@ -1,0 +1,8 @@
+frame = "transparent"
+title-hidden = true
+
+[font]
+size = 16
+
+[[font.normal]]
+family = "FiraCode Nerd Font Light"
