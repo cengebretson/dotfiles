@@ -1,28 +1,137 @@
-""" Editing and Reloading the Config
+"" ========================================================
+"" Base Settings
+"" ========================================================
+set scrolloff=10
+set history=1000
+set number relativenumber
+set showmode
+set showcmd
+set smartcase
+set incsearch
+set hlsearch
+set visualbell
+set matchit
+set nerdtree
+
+" Clipboard Integration
 set clipboard+=unnamed
-set clipboard+=ideaput
-nnoremap e :e ~/.ideavimrc<CR>
-nnoremap r :action IdeaVim.ReloadVimRc.reload<CR>
 
-""" The Escape button
-map <C-c> <Esc>
+" Leader Key
+let mapleader="\<space>"
 
-""" The Leader Key
-let mapleader=" "
+"Default Behavior
+set gdefault
+
+" IdeaVim Specific Settings
+set ideajoin
+set ideamarks
+set idearefactormode=normal
+set ideastatusicon=gray
+
+"" ========================================================
+"" Plugin Settings
+"" ========================================================
+
+" ii: inner indent (selects the current code block at the current indentation level).
+" ai: "a" indent (selects the current code block and the surrounding blank lines/lines of similar indent).
+set textobj-indent
+
+" ys Example: To surround the inner word with parentheses, place the cursor on the word and type ysiw).
+" cs Example: To change parentheses around a word to square brackets, type cs([.
+"             This command also works with HTML/XML tags; cst followed by the new tag name works for changing tags.
+" ds Example: To delete surrounding double quotes, type ds".
+" S (capital S): Surround the currently visually selected text with a specified character or tag.
+set surround
+
+"cx{motion}              Used in pairs.
+"                        FIRST USE: define the first region of text to be
+"                        exchanged. Any valid {motion} can be used.
+"                        SECOND USE: define the second region of text and
+"                        perform the exchange.
+"                        Note: If a region was defined accidentally, it can
+"                        be cleared with |cxc|
+"cxx                     Like |cx|, but for the current line. |linewise|
+set exchange
+
+" gc{motion}              Comment or uncomment lines that {motion} moves over.
+" gcc                     Comment or uncomment [count] lines.
+set commentary
+
+" gr + {motion}: Replaces the text covered by the motion with the contents of the last used register.
+" grr: Replaces the entire current line with the register contents.
+" gr in Visual mode: Replaces the selected text with the contents of the register.
+set ReplaceWithRegister
+
+" Highlighting Plugins
+set highlightedyank
+
+" ae: targets targets all of the entire content of the current buffer, including leading and trailing empty lines.
+" ie: targets the inner entire content, which is similar to ae but does not include leading and trailing empty lines.
+set textobj-entire
+
+" daa (delete around argument): Deletes the current function argument and the surrounding comma/whitespace.
+" cia (change inner argument): Deletes the content inside the current argument and switches to insert mode.
+" via (select inner argument): Visually selects the content inside the current argument.
+set argtextobj
+let g:argtextobj_pairs="[:],(:),<:>"
+
+"" ========================================================
+"" Key Mappings
+"" ========================================================
+
+" Flash settings
+nmap s <Action>(flash.search)
+xmap s <Action>(flash.search)
+" enhance vim f (find for char in characters to the right of the current cursor)
+nmap f <Action>(flash.find)
+xmap f <Action>(flash.find)
+" enhance vim F (find for char in characters to the left of the current cursor)
+nmap F <Action>(flash.find_backward)
+xmap F <Action>(flash.find_backward)
+
+" cmdFloat options
+nmap ; <Action>(cmdfloat.command)
+vmap ; <Action>(cmdfloat.command)
+
+" Tab navigation
+nnoremap <TAB>   :action PreviousTab<CR>
+nnoremap <s-TAB> :action NextTab<CR>
+
+" Pane navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
+nnoremap <C-k> <C-w>k
+nnoremap <C-j> <C-w>j
+
+" Navigation actions
+nmap <C-i> <Action>(Back)
+nmap <C-o> <Action>(Forward)
+
+" Jump between methods
+nmap [[ <Action>(MethodUp)
+nmap ]] <Action>(MethodDown)
+
+" Visual indentation
+vnoremap < <gv
+vnoremap > >gv
+
+" IDE interaction
+nmap <C-S-p> <Action>(ShowPopupMenu)
+nmap <C-S-t> <Action>(ToolWindowsGroup)
+
+" Clear Search Highlighting
+nnoremap <Esc> :noh<return>
 
 """ Distraction Free Mode
 nnoremap <c-z> :action ToggleDistractionFreeMode<CR>
 
-""" Terminal
-nnoremap <c-t> :action ActivateTerminalToolWindow<CR>
-nnoremap <leader>t :action Terminal.OpenInTerminal<CR>
-
-""" Navigation
-nnoremap <c-> :action SplitVertically<CR>
+" Splits
+nnoremap <c-\> :action SplitVertically<CR>
 nnoremap <c--> :action SplitHorizontally<CR>
 nnoremap <c-=> :action Unsplit<CR>
 nnoremap <c-m> :action MoveEditorToOppositeTabGroup<CR>
 
+" Navigation
 sethandler <c-j> a:vim
 sethandler <c-k> a:vim
 nnoremap <c-h> <c-w>h
@@ -30,79 +139,103 @@ nnoremap <c-l> <c-w>l
 nnoremap <c-j> <c-w>j
 nnoremap <c-k> <c-w>k
 
-nnoremap <TAB> :action PreviousTab<CR>
-nnoremap <s-TAB> :action NextTab<CR>
-
-nnoremap <Leader>en :action EditSourceInNewWindow<CR>
-nnoremap <Leader>n :action NextWindow<CR>
-
-nnoremap <Leader>q :action CloseContent<CR>
-nnoremap <Leader>qa :action CloseAllEditors<CR>
-
-""" Editing source code
-set ideajoin
-set idearefactormode=keep
-
+" Indent
 vnoremap < <gv
 vnoremap > >gv
 
+" move line up/down
+nmap <A-j> <Action>(MoveLineDown)
+nmap <A-k> <Action>(MoveLineUp)
+vmap <A-j> <Action>(MoveLineDown)
+vmap <A-k> <Action>(MoveLineUp)
+
+" Navigate
 nnoremap [[ :action MethodUp<CR>
 nnoremap ]] :action MethodDown<CR>
+
+" Tool windows
+nnoremap <c-p> :action JumpToLastWindow<CR>
+nnoremap <c-x> :action HideAllWindows<CR>
+
+" nerdtree
+map <C-n>   :NERDTreeToggle<CR>
+map <C-S-n> :NERDTreeFind<CR>
+" o 	Open files, directories and bookmarks
+" go 	Open selected file, but leave cursor in the NERDTree
+" t 	Open selected node/bookmark in a new tab
+" T 	Same as 't' but keep the focus on the current tab
+" i 	Open selected file in a split window
+" gi 	Same as i, but leave the cursor on the NERDTree
+" s 	Open selected file in a new vsplit
+" gs 	Same as s, but leave the cursor on the NERDTree
+" O 	Recursively open the selected directory
+" x 	Close the current nodes parent
+" X 	Recursively close all children of the current node
+" P 	Jump to the root node
+" p 	Jump to current nodes parent
+" K 	Jump up inside directories at the current tree depth
+" J 	Jump down inside directories at the current tree depth
+" <C-J> Jump down to next sibling of the current directory
+" <C-K> Jump up to previous sibling of the current directory
+" r 	Recursively refresh the current directory
+" R 	Recursively refresh the current root
+" m 	Display the NERDTree menu
+" q 	Close the NERDTree window
+" A 	Zoom (maximize/minimize) the NERDTree window
+" d 	Delete file or directory
+" n 	Create File
+" N 	Create Directory
+
+" replay Q macro in visual
+vmap Q :normal @q<CR>
+nnoremap Q @q
+
+"" ========================================================
+"" Folding Commands
+"" ========================================================
 
 nnoremap zc :action CollapseRegion<CR>
 nnoremap zo :action ExpandRegion<CR>
 nnoremap <leader>zc :action CollapseAllRegions<CR>
 nnoremap <leader>zo :action ExpandAllRegions<CR>
 
-nnoremap <leader>c :action CommentByLineComment<CR>
+"" ========================================================
+"" Leader Commands
+"" ========================================================
 
+" finding
+map <Leader>fg <Action>(FindInPath)
+map <Leader>fu <Action>(FindUsages)
+map <Leader>fs <Action>(ShowUsages)
+
+" show buffers
+nnoremap <leader>b :action ShowNavBar<CR>
+nnoremap <leader>m :action ShowMembersInNavigationBar<CR>
+
+" formatting
 nnoremap <leader>r :action Refactorings.QuickListPopupAction<CR>
-nnoremap <Leader>=  :action ReformatCode<CR>
+nnoremap <Leader>= :action ReformatCode<CR>
 nnoremap <leader>o :action OptimizeImports<CR>
 
-nnoremap <c-r> :action RecentFiles<CR>
-nnoremap <leader>l :action RecentLocations<CR>
-nnoremap <leader>h  :action LocalHistory.ShowHistory<CR>
+" updating and reloading ideavimrc
+nnoremap <Leader>ve :e ~/.ideavimrc<CR>
+nnoremap <Leader>vr :action IdeaVim.ReloadVimRc.reload<CR>
 
-nnoremap ge :action GotoNextError<CR>
-nnoremap gE :action GotoPreviousError<CR>
+" create new editing window
+nnoremap <Leader>en :action EditSourceInNewWindow<CR>
+nnoremap <Leader>n  :action NextWindow<CR>
 
-nnoremap <leader>s :write<CR>
+" close content
+nnoremap <Leader>x  :action CloseContent<CR>
+nnoremap <Leader>qa :action CloseAllEditors<CR>
 
-""" Searching and Source Code Navigation
-set incsearch
-
-nnoremap <c-/> :action FindInPath<CR>
-nnoremap <c-a> :action GotoAction<CR>
-nnoremap <c-f> :action GotoFile<CR>
-nnoremap <leader>u :action FindUsages<CR>
-
-nnoremap <leader>s :action GotoRelated<CR>
-nnoremap <leader>h :action CallHierarchy<CR>
-nnoremap <leader>b :action ShowNavBar<CR>
-nnoremap <c-s> :action FileStructurePopup<CR>
-nnoremap <c-o> :action GotoSymbol<CR>
-nnoremap gc :action GotoClass<CR>
-nnoremap gi :action GotoImplementation<CR>
-nnoremap gd :action GotToDeclaration<CR>
-nnoremap gp :action GotToSuperMethod<CR>
-nnoremap gt :action GotoTest<CR>
-nnoremap gb :action Back<CR>
-nnoremap gf :action Forward<CR>
-
-""" Tool windows
-nnoremap <c-p> :action JumpToLastWindow<CR>
-nnoremap <c-x> :action HideAllWindows<CR>
-
-""" Running and Debugging
-nnoremap ,r :action ContextRun<CR>
-nnoremap ,c :action RunClass<CR>
-nnoremap ,f :action ChooseRunConfiguration<CR>
-nnoremap ,t :action ActivateRunToolWindow<CR>
-nnoremap ,u :action Rerun<CR>
-
-nnoremap ,f :action RerunFailedTests<CR>
-
-nnoremap ,b :action ToggleLineBreakpoint<CR>
-nnoremap ,d :action ContextDebug<CR>
-nnoremap ,n :action ActivateDebugToolWindow<CR>
+" GoTo commands
+nmap <Leader>gf <Action>(GotoFile)
+nmap <Leader>gs <Action>(GotoSymbol)
+nmap <leader>gh <Action>(CallHierarchy)
+nmap <leader>gd <Action>(GotoDeclaration)
+nmap <leader>gD <Action>(GotoTypeDeclaration)
+nmap <leader>gr <Action>(GotoRelated)
+nmap <leader>go <Action>(GotoSuperMethod)
+nmap <leader>gi <Action>(GotoImplementation)
+nmap <leader>gT <Action>(GotoTest)
