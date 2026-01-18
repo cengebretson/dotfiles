@@ -4,7 +4,19 @@
   "provider": {
     "google": {
       "models": {
+        "gemini-3-pro": {
+          "name": "G3Pro (AG)",
+          "limit": {
+            "context": 1048576,
+            "output": 65535
+          },
+          "modalities": {
+            "input": ["text", "image", "pdf"],
+            "output": ["text"]
+          }
+        },
         "gemini-3-flash": {
+          "name": "G3Flash (AG)",
           "options": {
             "thinking": {
               "level": "high",
