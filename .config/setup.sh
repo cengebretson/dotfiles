@@ -6,12 +6,14 @@
 # define config alias locally since the dotfiles
 # aren't installed on the system yet
 function dotfiles {
-   git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME $@
+   git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME "$@"
 }
 
 # clone repo
 git clone --bare git@github.com:cengebretson/dotfiles.git $HOME/.dotfiles
-dotfiles config status.showUntrackedFiles no
+dotfiles config --local core.bare false
+dotfiles config --local core.worktree $HOME
+dotfiles config --local status.showUntrackedFiles no
 
 # create a directory to backup existing dotfiles to
 mkdir -p .dotfiles-backup
