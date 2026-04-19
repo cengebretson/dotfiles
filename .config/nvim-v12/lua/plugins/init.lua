@@ -1,30 +1,35 @@
 -- Define plugins
 local plugins = {
-	"https://github.com/romus204/tree-sitter-manager.nvim",
-	"https://github.com/stevearc/oil.nvim",
-	"https://github.com/nvim-tree/nvim-web-devicons",
-	"https://github.com/stevearc/conform.nvim",
-	"https://github.com/folke/which-key.nvim",
+	{ src = "https://github.com/romus204/tree-sitter-manager.nvim" },
+	{ src = "https://github.com/stevearc/oil.nvim" },
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },
+	{ src = "https://github.com/stevearc/conform.nvim" },
+	{ src = "https://github.com/folke/which-key.nvim" },
 
-	-- The Core LSP Configs (Now required by native 0.12 APIs)
-	"https://github.com/neovim/nvim-lspconfig",
-	"https://github.com/williamboman/mason.nvim",
-	"https://github.com/williamboman/mason-lspconfig.nvim",
-	"https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim",
+	-- autocomplete
+	{ src = "https://github.com/Saghen/blink.cmp", tag = "v1.*", build = "cargo build --release" },
+
+	-- lsp plugins
+	{ src = "https://github.com/neovim/nvim-lspconfig" },
+	{ src = "https://github.com/williamboman/mason.nvim" },
+	{ src = "https://github.com/williamboman/mason-lspconfig.nvim" },
+	{ src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
 
 	-- themes
-	"https://github.com/rebelot/kanagawa.nvim",
+	{ src = "https://github.com/rebelot/kanagawa.nvim" },
+	{ src = "https://github.com/catppuccin/nvim", name = "catppuccin" },
 }
 
--- Add them to the native package manager
 vim.pack.add(plugins)
 
 local plugin_configs = {
 	"lsp",
+	"blink",
 	"tree-sitter-manager",
 	"oil",
 	"conform",
 	"which-key",
+	"themes",
 }
 
 for _, name in ipairs(plugin_configs) do

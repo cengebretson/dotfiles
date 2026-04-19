@@ -10,6 +10,9 @@ function M.setup()
 		preset = "helix",
 		win = {
 			border = "rounded",
+			wo = {
+				winblend = 10, -- 0 for full transparency, 10 for "frosted" look
+			},
 		},
 	})
 
