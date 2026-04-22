@@ -22,12 +22,6 @@ function M.setup()
 				base = "#000000",
 			},
 		},
-		custom_highlights = function()
-			return {
-				NormalFloat = { bg = "NONE" },
-				FloatBorder = { bg = "NONE" },
-			}
-		end,
 	})
 
 	-- Set the colorscheme
