@@ -1,5 +1,9 @@
 local M = {}
 
+M.specs = {
+	{ src = "https://github.com/romus204/tree-sitter-manager.nvim" },
+}
+
 function M.setup()
 	local ok, tree = pcall(require, "tree-sitter-manager")
 	if not ok then

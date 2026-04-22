@@ -1,5 +1,8 @@
--- ~/.config/nvim-v12/lua/plugins/completion.lua
 local M = {}
+
+M.specs = {
+	{ src = "https://github.com/Saghen/blink.cmp", tag = "v1.*", build = "cargo build --release" },
+}
 
 function M.setup()
 	local ok, blink = pcall(require, "blink.cmp")

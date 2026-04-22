@@ -1,5 +1,10 @@
 local M = {}
 
+M.specs = {
+	{ src = "https://github.com/rebelot/kanagawa.nvim" },
+	{ src = "https://github.com/catppuccin/nvim", name = "catppuccin" },
+}
+
 function M.setup()
 	require("catppuccin").setup({
 		flavour = "mocha", -- mocha is the best for dark mode/transparency

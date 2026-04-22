@@ -1,5 +1,9 @@
 local M = {}
 
+M.specs = {
+	{ src = "https://github.com/stevearc/conform.nvim" },
+}
+
 function M.setup()
     local ok, conform = pcall(require, "conform")
     if not ok then return end
@@ -8,6 +12,7 @@ function M.setup()
         formatters_by_ft = {
             lua = { "stylua" },
             javascript = { "prettierd", "prettier", stop_after_first = true },
+            python = { "ruff_format" },
             java = { "google-java-format" },
             fish = { "fish_indent" },
         },

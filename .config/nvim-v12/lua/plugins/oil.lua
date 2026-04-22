@@ -1,5 +1,9 @@
--- ~/.config/nvim-v12/lua/plugins/oil.lua
 local M = {}
+
+M.specs = {
+	{ src = "https://github.com/stevearc/oil.nvim" },
+	{ src = "https://github.com/nvim-tree/nvim-web-devicons" },
+}
 
 function M.setup()
 	local ok, oil = pcall(require, "oil")

@@ -1,5 +1,12 @@
 local M = {}
 
+M.specs = {
+	{ src = "https://github.com/neovim/nvim-lspconfig" },
+	{ src = "https://github.com/williamboman/mason.nvim" },
+	{ src = "https://github.com/williamboman/mason-lspconfig.nvim" },
+	{ src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
+}
+
 function M.setup()
 	-- 1. Define custom configs BEFORE enabling them.
 	-- This handles your 'vim' global warning for Lua.
@@ -22,7 +29,7 @@ function M.setup()
 
 	-- Setup Mason-LSPConfig (The bridge)
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls" },
+		ensure_installed = { "lua_ls", "basedpyright" },
 		-- In 0.12, this plugin can handle the enabling for you!
 		automatic_enable = true,
 	})
@@ -32,6 +39,7 @@ function M.setup()
 		ensure_installed = {
 			"stylua",
 			"shellcheck",
+			"ruff",
 		},
 	})
 

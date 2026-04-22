@@ -1,5 +1,9 @@
 local M = {}
 
+M.specs = {
+	{ src = "https://github.com/folke/which-key.nvim" },
+}
+
 function M.setup()
 	local ok, wk = pcall(require, "which-key")
 	if not ok then
