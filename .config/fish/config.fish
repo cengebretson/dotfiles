@@ -2,6 +2,7 @@
 fish_add_path /usr/local/bin
 fish_add_path /opt/homebrew/bin
 fish_add_path "$VOLTA_HOME/bin"
+fish_app_path "$HOME/.local/bin"
 
 # load aliases
 source ~/.config/fish/alias.fish
