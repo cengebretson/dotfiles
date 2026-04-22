@@ -27,6 +27,7 @@ function M.setup()
 		{ "<leader>pr", "<cmd>Pack clean<cr>", desc = "Clean/Remove" },
 		{ "<leader>pt", "<cmd>Pack status<cr>", desc = "Pack Status" },
 		{ "<leader>b", group = "Buffers" },
+		{ "<leader>g", group = "Git" },
 		{ "<leader>m", group = "Modification/Format" },
 		{ "<leader>s", group = "Splits/Windows" },
 	})
