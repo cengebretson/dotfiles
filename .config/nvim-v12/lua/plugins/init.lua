@@ -1,4 +1,4 @@
-local modules = { "blink", "lsp", "oil", "conform", "which-key", "themes", "tree-sitter-manager", "gitsigns" }
+local modules = { "blink", "lsp", "oil", "conform", "which-key", "themes", "tree-sitter-manager", "gitsigns", "snacks" }
 local all_specs = {}
 local loaded = {}
 

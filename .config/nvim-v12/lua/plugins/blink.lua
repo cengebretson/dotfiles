@@ -19,7 +19,6 @@ function M.setup()
 		},
 
 		appearance = {
-			use_nvim_get_runtime_file = true,
 			nerd_font_variant = "mono",
 		},
 

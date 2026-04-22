@@ -19,9 +19,15 @@ function M.setup()
 		},
 		color_overrides = {
 			mocha = {
-				base = "#000000", -- Pure black looks amazing with Ghostty transparency
+				base = "#000000",
 			},
 		},
+		custom_highlights = function()
+			return {
+				NormalFloat = { bg = "NONE" },
+				FloatBorder = { bg = "NONE" },
+			}
+		end,
 	})
 
 	-- Set the colorscheme

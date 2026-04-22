@@ -27,10 +27,7 @@ function M.setup()
 			padding = 2,
 			max_width = 90,
 			max_height = 25,
-			border = "rounded", -- Matches your Which-Key and Mason look
-			win_options = {
-				winblend = 10, -- Set to 10 if you want a slight transparency effect
-			},
+			border = "rounded",
 		},
 
 		-- File display settings

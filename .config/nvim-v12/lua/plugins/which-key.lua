@@ -14,9 +14,6 @@ function M.setup()
 		preset = "helix",
 		win = {
 			border = "rounded",
-			wo = {
-				winblend = 10, -- 0 for full transparency, 10 for "frosted" look
-			},
 		},
 	})
 
@@ -27,6 +24,7 @@ function M.setup()
 		{ "<leader>pr", "<cmd>Pack clean<cr>", desc = "Clean/Remove" },
 		{ "<leader>pt", "<cmd>Pack status<cr>", desc = "Pack Status" },
 		{ "<leader>b", group = "Buffers" },
+		{ "<leader>f", group = "Find" },
 		{ "<leader>g", group = "Git" },
 		{ "<leader>m", group = "Modification/Format" },
 		{ "<leader>s", group = "Splits/Windows" },

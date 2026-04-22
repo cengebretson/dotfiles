@@ -29,7 +29,7 @@ function M.setup()
 
 	-- Setup Mason-LSPConfig (The bridge)
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls", "basedpyright" },
+		ensure_installed = { "lua_ls", "basedpyright", "ts_ls", "vue_ls" },
 		-- In 0.12, this plugin can handle the enabling for you!
 		automatic_enable = true,
 	})
@@ -40,6 +40,7 @@ function M.setup()
 			"stylua",
 			"shellcheck",
 			"ruff",
+			"eslint_d",
 		},
 	})
 

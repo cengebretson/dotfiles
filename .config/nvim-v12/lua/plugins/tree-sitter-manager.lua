@@ -11,7 +11,7 @@ function M.setup()
 	end
 
 	tree.setup({
-		ensure_installed = { "java", "typescript", "python", "javascript", "lua", "groovy", "markdown" },
+		ensure_installed = { "java", "typescript", "python", "javascript", "lua", "groovy", "markdown", "vue" },
 		auto_install = true,
 	})
 end
