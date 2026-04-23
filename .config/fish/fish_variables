@@ -15,4 +15,4 @@ SETUVAR _fisher_patrickf1_2F_fzf_2E_fish_files:\x7e/\x2econfig/fish/functions/_f
 SETUVAR _fisher_plugins:patrickf1/colored_man_pages\x2efish\x1edanhper/fish\x2dssh\x2dagent\x1ejorgebucaran/autopair\x2efish\x1ereitzig/sdkman\x2dfor\x2dfish\x40v1\x2e4\x2e0\x1ejorgebucaran/fisher\x1epatrickf1/fzf\x2efish\x1enickeb96/puffer\x2dfish\x1eicezyclon/zoxide\x2efish
 SETUVAR _fisher_reitzig_2F_sdkman_2D_for_2D_fish_40_v1_2E_34_2E_30__files:\x7e/\x2econfig/fish/functions/sdk\x2efish\x1e\x7e/\x2econfig/fish/conf\x2ed/sdk\x2efish\x1e\x7e/\x2econfig/fish/completions/sdk\x2efish
 SETUVAR _fisher_upgraded_to_4_4:\x1d
-SETUVAR fish_user_paths:/bin\x1e/Users/chris/\x2evolta/bin\x1e/usr/local/bin\x1e/opt/homebrew/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
+SETUVAR fish_user_paths:/Users/chris/\x2elocal/bin\x1e/bin\x1e/Users/chris/\x2evolta/bin\x1e/usr/local/bin\x1e/opt/homebrew/bin\x1e/Applications/Ghostty\x2eapp/Contents/MacOS
