@@ -18,7 +18,6 @@ local modules = {
 	"flash",
 	"neotest",
 	"lualine",
-	"bufferline",
 	"ibl",
 }
 local all_specs = {}
@@ -48,7 +47,7 @@ vim.api.nvim_create_user_command("Pack", function(opts)
 	if action == "sync" or action == "update" then
 		vim.pack.update()
 	elseif action == "clean" or action == "remove" then
-		vim.pack.clean()
+		vim.notify("vim.pack has no clean command — remove unused plugins manually from: " .. vim.fn.stdpath("data") .. "/pack/nvim-v12/start/", vim.log.levels.WARN)
 	elseif action == "status" then
 		print("Install Path: " .. vim.fn.stdpath("data") .. "/pack/nvim-v12")
 	else

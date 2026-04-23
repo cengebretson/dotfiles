@@ -27,6 +27,8 @@ function M.setup()
 		{ "<leader>f", group = "Find" },
 		{ "<leader>g", group = "Git" },
 		{ "<leader>m", group = "Modification/Format" },
+		{ "<leader>r", group = "Refactor" },
+		{ "<leader>c", group = "Code" },
 		{ "<leader>t", group = "Test" },
 		{ "<leader>x", group = "Trouble" },
 		{ "<leader>s", group = "Splits/Windows" },

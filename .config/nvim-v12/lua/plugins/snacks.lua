@@ -12,7 +12,10 @@ function M.setup()
 
 	snacks.setup({
 		picker = { enabled = true },
-		notifier = { enabled = true },
+		notifier = {
+			enabled = true,
+			wo = { focusable = false },
+		},
 		bigfile = { enabled = true },
 		lazygit = { enabled = true },
 		terminal = { enabled = true },

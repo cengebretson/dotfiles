@@ -20,6 +20,15 @@ function M.setup()
 		},
 	})
 
+	local float_opts = {
+		border = "rounded",
+		max_width = 80,
+		winhighlight = "Normal:NormalFloat,FloatBorder:FloatBorder",
+	}
+
+	vim.lsp.handlers["textDocument/hover"]         = vim.lsp.with(vim.lsp.handlers.hover, float_opts)
+	vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, float_opts)
+
 	require("mason").setup()
 
 	require("mason-lspconfig").setup({
