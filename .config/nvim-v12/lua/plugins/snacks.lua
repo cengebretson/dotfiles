@@ -10,6 +10,8 @@ function M.setup()
 		return
 	end
 
+	require("snacks.statuscolumn").setup()
+
 	snacks.setup({
 		picker = { enabled = true },
 		notifier = {
@@ -51,9 +53,15 @@ function M.setup()
 			},
 		},
 		image = { enabled = true },
-		scope = { enabled = false },
+		scope = { enabled = true },
+		indent = {
+			enabled = true,
+			indent = { char = "│" },
+			scope = { enabled = true, hl = "SnacksIndentScope" },
+			animate = { enabled = false },
+		},
 		scroll = { enabled = true },
-		statuscolumn = { enabled = true },
+		statuscolumn = { enabled = false },
 		explorer = { enabled = false },
 	})
 

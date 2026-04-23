@@ -18,7 +18,7 @@ local modules = {
 	"flash",
 	"neotest",
 	"lualine",
-	"ibl",
+	-- "ibl", -- replaced by snacks.indent
 }
 local all_specs = {}
 local loaded = {}
