@@ -3,6 +3,7 @@ vim.g.mapleader = " "
 
 -- Fast saving
 vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
+vim.keymap.set("n", "<leader><leader>", function() Snacks.picker.buffers() end, { desc = "Buffers" })
 
 -- Easier command mode
 vim.keymap.set("n", ";", ":", { desc = "Command mode" })
@@ -21,9 +22,6 @@ vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 -- Fast buffer switching (Better than tabs for Java development)
 vim.keymap.set("n", "<S-h>", ":bprevious<CR>", { desc = "Prev Buffer" })
 vim.keymap.set("n", "<S-l>", ":bnext<CR>", { desc = "Next Buffer" })
-vim.keymap.set("n", "<S-Tab>", function()
-	Snacks.picker.buffers()
-end, { desc = "Buffer Switcher" })
 
 -- Close current buffer without closing the window
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Delete Buffer" })

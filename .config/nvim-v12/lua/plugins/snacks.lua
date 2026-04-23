@@ -41,16 +41,65 @@ function M.setup()
 				},
 			},
 			sections = {
-				{ section = "header" },
-				{ text = os.date("  %A, %B %d  %H:%M"), hl = "SnacksDashboardFooter", align = "center", padding = 1 },
-				{ section = "keys", gap = 0, padding = 1 },
+				{
+					section = "image",
+					file = os.getenv("HOME") .. "/.config/nvim-v12/assets/banner.png",
+					height = 7,
+					padding = 1,
+				},
+{ section = "keys", gap = 0, padding = 1 },
 			},
 		},
+		image = { enabled = true },
 		scope = { enabled = false },
 		scroll = { enabled = true },
 		statuscolumn = { enabled = true },
 		explorer = { enabled = false },
 	})
+
+	-- Register custom image dashboard section using snacks' own image API
+	require("snacks.dashboard").sections["image"] = function(opts)
+		return function(self)
+			local buf = vim.api.nvim_create_buf(false, true)
+			local height = opts.height or 10
+			local placement
+			local win
+			return {
+				render = function(_, pos)
+					local util = require("snacks.image.util")
+					local fitted = util.fit(opts.file, { width = vim.o.columns, height = height })
+					local width = fitted.width
+					local win_pos = vim.api.nvim_win_get_position(self.win)
+					local abs_row = win_pos[1] + pos[1] - 1
+					local center_col = math.floor((vim.o.columns - width) / 2)
+					win = vim.api.nvim_open_win(buf, false, {
+						col = center_col,
+						row = abs_row,
+						focusable = false,
+						height = height,
+						noautocmd = true,
+						relative = "editor",
+						zindex = Snacks.config.styles.dashboard.zindex + 1,
+						style = "minimal",
+						width = width,
+						border = "none",
+					})
+					placement = Snacks.image.buf._attach(buf, { src = opts.file, width = width, height = height })
+					if placement then
+						vim.schedule(function() placement:update() end)
+					end
+					local function close()
+						pcall(vim.api.nvim_win_close, win, true)
+						pcall(vim.api.nvim_buf_delete, buf, { force = true })
+						return true
+					end
+					self.on("UpdatePre", close, self.augroup)
+					self.on("Closed", close, self.augroup)
+				end,
+				text = ("\n"):rep(height - 1),
+			}
+		end
+	end
 
 	-- Picker
 	vim.keymap.set("n", "<leader>ff", function() Snacks.picker.files() end, { desc = "Find Files" })
@@ -70,6 +119,7 @@ function M.setup()
 
 	-- Terminal
 	vim.keymap.set({ "n", "t" }, "<C-/>", function() Snacks.terminal() end, { desc = "Toggle Terminal" })
+
 end
 
 return M
