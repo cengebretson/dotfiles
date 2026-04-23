@@ -14,17 +14,19 @@ function M.setup()
 		return
 	end
 
-	neotest.setup({
-		adapters = {
-			require("neotest-python")({
-				dap = { justMyCode = false },
-				runner = "pytest",
-			}),
-			require("neotest-jest")({
-				jestCommand = "npx jest",
-			}),
-		},
-	})
+	local adapters = {}
+
+	local ok_py, neotest_python = pcall(require, "neotest-python")
+	if ok_py then
+		table.insert(adapters, neotest_python({ dap = { justMyCode = false }, runner = "pytest" }))
+	end
+
+	local ok_jest, neotest_jest = pcall(require, "neotest-jest")
+	if ok_jest then
+		table.insert(adapters, neotest_jest({ jestCommand = "npx jest" }))
+	end
+
+	neotest.setup({ adapters = adapters })
 
 	vim.keymap.set("n", "<leader>tt", function() neotest.run.run() end, { desc = "Run Nearest Test" })
 	vim.keymap.set("n", "<leader>tf", function() neotest.run.run(vim.fn.expand("%")) end, { desc = "Run File" })

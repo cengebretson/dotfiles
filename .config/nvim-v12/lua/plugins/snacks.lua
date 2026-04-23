@@ -20,19 +20,30 @@ function M.setup()
 		dashboard = {
 			enabled = true,
 			preset = {
+				header = [[
+  ███╗   ██╗███████╗ ██████╗ ██╗   ██╗██╗███╗   ███╗
+  ████╗  ██║██╔════╝██╔═══██╗██║   ██║██║████╗ ████║
+  ██╔██╗ ██║█████╗  ██║   ██║██║   ██║██║██╔████╔██║
+  ██║╚██╗██║██╔══╝  ██║   ██║╚██╗ ██╔╝██║██║╚██╔╝██║
+  ██║ ╚████║███████╗╚██████╔╝ ╚████╔╝ ██║██║ ╚═╝ ██║
+  ╚═╝  ╚═══╝╚══════╝ ╚═════╝   ╚═══╝  ╚═╝╚═╝     ╚═╝]],
 				keys = {
-					{ icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.picker.files()" },
-					{ icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.picker.grep()" },
-					{ icon = " ", key = "r", desc = "Recent Files", action = ":lua Snacks.picker.recent()" },
-					{ icon = " ", key = "q", desc = "Quit", action = ":qa" },
+					{ icon = "󰈞 ", key = "f", desc = "Find File",    action = ":lua Snacks.picker.files()" },
+					{ icon = "󰊄 ", key = "g", desc = "Live Grep",    action = ":lua Snacks.picker.grep()" },
+					{ icon = "󱋡 ", key = "r", desc = "Recent Files", action = ":lua Snacks.picker.recent()" },
+					{ icon = " ", key = "l", desc = "Lazygit",      action = ":lua Snacks.lazygit()" },
+					{ icon = "󰒲 ", key = "s", desc = "Sync Plugins", action = ":Pack sync" },
+					{ icon = " ", key = "c", desc = "Config",       action = ":lua Snacks.picker.files({ cwd = vim.fn.stdpath('config') })" },
+					{ icon = "󰿅 ", key = "q", desc = "Quit",         action = ":qa" },
 				},
 			},
 			sections = {
 				{ section = "header" },
-				{ section = "keys", gap = 1, padding = 1 },
+				{ text = os.date("  %A, %B %d  %H:%M"), hl = "SnacksDashboardFooter", align = "center", padding = 1 },
+				{ section = "keys", gap = 0, padding = 1 },
 			},
 		},
-		scope = { enabled = true },
+		scope = { enabled = false },
 		scroll = { enabled = true },
 		statuscolumn = { enabled = true },
 		explorer = { enabled = false },

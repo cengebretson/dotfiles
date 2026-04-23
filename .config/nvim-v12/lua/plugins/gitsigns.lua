@@ -19,18 +19,17 @@ function M.setup()
 			changedelete = { text = "▎" },
 		},
 		on_attach = function(bufnr)
-			local gs = package.loaded.gitsigns
 			local map = function(mode, l, r, desc)
 				vim.keymap.set(mode, l, r, { buffer = bufnr, desc = desc })
 			end
 
-			map("n", "]h", gs.next_hunk, "Next hunk")
-			map("n", "[h", gs.prev_hunk, "Prev hunk")
-			map("n", "<leader>gp", gs.preview_hunk, "Preview hunk")
-			map("n", "<leader>gs", gs.stage_hunk, "Stage hunk")
-			map("n", "<leader>gr", gs.reset_hunk, "Reset hunk")
-			map("n", "<leader>gb", function() gs.blame_line({ full = true }) end, "Blame line")
-			map("n", "<leader>gd", gs.diffthis, "Diff this")
+			map("n", "]h", gitsigns.next_hunk, "Next hunk")
+			map("n", "[h", gitsigns.prev_hunk, "Prev hunk")
+			map("n", "<leader>gp", gitsigns.preview_hunk, "Preview hunk")
+			map("n", "<leader>gs", gitsigns.stage_hunk, "Stage hunk")
+			map("n", "<leader>gr", gitsigns.reset_hunk, "Reset hunk")
+			map("n", "<leader>gb", function() gitsigns.blame_line({ full = true }) end, "Blame line")
+			map("n", "<leader>gd", gitsigns.diffthis, "Diff this")
 		end,
 	})
 end

@@ -13,8 +13,8 @@ function M.setup()
 	todo.setup()
 
 	vim.keymap.set("n", "<leader>ft", function() Snacks.picker.todo_comments() end, { desc = "Find TODOs" })
-	vim.keymap.set("n", "]t", function() require("todo-comments").jump_next() end, { desc = "Next TODO" })
-	vim.keymap.set("n", "[t", function() require("todo-comments").jump_prev() end, { desc = "Prev TODO" })
+	vim.keymap.set("n", "]t", function() todo.jump_next() end, { desc = "Next TODO" })
+	vim.keymap.set("n", "[t", function() todo.jump_prev() end, { desc = "Prev TODO" })
 end
 
 return M

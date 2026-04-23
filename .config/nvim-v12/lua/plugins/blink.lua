@@ -13,8 +13,6 @@ function M.setup()
 	blink.setup({
 		keymap = {
 			preset = "super-tab",
-			-- Optional: If you still want Enter to confirm the selection
-			-- otherwise, you just keep typing or use Tab to cycle.
 			["<CR>"] = { "select_and_accept", "fallback" },
 		},
 
@@ -26,8 +24,6 @@ function M.setup()
 			default = { "lsp", "path", "snippets", "buffer" },
 		},
 
-		-- Use 'menu' for the popup and 'ghost_text' for that
-		-- "Copilot-style" preview of the top suggestion
 		completion = {
 			menu = { border = "rounded" },
 			ghost_text = { enabled = true },

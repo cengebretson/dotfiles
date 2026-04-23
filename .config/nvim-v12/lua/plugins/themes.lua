@@ -16,6 +16,7 @@ function M.setup()
 			which_key = true,
 			gitsigns = true,
 			treesitter = true,
+			bufferline = true,
 		},
 		color_overrides = {
 			mocha = {
