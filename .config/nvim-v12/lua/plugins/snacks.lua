@@ -44,10 +44,15 @@ function M.setup()
 			sections = {
 				{
 					section = "image",
-					file = os.getenv("HOME") .. "/.config/nvim-v12/assets/banner.png",
-					height = 7,
+					scale = 1.5,
+					file = (function()
+						local assets = vim.fn.globpath(vim.fn.stdpath("config"), "assets/*", false, true)
+						math.randomseed(os.time())
+						return assets[math.random(#assets)]
+					end)(),
+					height = 6,
 					padding = 1,
-					left_pad = 6,
+					left_pad = 2,
 				},
 				{ section = "keys", gap = 0, padding = 1 },
 			},
@@ -69,14 +74,15 @@ function M.setup()
 	require("snacks.dashboard").sections["image"] = function(opts)
 		return function(self)
 			local buf = vim.api.nvim_create_buf(false, true)
-			local height = opts.height or 10
 			local placement
 			local win
 			return {
 				render = function(_, pos)
 					local util = require("snacks.image.util")
-					local fitted = util.fit(opts.file, { width = vim.o.columns, height = height })
-					local width = fitted.width
+					local fitted = util.fit(opts.file, { width = vim.o.columns, height = 999 })
+					local scale = opts.scale or 1
+					local width = math.floor(fitted.width * scale)
+					local height = math.floor(fitted.height * scale)
 					local win_pos = vim.api.nvim_win_get_position(self.win)
 					local abs_row = win_pos[1] + pos[1] - 1
 					local center_col = math.floor((vim.o.columns - width) / 2) + (opts.left_pad or 0)
@@ -106,7 +112,7 @@ function M.setup()
 					self.on("UpdatePre", close, self.augroup)
 					self.on("Closed", close, self.augroup)
 				end,
-				text = ("\n"):rep(height - 1),
+				text = ("\n"):rep((opts.height or 10) - 1),
 			}
 		end
 	end

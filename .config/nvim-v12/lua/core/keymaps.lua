@@ -25,14 +25,11 @@ vim.keymap.set("n", "<S-l>", ":bnext<CR>", { desc = "Next Buffer" })
 
 -- Close current buffer without closing the window
 vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Delete Buffer" })
+vim.keymap.set("n", "<leader>q", "<C-w>c", { desc = "Close Window" })
 
 -- Window splitting (Intuitive)
 vim.keymap.set("n", "<leader>sv", "<C-w>v", { desc = "Split Vertical" })
 vim.keymap.set("n", "<leader>sh", "<C-w>s", { desc = "Split Horizontal" })
-
--- Sync with system clipboard
-vim.keymap.set({ "n", "v" }, "<leader>y", [["+y]], { desc = "Copy to system clipboard" })
-vim.keymap.set("n", "<leader>Y", [["+Y]])
 
 -- Keep cursor centered when scrolling and searching
 vim.keymap.set("n", "<C-d>", "<C-d>zz")
@@ -50,8 +47,10 @@ vim.keymap.set("n", "<C-l>", "<C-w>l", { desc = "Move to right split" })
 vim.keymap.set("n", "J", "mzJ`z")
 
 -- Paste/delete without overwriting clipboard
-vim.keymap.set("v", "<leader>p", [["_dP]], { desc = "Paste without yanking" })
-vim.keymap.set({ "n", "v" }, "<leader>d", [["_d]], { desc = "Delete without yanking" })
+vim.keymap.set("v", "p", [["_dP]], { desc = "Paste (keep clipboard)" })
+vim.keymap.set("v", "<leader>p", [["+p]], { desc = "Paste from clipboard" })
+vim.keymap.set({ "n", "v" }, "d", [["_d]], { desc = "Delete to black hole" })
+vim.keymap.set({ "n", "v" }, "<leader>d", [["+d]], { desc = "Delete to clipboard" })
 
 -- LSP
 vim.keymap.set("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })

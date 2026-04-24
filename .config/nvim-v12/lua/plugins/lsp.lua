@@ -5,10 +5,13 @@ M.specs = {
 	{ src = "https://github.com/williamboman/mason.nvim" },
 	{ src = "https://github.com/williamboman/mason-lspconfig.nvim" },
 	{ src = "https://github.com/WhoIsSethDaniel/mason-tool-installer.nvim" },
-	{ src = "https://github.com/linrongbin16/lsp-progress.nvim" },
 }
 
 function M.setup()
+	vim.diagnostic.config({
+		float = { border = "rounded" },
+	})
+
 	vim.lsp.config("lua_ls", {
 		settings = {
 			Lua = {
@@ -27,8 +30,6 @@ function M.setup()
 			max_width = 80,
 		}))
 	end
-
-	require("lsp-progress").setup()
 
 	require("mason").setup()
 

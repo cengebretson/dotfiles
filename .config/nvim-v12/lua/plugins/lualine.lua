@@ -57,9 +57,8 @@ function M.setup()
 		["V-LINE"] = "󰒉 ",
 	}
 
-	vim.api.nvim_create_autocmd("User", {
-		pattern = "LspProgressStatusUpdated",
-		callback = lualine.refresh,
+	vim.api.nvim_create_autocmd("LspProgress", {
+		callback = function() lualine.refresh() end,
 	})
 
 	lualine.setup({
@@ -149,7 +148,12 @@ function M.setup()
 			lualine_y = {
 				{
 					function()
-						return require("lsp-progress").progress()
+						local status = vim.lsp.status()
+						if status ~= "" then return status end
+						local clients = vim.lsp.get_clients({ bufnr = 0 })
+						if #clients == 0 then return "" end
+						local names = vim.tbl_map(function(c) return c.name end, clients)
+						return " " .. table.concat(names, " ")
 					end,
 					color = { fg = colors.yellow, bg = "none" },
 					padding = { left = 1, right = 1 },
