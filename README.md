@@ -1,6 +1,6 @@
 # 🅃🄷🄴🅁🄴 🄸🅂 🄽🄾 🄿🄻🄰🄲🄴 🄻🄸🄺🄴 ~
 
-[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![NvChad](https://img.shields.io/badge/NvChad-000000?style=for-the-badge&logo=neovim&logoColor=white)](https://nvchad.com/) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile) [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
+[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile) [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
 
 A curated collection of tools and configs that power my daily workflow.
 
@@ -18,11 +18,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 📝 Neovim
 
- * My main editor — lightweight yet powerful.
-
-#### ⚡ NvChad
-
- * A Neovim distribution I extend with my own tweaks.
+ * My main editor — lightweight yet powerful. See [nvim-v12](.config/nvim-v12/README.md) for my custom 0.12 config built on the native `vim.pack` plugin manager.
 
 #### 📂 Superfile
 
