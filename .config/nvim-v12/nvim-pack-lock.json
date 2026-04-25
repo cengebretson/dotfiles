@@ -12,6 +12,10 @@
       "rev": "426dbebe06b5c69fd846ceb17b42e12f890aedf1",
       "src": "https://github.com/catppuccin/nvim"
     },
+    "code-bridge.nvim": {
+      "rev": "4d9f0205c768fdce0336d16d8b3256af22cc2ddd",
+      "src": "https://github.com/samir-roy/code-bridge.nvim"
+    },
     "conform.nvim": {
       "rev": "086a40dc7ed8242c03be9f47fbcee68699cc2395",
       "src": "https://github.com/stevearc/conform.nvim"
