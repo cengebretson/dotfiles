@@ -32,6 +32,11 @@ keybind = cmd+s>r=reload_config
 keybind = cmd+s>x=close_surface
 keybind = cmd+s>n=new_window
 
+# allow tmux to use these keybindings
+keybind = ctrl+tab=unbind
+keybind = ctrl+shift+tab=unbind
+keybind = alt+shift+tab=unbind
+
 # tabs
 keybind = cmd+s>c=new_tab
 keybind = cmd+s>shift+l=next_tab

@@ -16,6 +16,10 @@ A curated collection of tools and configs that power my daily workflow.
 
  * My terminal of choice — modern, GPU-accelerated, and lightning fast.
 
+#### 📟 Tmux
+
+ * Terminal multiplexer with dual Catppuccin themes, custom status bar, and Neovim-friendly keybindings. See [tmux config](.config/tmux/README.md).
+
 #### 📝 Neovim
 
  * My main editor — lightweight yet powerful. See [nvim-v12](.config/nvim-v12/README.md) for my custom 0.12 config built on the native `vim.pack` plugin manager.
