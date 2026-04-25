@@ -1,7 +1,6 @@
 # 🅃🄷🄴🅁🄴 🄸🅂 🄽🄾 🄿🄻🄰🄲🄴 🄻🄸🄺🄴 ~
 
-[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile) [![Opencode](https://img.shields.io/badge/Opencode-FF6B35?style=for-the-badge&logo=code&logoColor=white)](https://opencode.ai)
-
+[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile)
 A curated collection of tools and configs that power my daily workflow.
 
 #### 🌀 Lazygit
@@ -10,21 +9,40 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🐟 Fish Shell
 
- * My interactive shell for a smooth terminal experience.
+ * My interactive shell for a smooth terminal experience, with fzf wired in for fuzzy finding and bat-powered previews.
+
+ **Shortcuts**
+
+ | Key | Action |
+ |-----|--------|
+ | `→` / `ctrl+f` | Accept autosuggestion |
+ | `⌥+→` | Accept one word of autosuggestion |
+ | `⌥+e` | Edit current command in `$EDITOR` |
+ | `⌥+s` | Prepend `sudo` to current command |
+ | `ctrl+u` / `ctrl+k` | Delete to beginning / end of line |
+ | `⌥+backspace` | Delete previous word |
+ | `ctrl+r` | Fuzzy search shell history |
+ | `ctrl+t` | Fuzzy search files and directories |
+ | `ctrl+⌥+p` | Fuzzy search running processes |
+ | `ctrl+⌥+l` | Fuzzy search git log |
+ | `ctrl+⌥+s` | Fuzzy search git status |
+
+ **Functions & aliases**
+
+ | Command | Description |
+ |---------|-------------|
+ | `j <dir>` | Smart directory jump (zoxide) |
+ | `ji` | Interactive zoxide picker |
+ | `tldrf` | Fuzzy search tldr pages |
+ | `kp` | Kill a process via fzf picker |
+ | `dots` | Shorthand for dotfiles git commands |
+ | `l` / `ll` / `la` | eza listings with icons and git status |
+ | `lt` / `ltd` | eza tree views (files / directories) |
 
 #### 👻 Ghostty
 
  * My terminal of choice — modern, GPU-accelerated, and lightning fast.
  * Run `ghostty-help` for a searchable fzf picker of all Ghostty actions and their keybindings.
-
-#### 🔍 fzf
-
- * Fuzzy finder wired into fish with bat-powered previews. Key shortcuts:
-   * `ctrl+r` — search shell history
-   * `ctrl+t` — search files and directories
-   * `ctrl+alt+p` — search running processes
-   * `ctrl+alt+l` — search git log
-   * `ctrl+alt+s` — search git status
 
 #### 📟 Tmux
 
@@ -41,10 +59,6 @@ A curated collection of tools and configs that power my daily workflow.
 #### 💻 Neofetch
 
  * For showing off system info in style.
-
-#### 🤖 Opencode
-
- * An interactive CLI tool that helps with software engineering tasks.
 
 ---
 
