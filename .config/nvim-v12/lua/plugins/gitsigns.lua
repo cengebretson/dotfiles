@@ -29,6 +29,7 @@ function M.setup()
 			map("n", "<leader>gs", gitsigns.stage_hunk, "Stage hunk")
 			map("n", "<leader>gr", gitsigns.reset_hunk, "Reset hunk")
 			map("n", "<leader>gb", function() gitsigns.blame_line({ full = true }) end, "Blame line")
+			map("n", "<leader>gB", gitsigns.toggle_current_line_blame, "Toggle blame virtualtext")
 			map("n", "<leader>gd", gitsigns.diffthis, "Diff this")
 		end,
 	})
