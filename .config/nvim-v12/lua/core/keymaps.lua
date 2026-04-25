@@ -89,8 +89,16 @@ vim.keymap.set("v", "<A-j>", ":m '>+1<CR>gv=gv", { desc = "Move selection down" 
 vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
 -- Quickfix navigation
-vim.keymap.set("n", "]q", ":cnext<CR>", { desc = "Next quickfix" })
-vim.keymap.set("n", "[q", ":cprev<CR>", { desc = "Prev quickfix" })
+local function wrap_cnext()
+	if not pcall(vim.cmd.cnext) then pcall(vim.cmd.cfirst) end
+end
+local function wrap_cprev()
+	if not pcall(vim.cmd.cprev) then pcall(vim.cmd.clast) end
+end
+vim.keymap.set("n", "]q", wrap_cnext, { desc = "Next quickfix (wrap)" })
+vim.keymap.set("n", "[q", wrap_cprev, { desc = "Prev quickfix (wrap)" })
+vim.keymap.set("n", "]Q", "<cmd>clast<CR>",  { desc = "Last quickfix" })
+vim.keymap.set("n", "[Q", "<cmd>cfirst<CR>", { desc = "First quickfix" })
 vim.keymap.set("n", "<leader>xq", function()
 	local wins = vim.fn.getqflist({ winid = 0 }).winid
 	if wins ~= 0 then
