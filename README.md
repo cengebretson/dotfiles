@@ -15,6 +15,16 @@ A curated collection of tools and configs that power my daily workflow.
 #### 👻 Ghostty
 
  * My terminal of choice — modern, GPU-accelerated, and lightning fast.
+ * Run `ghostty-help` for a searchable fzf picker of all Ghostty actions and their keybindings.
+
+#### 🔍 fzf
+
+ * Fuzzy finder wired into fish with bat-powered previews. Key shortcuts:
+   * `ctrl+r` — search shell history
+   * `ctrl+t` — search files and directories
+   * `ctrl+alt+p` — search running processes
+   * `ctrl+alt+l` — search git log
+   * `ctrl+alt+s` — search git status
 
 #### 📟 Tmux
 
@@ -30,7 +40,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 💻 Neofetch
 
- *F or showing off system info in style.
+ * For showing off system info in style.
 
 #### 🤖 Opencode
 
@@ -70,7 +80,7 @@ Lazy sync
 
 ### Gallery
 
-<img width="1258" height="859" alt="Screenshot 2025-10-29 at 10 59 10 PM" src="https://github.com/user-attachments/assets/2af07b3e-fe62-47bf-850e-533a8ae1ae53" />
+<img width="1258" height="859" alt="Screenshot 2025-10-29 at 10 59 10 PM" src="https://github.com/user-attachments/assets/2af07b3e-fe62-47bf-850e-533a8ae1ae53" />
 
 ---
 
