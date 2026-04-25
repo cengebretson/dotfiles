@@ -80,6 +80,12 @@ vim.keymap.set("n", "<C-Down>", ":resize -2<CR>")
 vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>")
 vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>")
 
+-- Toggle spell check
+vim.keymap.set("n", "<leader>ts", function()
+	vim.wo.spell = not vim.wo.spell
+	vim.notify("Spell check " .. (vim.wo.spell and "enabled" or "disabled"), vim.log.levels.INFO)
+end, { desc = "Toggle spell check" })
+
 -- Blank lines without insert mode
 vim.keymap.set("n", "<leader>o", "o<Esc>", { desc = "Add line below" })
 vim.keymap.set("n", "<leader>O", "O<Esc>", { desc = "Add line above" })
