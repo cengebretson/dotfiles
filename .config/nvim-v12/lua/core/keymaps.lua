@@ -3,7 +3,9 @@ vim.g.mapleader = " "
 
 -- Fast saving
 vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
-vim.keymap.set("n", "<leader><leader>", function() Snacks.picker.buffers() end, { desc = "Buffers" })
+vim.keymap.set("n", "<leader><leader>", function()
+	Snacks.picker.buffers()
+end, { desc = "Buffers" })
 
 -- Easier command mode
 vim.keymap.set("n", ";", ":", { desc = "Command mode" })
@@ -64,8 +66,8 @@ vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action
 vim.keymap.set("n", "<leader>D", vim.lsp.buf.type_definition, { desc = "Type definition" })
 
 -- Diagnostics
-vim.keymap.set("n", "]d", vim.diagnostic.goto_next, { desc = "Next diagnostic" })
-vim.keymap.set("n", "[d", vim.diagnostic.goto_prev, { desc = "Prev diagnostic" })
+vim.keymap.set("n", "]d", function() vim.diagnostic.jump({ count = 1 }) end, { desc = "Next diagnostic" })
+vim.keymap.set("n", "[d", function() vim.diagnostic.jump({ count = -1 }) end, { desc = "Prev diagnostic" })
 vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagnostic" })
 
 -- Insert mode shortcuts
@@ -90,14 +92,18 @@ vim.keymap.set("v", "<A-k>", ":m '<-2<CR>gv=gv", { desc = "Move selection up" })
 
 -- Quickfix navigation
 local function wrap_cnext()
-	if not pcall(vim.cmd.cnext) then pcall(vim.cmd.cfirst) end
+	if not pcall(vim.cmd.cnext) then
+		pcall(vim.cmd.cfirst)
+	end
 end
 local function wrap_cprev()
-	if not pcall(vim.cmd.cprev) then pcall(vim.cmd.clast) end
+	if not pcall(vim.cmd.cprev) then
+		pcall(vim.cmd.clast)
+	end
 end
 vim.keymap.set("n", "]q", wrap_cnext, { desc = "Next quickfix (wrap)" })
 vim.keymap.set("n", "[q", wrap_cprev, { desc = "Prev quickfix (wrap)" })
-vim.keymap.set("n", "]Q", "<cmd>clast<CR>",  { desc = "Last quickfix" })
+vim.keymap.set("n", "]Q", "<cmd>clast<CR>", { desc = "Last quickfix" })
 vim.keymap.set("n", "[Q", "<cmd>cfirst<CR>", { desc = "First quickfix" })
 vim.keymap.set("n", "<leader>xq", function()
 	local wins = vim.fn.getqflist({ winid = 0 }).winid
@@ -108,47 +114,8 @@ vim.keymap.set("n", "<leader>xq", function()
 	end
 end, { desc = "Toggle quickfix" })
 
--- Treesitter incremental selection using built-in vim.treesitter
-local ts_history = {}
+-- Claude Code tmux integration
+require("core.claude")
 
-local function select_node(node)
-	local sr, sc, er, ec = node:range()
-	local esc = vim.api.nvim_replace_termcodes("<Esc>", true, false, true)
-	vim.api.nvim_feedkeys(esc, "nx", false)
-	vim.api.nvim_win_set_cursor(0, { sr + 1, sc })
-	vim.api.nvim_feedkeys("v", "nx", false)
-	vim.api.nvim_win_set_cursor(0, { er + 1, math.max(0, ec - 1) })
-end
-
-vim.keymap.set("n", "<CR>", function()
-	if vim.bo.buftype ~= "" then
-		return
-	end
-	local node = vim.treesitter.get_node()
-	if not node then
-		return
-	end
-	ts_history = { node }
-	select_node(node)
-end, { desc = "Select treesitter node" })
-
-vim.keymap.set("v", "<CR>", function()
-	local last = ts_history[#ts_history]
-	if not last then
-		return
-	end
-	local parent = last:parent()
-	if parent then
-		table.insert(ts_history, parent)
-		select_node(parent)
-	end
-end, { desc = "Expand treesitter selection" })
-
-vim.keymap.set("v", "<BS>", function()
-	if #ts_history > 1 then
-		table.remove(ts_history)
-		select_node(ts_history[#ts_history])
-	else
-		vim.cmd("normal! \27")
-	end
-end, { desc = "Shrink treesitter selection" })
+-- Treesitter incremental selection
+require("core.treesitter-select")
