@@ -44,12 +44,15 @@ keybind = alt+shift+tab=unbind
 keybind = global:cmd+grave_accent=toggle_quick_terminal
 
 # other/misc
+title = ""
+link-url = true
+confirm-close-surface = false
 shell-integration = fish
 copy-on-select = clipboard
 shell-integration-features = no-cursor,sudo,no-title
 clipboard-trim-trailing-spaces = true
 clipboard-paste-protection = true
-scrollback-limit = 0
+scrollback-limit = 100000
 
 # macos settings
 macos-titlebar-style = transparent
