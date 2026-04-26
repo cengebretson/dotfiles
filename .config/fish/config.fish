@@ -18,6 +18,10 @@ set -gx XDG_CONFIG_HOME "$HOME/.config"
 # fzf settings
 fzf_configure_bindings --directory=\ct
 
+# suppress window title
+function fish_title
+end
+
 # starship init
 starship init fish | source
 
