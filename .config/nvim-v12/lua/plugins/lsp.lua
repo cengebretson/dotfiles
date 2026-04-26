@@ -12,6 +12,38 @@ function M.setup()
 		float = { border = "rounded" },
 	})
 
+	vim.lsp.config("basedpyright", {
+		settings = {
+			basedpyright = {
+				analysis = {
+					autoSearchPaths = true,
+					useLibraryCodeForTypes = true,
+					diagnosticMode = "openFilesOnly",
+				},
+			},
+		},
+	})
+
+	vim.api.nvim_create_autocmd("FileType", {
+		pattern = "python",
+		callback = function(ev)
+			local root = vim.fs.root(ev.buf, { "pyproject.toml", "setup.py", "setup.cfg", ".git" })
+			if not root then return end
+			local venv_names = { ".venv", "venv", "env", ".env" }
+			for _, name in ipairs(venv_names) do
+				local venv = root .. "/" .. name
+				if vim.fn.isdirectory(venv .. "/bin") == 1 then
+					vim.lsp.config("basedpyright", {
+						settings = {
+							python = { venvPath = root, venv = name },
+						},
+					})
+					return
+				end
+			end
+		end,
+	})
+
 	vim.lsp.config("lua_ls", {
 		settings = {
 			Lua = {
@@ -34,7 +66,7 @@ function M.setup()
 	require("mason").setup()
 
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls", "basedpyright", "ts_ls", "vue_ls" },
+		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls" },
 		automatic_enable = true,
 	})
 
