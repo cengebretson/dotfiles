@@ -17,6 +17,7 @@ local modules = {
 	"noice",
 	"flash",
 	"neotest",
+	"dap",
 	"lualine",
 	-- "ibl", -- replaced by snacks.indent
 }

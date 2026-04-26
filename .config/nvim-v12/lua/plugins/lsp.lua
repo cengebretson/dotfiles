@@ -76,6 +76,8 @@ function M.setup()
 			"shellcheck",
 			"ruff",
 			"eslint_d",
+			"debugpy",
+			"js-debug-adapter",
 		},
 	})
 

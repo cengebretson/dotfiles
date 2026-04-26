@@ -28,10 +28,20 @@ function M.setup()
 		{ "<leader>g", group = "Git" },
 		{ "<leader>m", group = "Modification/Format" },
 		{ "<leader>r", group = "Refactor" },
-		{ "<leader>c", group = "Code" },
+		{ "<leader>c", group = "Code / Claude" },
 		{ "<leader>t", group = "Test" },
 		{ "<leader>x", group = "Trouble" },
 		{ "<leader>s", group = "Splits/Windows" },
+		{ "<leader>d", group = "Debug" },
+		{ "<leader>db", desc = "Toggle Breakpoint" },
+		{ "<leader>dB", desc = "Conditional Breakpoint" },
+		{ "<leader>dc", desc = "Continue" },
+		{ "<leader>do", desc = "Step Over" },
+		{ "<leader>di", desc = "Step Into" },
+		{ "<leader>dO", desc = "Step Out" },
+		{ "<leader>dq", desc = "Terminate" },
+		{ "<leader>du", desc = "Toggle UI" },
+		{ "<leader>de", desc = "Eval Expression" },
 	})
 end
 
