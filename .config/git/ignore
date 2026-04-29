@@ -1,3 +1,29 @@
+# macOS
 .DS_Store
+.Spotlight-V100
+.Trashes
 !/.config/
+
+# Editor
+*.swp
+*.swo
+*.orig
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node / npm
+.npm/
+.node_repl_history
+
+# Environment — never commit these
+.env
+.env.local
+.env.*.local
 
