@@ -1,6 +1,6 @@
 # 🅃🄷🄴🅁🄴 🄸🅂 🄽🄾 🄿🄻🄰🄲🄴 🄻🄸🄺🄴 ~
 
-[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile)
+[![Neovim](https://img.shields.io/badge/Neovim-57A143?style=for-the-badge&logo=neovim&logoColor=white)](https://neovim.io/) [![Ghostty](https://img.shields.io/badge/Ghostty-333333?style=for-the-badge&logo=windowsterminal&logoColor=white)](https://ghostty.org/) [![Fish Shell](https://img.shields.io/badge/Fish%20Shell-00A1D6?style=for-the-badge&logo=gnu-bash&logoColor=white)](https://fishshell.com/) [![Lazygit](https://img.shields.io/badge/Lazygit-FC6D26?style=for-the-badge&logo=git&logoColor=white)](https://github.com/jesseduffield/lazygit) [![Superfile](https://img.shields.io/badge/Superfile-000000?style=for-the-badge&logo=github&logoColor=white)](https://github.com/yorukot/superfile) [![Mise](https://img.shields.io/badge/Mise-000000?style=for-the-badge&logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+PHBhdGggZmlsbD0id2hpdGUiIGQ9Ik0xMiAyQzYuNDggMiAyIDYuNDggMiAxMnM0LjQ4IDEwIDEwIDEwIDEwLTQuNDggMTAtMTBTMTcuNTIgMiAxMiAyem0tMiAxNWwtNS01IDEuNDEtMS40MUwxMCAxNC4xN2w3LjU5LTcuNTlMMTkgOGwtOSA5eiIvPjwvc3ZnPg==&logoColor=white)](https://mise.jdx.dev/)
 A curated collection of tools and configs that power my daily workflow.
 
 #### 🌀 Lazygit
@@ -56,9 +56,13 @@ A curated collection of tools and configs that power my daily workflow.
 
  * A modern, terminal file manager.
 
-#### 💻 Neofetch
+#### 🛠 Mise
 
- * For showing off system info in style.
+ * Runtime version manager for Node, Bun, Python, and uv. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
+
+#### 💻 Fastfetch
+
+ * For showing off system info in style — with random ASCII art and a pacman color row.
 
 ---
 
@@ -66,22 +70,10 @@ A curated collection of tools and configs that power my daily workflow.
 
 Note to future self.....
 
-- Run the following command to install dotfiles and packages (using a bare git repo)
+- Run the following command — it handles everything (Xcode tools, Homebrew, dotfiles, packages, fish, mise runtimes, and macOS defaults)
 
 ```bash
 curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setup.sh | bash
-```
-
-- Install applications using brew
-
-```bash
-brew bundle install --file=~/.config/Brewfile
-```
-
-- Run fish command for fish plugins
-
-```bash
-fisher update
 ```
 
 - Run Lazy sync in neovim the first time starting up
