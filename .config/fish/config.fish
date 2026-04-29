@@ -1,14 +1,13 @@
 # path setup
 fish_add_path /usr/local/bin
 fish_add_path /opt/homebrew/bin
-fish_add_path "$VOLTA_HOME/bin"
 fish_add_path "$HOME/.local/bin"
 
 # load aliases
 source ~/.config/fish/alias.fish
 
-# volta setup
-set -gx VOLTA_HOME "$HOME/.volta"
+# mise (manages node, bun, and other runtimes)
+mise activate fish | source
 
 # make nvim the default editor
 set -gx EDITOR nvim
@@ -27,7 +26,3 @@ starship init fish | source
 
 # zoxide integration to use j and ji keys
 zoxide init --cmd j fish | source
-
-# bun
-set --export BUN_INSTALL "$HOME/.bun"
-set --export PATH $BUN_INSTALL/bin $PATH
