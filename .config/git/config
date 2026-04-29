@@ -1,10 +1,9 @@
 [core]
-	excludesfile = /Users/chris/.gitignore
-	editor = /usr/local/bin/vim
+	editor = nvim
 	abbrev = 7
   pager = delta
 [include]
-	path = /Users/chris/.config/delta/catppuccin.gitconfig
+	path = ~/.config/delta/catppuccin.gitconfig
 [delta]
 	features = catppuccin-frappe
 [mergetool]
