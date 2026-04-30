@@ -41,7 +41,9 @@ function M.setup()
 					{ icon = "󰈆 ", key = "q", desc = "Quit", action = ":qa" },
 				},
 			},
-			sections = {
+			sections = vim.g.neovide and {
+				{ section = "keys", gap = 0, padding = 1 },
+			} or {
 				{
 					section = "image",
 					scale = 1.5,

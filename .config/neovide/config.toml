@@ -1,5 +1,6 @@
 frame = "transparent"
 title-hidden = true
+refresh-rate = 120
 
 [font]
 size = 16
