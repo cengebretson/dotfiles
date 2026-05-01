@@ -51,16 +51,6 @@ function M.setup()
 
 	local detail = false
 
-	function _G.get_oil_winbar()
-		local bufnr = vim.api.nvim_win_get_buf(vim.g.statusline_winid)
-		local dir = oil.get_current_dir(bufnr)
-		if dir then
-			return vim.fn.fnamemodify(dir, ":~")
-		else
-			return vim.api.nvim_buf_get_name(0)
-		end
-	end
-
 	oil.setup({
 		default_file_explorer = true,
 		columns = { "icon", "git_status", "permissions", "size" },
@@ -71,7 +61,7 @@ function M.setup()
 			border = "rounded",
 		},
 		win_options = {
-			winbar = "%!v:lua.get_oil_winbar()",
+			winbar = "",
 		},
 		view_options = {
 			show_hidden = true,
@@ -96,11 +86,15 @@ function M.setup()
 			["<C-h>"] = "actions.select_split",
 			["<C-p>"] = "actions.preview",
 			["<C-c>"] = "actions.close",
+				["q"] = "actions.close",
 			["-"] = "actions.parent",
 			["_"] = "actions.open_cwd",
 			["gs"] = "actions.change_sort",
 			["gx"] = "actions.open_external",
 			["g."] = "actions.toggle_hidden",
+			["<C-t>"] = "actions.select_tab",
+			["<C-r>"] = "actions.refresh",
+			["yp"] = "actions.copy_entry_path",
 			["gd"] = {
 				desc = "Toggle file detail view",
 				callback = function()

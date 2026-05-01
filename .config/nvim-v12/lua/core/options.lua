@@ -68,7 +68,7 @@ vim.api.nvim_create_autocmd("TextYankPost", {
 vim.api.nvim_create_autocmd("WinEnter", {
 	callback = function()
 		if vim.api.nvim_win_get_config(0).relative ~= "" then
-			vim.wo.winblend = 20
+			vim.wo.winblend = 10
 		end
 	end,
 })
