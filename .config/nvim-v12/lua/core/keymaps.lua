@@ -38,6 +38,8 @@ vim.keymap.set("n", "<C-d>", "<C-d>zz")
 vim.keymap.set("n", "<C-u>", "<C-u>zz")
 vim.keymap.set("n", "n", "nzzzv")
 vim.keymap.set("n", "N", "Nzzzv")
+vim.keymap.set("n", "*", "*zz")
+vim.keymap.set("n", "#", "#zz")
 
 -- Navigate splits
 vim.keymap.set("n", "<C-h>", "<C-w>h", { desc = "Move to left split" })
@@ -119,6 +121,19 @@ vim.keymap.set("n", "<leader>xq", function()
 		vim.cmd("copen")
 	end
 end, { desc = "Toggle quickfix" })
+
+-- Insert a fancy comment header: `# ── label ───────────────────────`
+vim.keymap.set("n", "<leader>ch", function()
+	vim.ui.input({ prompt = "Header: " }, function(input)
+		if not input or input == "" then return end
+		local cs = vim.bo.commentstring
+		local prefix = (cs:match("^(.-)%s*%%s") or "#"):gsub("%s+$", "")
+		local body = prefix .. " ── " .. input .. " "
+		local fill = ("─"):rep(math.max(80 - vim.fn.strdisplaywidth(body), 0))
+		local row = vim.api.nvim_win_get_cursor(0)[1]
+		vim.api.nvim_buf_set_lines(0, row - 1, row - 1, false, { body .. fill })
+	end)
+end, { desc = "Insert comment header" })
 
 -- Claude Code tmux integration
 require("core.claude")
