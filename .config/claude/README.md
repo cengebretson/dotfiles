@@ -59,7 +59,7 @@ The toggle state is a flag file at `~/.config/claude/flags/diff-popup`. When act
 
 ## Gallery
 
-![Claude Code statusline and diff popup](assets/statusline.png)
+![Claude Code statusline and diff popup](../assets/statusline.png)
 
 ## AI-Helpful CLI Tools
 
