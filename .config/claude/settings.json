@@ -38,6 +38,7 @@
     "command": "~/.config/claude/statusline.sh",
     "hideVimModeIndicator": true
   },
+  "effortLevel": "medium",
   "theme": "dark",
   "editorMode": "vim"
 }

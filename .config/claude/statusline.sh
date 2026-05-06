@@ -7,7 +7,6 @@ vimmode=$(printf '%s' "$json" | jq -r '.vim.mode // ""' 2>/dev/null)
 ctx_pct=$(printf '%s' "$json" | jq -r '.context_window.used_percentage // ""' 2>/dev/null)
 diff_flag="$HOME/.config/claude/flags/diff-popup"
 effort=$(printf '%s' "$json" | jq -r '.effort.level // ""' 2>/dev/null)
-thinking=$(printf '%s' "$json" | jq -r '.thinking.enabled // ""' 2>/dev/null)
 fast_mode=$(printf '%s' "$json" | jq -r '.fast_mode // ""' 2>/dev/null)
 
 branch=$(git branch --show-current 2>/dev/null)
@@ -55,13 +54,14 @@ fi
 
 mode_seg=""
 effort_color=""
+effort_icon="󰛨"
 case "$effort" in
-    low)    effort_color="$overlay1"; mode_seg+="${effort_color}󰾆 ■□□□${reset}" ;;
-    medium) effort_color="$yellow";   mode_seg+="${effort_color}󰾆 ■■□□${reset}" ;;
-    high)   effort_color="$peach";    mode_seg+="${effort_color}󰾆 ■■■□${reset}" ;;
-    max)    effort_color="$red";      mode_seg+="${effort_color}󰾆 ■■■■${reset}" ;;
+    low)    effort_color="$overlay1"; mode_seg+="${effort_color}${effort_icon} ▪${reset}" ;;
+    medium) effort_color="$yellow";   mode_seg+="${effort_color}${effort_icon} ▪▪${reset}" ;;
+    high)   effort_color="$peach";    mode_seg+="${effort_color}${effort_icon} ▪▪▪${reset}" ;;
+    xhigh)  effort_color="$peach";    mode_seg+="${effort_color}${effort_icon} ▪▪▪▪${reset}" ;;
+    max)    effort_color="$red";      mode_seg+="${effort_color}${effort_icon} ▪▪▪▪▪${reset}" ;;
 esac
-[[ "$thinking" == "true" ]] && mode_seg+=" ${effort_color}󰛨${reset}"
 [[ "$fast_mode" == "true" ]] && mode_seg+=" ${yellow}⚡${reset}"
 [[ -n "$mode_seg" ]] && parts+=("${mode_seg}")
 
