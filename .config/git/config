@@ -5,7 +5,7 @@
 [include]
 	path = ~/.config/delta/catppuccin.gitconfig
 [delta]
-	features = catppuccin-frappe
+	features = catppuccin-mocha
 [mergetool]
 	keepBackup = false
 	prompt = false

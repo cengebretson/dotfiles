@@ -1,4 +1,43 @@
 {
-  "theme": "dark-ansi",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/snapshot-file.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/track-changes.sh"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.config/claude/hooks/diff-popup.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.config/claude/statusline.sh",
+    "hideVimModeIndicator": true
+  },
+  "theme": "dark",
   "editorMode": "vim"
 }
