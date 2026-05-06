@@ -14,6 +14,7 @@ set -gx EDITOR nvim
 set -gx TERMINAL ghostty
 set -gx XDG_CONFIG_HOME "$HOME/.config"
 set -gx NVIM_APPNAME nvim-v12
+set -gx CLAUDE_CONFIG_DIR "$HOME/.config/claude"
 
 # fzf settings
 fzf_configure_bindings --directory=\ct
