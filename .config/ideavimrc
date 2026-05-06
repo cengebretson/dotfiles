@@ -1,0 +1,300 @@
+"" ========================================================
+"" Base Settings
+"" ========================================================
+set scrolloff=10
+set history=1000
+set number relativenumber
+set showmode
+set showcmd
+set smartcase
+set incsearch
+set hlsearch
+set visualbell
+set matchit
+set nerdtree
+
+" Clipboard Integration
+set clipboard+=unnamed
+
+" Leader Key
+let mapleader="\<space>"
+
+" Default Behavior
+set gdefault
+
+" IdeaVim Specific Settings
+set ideajoin
+set ideamarks
+set idearefactormode=normal
+set ideastatusicon=gray
+
+"" ========================================================
+"" Plugin Settings
+"" ========================================================
+
+" ii: inner indent (selects the current code block at the current indentation level).
+" ai: "a" indent (selects the current code block and the surrounding blank lines/lines of similar indent).
+set textobj-indent
+
+" vif: Selects the code inside the function.
+" vaf: Selects the entire function (annotations, signature, and body).
+set functiontextobj
+
+" ys Example: To surround the inner word with parentheses, place the cursor on the word and type ysiw).
+" cs Example: To change parentheses around a word to square brackets, type cs([.
+"             This command also works with HTML/XML tags; cst followed by the new tag name works for changing tags.
+" ds Example: To delete surrounding double quotes, type ds".
+" S (capital S): Surround the currently visually selected text with a specified character or tag.
+set surround
+
+"cx{motion}              Used in pairs.
+"                        FIRST USE: define the first region of text to be
+"                        exchanged. Any valid {motion} can be used.
+"                        SECOND USE: define the second region of text and
+"                        perform the exchange.
+"                        Note: If a region was defined accidentally, it can
+"                        be cleared with |cxc|
+"cxx                     Like |cx|, but for the current line. |linewise|
+set exchange
+
+" gc{motion}              Comment or uncomment lines that {motion} moves over.
+" gcc                     Comment or uncomment [count] lines.
+set commentary
+
+" gr + {motion}: Replaces the text covered by the motion with the contents of the last used register.
+" grr: Replaces the entire current line with the register contents.
+" gr in Visual mode: Replaces the selected text with the contents of the register.
+set ReplaceWithRegister
+
+" Highlighting Plugins
+set highlightedyank
+
+" ae: targets targets all of the entire content of the current buffer, including leading and trailing empty lines.
+" ie: targets the inner entire content, which is similar to ae but does not include leading and trailing empty lines.
+set textobj-entire
+
+" daa (delete around argument): Deletes the current function argument and the surrounding comma/whitespace.
+" cia (change inner argument): Deletes the content inside the current argument and switches to insert mode.
+" via (select inner argument): Visually selects the content inside the current argument.
+set argtextobj
+let g:argtextobj_pairs="[:],(:),<:>"
+
+"" ========================================================
+"" Key Mappings
+"" ========================================================
+
+" Map Ctrl+o to IntelliJ's 'Back' action
+nnoremap <C-o> :action Back<CR>
+
+" Map Ctrl+i to IntelliJ's 'Forward' action
+nnoremap <C-i> :action Forward<CR>
+
+" Visual jump list (Recent Locations)
+nnoremap <Leader>j :action RecentLocations<CR>
+
+" Paste over selection without overwriting the register
+vnoremap p P
+
+" Flash settings
+nmap s <Action>(flash.search)
+xmap s <Action>(flash.search)
+" enhance vim f (find for char in characters to the right of the current cursor)
+nmap f <Action>(flash.find)
+xmap f <Action>(flash.find)
+" enhance vim F (find for char in characters to the left of the current cursor)
+nmap F <Action>(flash.find_backward)
+xmap F <Action>(flash.find_backward)
+
+" cmdFloat options
+nmap ; <Action>(cmdfloat.command)
+vmap ; <Action>(cmdfloat.command)
+
+" Tab navigation
+nmap <TAB>   <Action>(PreviousTab)
+nmap <s-TAB> <Action>(NextTab)
+
+" Pane navigation
+nnoremap <C-h> <C-w>h
+nnoremap <C-l> <C-w>l
+nnoremap <C-k> <C-w>k
+nnoremap <C-j> <C-w>j
+
+" Navigation actions
+nmap <C-i> <Action>(Back)
+nmap <C-o> <Action>(Forward)
+
+" Use 'vv' in Normal Mode to start the 'Smart' selection
+nmap vv <Action>(EditorSelectWord)
+" Use 'v' in Visual Mode to expand the selection further
+vmap v <Action>(EditorSelectWord)
+" Use 'V' in Visual Mode to shrink the selection if you go too far
+vmap V <Action>(EditorUnselectWord)
+
+" Jump between methods
+nmap [[ <Action>(MethodUp)
+nmap ]] <Action>(MethodDown)
+
+" Visual indentation
+vnoremap < <gv
+vnoremap > >gv
+
+" IDE interaction
+nmap <C-S-p> <Action>(ShowPopupMenu)
+nmap <C-S-t> <Action>(ToolWindowsGroup)
+
+" Clear Search Highlighting
+nnoremap <Esc> :noh<return>
+
+""" Distraction Free Mode
+nmap <c-z> <Action>(ToggleDistractionFreeMode)
+
+" Splits
+nmap <c-\> <Action>(SplitVertically)
+nmap <c--> <Action>(SplitHorizontally)
+nmap <c-=> <Action>(Unsplit)
+nmap <c-m> <Action>(MoveEditorToOppositeTabGroup)
+
+" Navigation
+sethandler <c-j> a:vim
+sethandler <c-k> a:vim
+nnoremap <c-h> <c-w>h
+nnoremap <c-l> <c-w>l
+nnoremap <c-j> <c-w>j
+nnoremap <c-k> <c-w>k
+
+" Indent
+vnoremap < <gv
+vnoremap > >gv
+
+" move line up/down
+nmap <A-j> <Action>(MoveLineDown)
+nmap <A-k> <Action>(MoveLineUp)
+vmap <A-j> <Action>(MoveLineDown)
+vmap <A-k> <Action>(MoveLineUp)
+
+" Navigate
+nmap [[ <Action>(MethodUp)
+nmap ]] <Action>(MethodDown)
+
+" Tool windows
+nmap <c-p> <Action>(JumpToLastWindow)
+nmap <c-x> <Action>(HideAllWindows)
+
+" nerdtree
+imap <C-n>   :NERDTreeToggle<CR>
+imap <C-S-n> :NERDTreeFind<CR>
+nmap <C-n>   :NERDTreeToggle<CR>
+nmap <C-S-n> :NERDTreeFind<CR>
+" o 	Open files, directories and bookmarks
+" go 	Open selected file, but leave cursor in the NERDTree
+" t 	Open selected node/bookmark in a new tab
+" T 	Same as 't' but keep the focus on the current tab
+" i 	Open selected file in a split window
+" gi 	Same as i, but leave the cursor on the NERDTree
+" s 	Open selected file in a new vsplit
+" gs 	Same as s, but leave the cursor on the NERDTree
+" O 	Recursively open the selected directory
+" x 	Close the current nodes parent
+" X 	Recursively close all children of the current node
+" P 	Jump to the root node
+" p 	Jump to current nodes parent
+" K 	Jump up inside directories at the current tree depth
+" J 	Jump down inside directories at the current tree depth
+" <C-J> Jump down to next sibling of the current directory
+" <C-K> Jump up to previous sibling of the current directory
+" r 	Recursively refresh the current directory
+" R 	Recursively refresh the current root
+" m 	Display the NERDTree menu
+" q 	Close the NERDTree window
+" A 	Zoom (maximize/minimize) the NERDTree window
+" d 	Delete file or directory
+" n 	Create File
+" N 	Create Directory
+
+" replay Q macro in visual
+vnoremap Q :normal @q<CR>
+nnoremap Q @q
+
+" Press Enter in Normal Mode to add a line below
+nnoremap <Enter> o<Esc>
+" Press Shift+Enter to add a line above (may require IDE shortcut tweaks)
+nnoremap <S-Enter> O<Esc>
+
+"" ========================================================
+"" Folding Commands
+"" ========================================================
+
+" Basic Folding (Single Level)
+" zc: Close the fold at the cursor.
+" zo: Open the fold at the cursor.
+" za: Toggle the fold at the cursor (switches between open and closed).
+
+" Global Folding (The Whole File)
+" zM: Close all folds (Set fold level to 0).
+" zR: Open all folds (Reduce folding).
+
+" Missing Recursive Commands
+nnoremap zC <Action>(CollapseRegionRecursively)
+nnoremap zO <Action>(ExpandRegionRecursively)
+
+" Missing Level Commands (Useful for deep HTML/JSON)
+nnoremap z1 <Action>(ExpandAllToLevel1)
+nnoremap z2 <Action>(ExpandAllToLevel2)
+nnoremap z3 <Action>(ExpandAllToLevel3)
+
+"" ========================================================
+"" Leader Commands
+"" ========================================================
+
+" finding
+nmap <Leader>fu <Action>(FindUsages)
+nmap <Leader>fs <Action>(ShowUsages)
+nmap <Leader><Leader> <Action>(FindInPath)
+vmap <Leader><Leader> <Action>(FindInPath)
+
+" show buffers
+nmap <leader>b <Action>(ShowNavBar)
+nmap <leader>m <Action>(ShowMembersInNavigationBar)
+
+" formatting
+nmap <leader>r <Action>(Refactorings.QuickListPopupAction)
+nmap <Leader>= <Action>(ReformatCode)
+vmap <Leader>= <Action>(ReformatCode)
+nmap <leader>o <Action>(OptimizeImports)
+
+" updating and reloading ideavimrc
+nnoremap <Leader>ve :e ~/.ideavimrc<CR>
+nmap <Leader>vr <Action>(IdeaVim.ReloadVimRc.reload)
+
+" create new editing window
+nmap <Leader>en <Action>(EditSourceInNewWindow)
+nmap <Leader>n  <Action>(NextWindow)
+
+" close content
+nmap <Leader>x  <Action>(CloseContent)
+nmap <Leader>qa <Action>(CloseAllEditors)
+nmap <Leader>qb <Action>(CloseAllEditorsButActive)
+
+" GoTo commands
+nmap gs <Action>(GotoSymbol)
+nmap gd <Action>(GotoDeclaration)
+nmap gD <Action>(GotoTypeDeclaration)
+nmap go <Action>(GotoSuperMethod)
+nmap gi <Action>(GotoImplementation)
+nmap gt <Action>(GotoTest)
+nmap ge <Action>(ShowErrorDescription)
+
+" Map <Leader>ns to create a New Scratch File (Language Selection)
+nmap <Leader>nn <Action>(NewElement)
+nmap <Leader>ns <Action>(NewScratchFile)
+
+" groovy console (use CTRL+Enter to run)
+nmap <Leader>ng <Action>(Groovy.Console)
+
+" git commands
+nmap ga <Action>(Annotate)
+nmap gh <Action>(Vcs.ShowTabbedFileHistory)
+vmap gh <Action>(Vcs.ShowHistoryForBlock)
+
+" Shift + K for Hover Info
+nmap K <Action>(ShowHoverInfo)
