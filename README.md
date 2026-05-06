@@ -32,6 +32,10 @@ A curated collection of tools and configs that power my daily workflow.
 
  * Runtime version manager for Node, Bun, Python, and uv. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
 
+#### 🤖 Claude Code
+
+ * AI coding assistant with a custom statusline, vim mode, and diff review popup. See [claude config](.config/claude/README.md) for the full setup.
+
 #### 💻 Fastfetch
 
  * For showing off system info in style — with random ASCII art and a pacman color row.
