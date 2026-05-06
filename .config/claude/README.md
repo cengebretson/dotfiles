@@ -57,6 +57,10 @@ claude_diff   # toggle diff popup on/off
 
 The toggle state is a flag file at `~/.config/claude/flags/diff-popup`. When active, a `󰈈` icon appears in the statusline.
 
+## Gallery
+
+![Claude Code statusline and diff popup](assets/statusline.png)
+
 ## AI-Helpful CLI Tools
 
 Tools installed to give Claude better ways to read, search, and modify code.
