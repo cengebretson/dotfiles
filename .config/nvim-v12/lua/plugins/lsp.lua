@@ -63,10 +63,16 @@ function M.setup()
 		}))
 	end
 
-	require("mason").setup()
+	require("mason").setup({
+		ui = {
+			border = "rounded",
+			width = 0.8,
+			height = 0.8,
+		},
+	})
 
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls" },
+		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls", "biome" },
 		automatic_enable = true,
 	})
 
@@ -75,7 +81,7 @@ function M.setup()
 			"stylua",
 			"shellcheck",
 			"ruff",
-			"eslint_d",
+			"biome",
 			"debugpy",
 			"js-debug-adapter",
 		},
