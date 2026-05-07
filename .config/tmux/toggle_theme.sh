@@ -9,9 +9,7 @@ ACTIVE_TARGET=$(readlink "$CURRENT_LINK")
 
 if [ "$ACTIVE_TARGET" = "$THEME1" ]; then
     ln -sf "$THEME2" "$CURRENT_LINK"
-    NEW_THEME="Theme 2"
 else
     ln -sf "$THEME1" "$CURRENT_LINK"
-    NEW_THEME="Theme 1"
 fi
 

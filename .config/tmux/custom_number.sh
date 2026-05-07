@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# shellcheck disable=SC2034  # variables accessed via indirect expansion ${!varname}
 format_hide=""
 format_none="0123456789"
 format_fsquare="󰎡󰎤󰎧󰎪󰎭󰎱󰎳󰎶󰎹󰎼"
@@ -13,7 +14,8 @@ ID=$1
 FORMAT=${2:-none}
 
 # Preserve leading whitespace for bash
-format="$(eval echo \"\$format_${FORMAT}\")"
+varname="format_${FORMAT}"
+format="${!varname}"
 
 if [ "$FORMAT" = "hide" ]; then
   exit 0
