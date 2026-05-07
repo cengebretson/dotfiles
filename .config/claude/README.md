@@ -11,13 +11,11 @@ Segments left to right:
 | Segment | Description |
 |---------|-------------|
 | `N` / `I` / `V` / `VL` | Vim mode — blue (normal), green (insert), yellow (visual) |
-| `󰘬 main ±3` | Git branch and uncommitted file count |
-| `󱙺 sonnet-4-6` | Active Claude model |
-| `󰾆 ■■■□` | Effort level — dimmed (low) → yellow (medium) → peach (high) → red (max) |
-| `󰛨` | Extended thinking enabled — same color as effort level |
-| `⚡` | Fast mode active (Max plan) |
-| `▓▓░░░░░░░░ 15%` | Context window usage — color escalates yellow → peach → red above 50/75/90% |
-| `󰈈` | Diff popup is on (only shown when enabled) |
+| ` main ±3` (git branch icon) | Git branch and uncommitted file count |
+| ` sonnet-4-6` (claude icon) | Active Claude model |
+| ` ▪▪▪` (effort icon) | Effort level with dot count — dimmed (low ▪) → yellow (medium ▪▪) → peach (high ▪▪▪ / xhigh ▪▪▪▪) → red (max ▪▪▪▪▪) |
+| `⚡` | Fast mode active |
+| `▪▪▪▫▫▫▫▫▫▫ 30%` | Context window usage (10-segment bar) — overlay (0–49%) → yellow (50%) → peach (75%) → red (90%) |
 
 Configured in `settings.json`:
 
