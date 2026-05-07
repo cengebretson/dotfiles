@@ -18,8 +18,9 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | `Option + h/l` | Previous / next window |
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
 | `C-k` | Which-key menu |
+| `prefix + P` | Open claude-code-preview diff pane (or unzoom if already open) |
 
-Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank.
+Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to system clipboard, `Escape` to exit. A `󰆏 COPY` indicator appears in the status bar while in copy mode. Search match highlights use Catppuccin mauve.
 
 ## Dual Theme System
 
