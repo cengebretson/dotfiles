@@ -5,7 +5,6 @@ model=$(printf '%s' "$json" | jq -r '(.model | if type == "object" then .id else
 model="${model#claude-}"  # strip "claude-" prefix
 vimmode=$(printf '%s' "$json" | jq -r '.vim.mode // ""' 2>/dev/null)
 ctx_pct=$(printf '%s' "$json" | jq -r '.context_window.used_percentage // ""' 2>/dev/null)
-diff_flag="$HOME/.config/claude/flags/diff-popup"
 effort=$(printf '%s' "$json" | jq -r '.effort.level // ""' 2>/dev/null)
 fast_mode=$(printf '%s' "$json" | jq -r '.fast_mode // ""' 2>/dev/null)
 
@@ -78,8 +77,6 @@ if [[ -n "$ctx_pct" ]]; then
     done
     parts+=("${ctx_color}${bar} ${ctx_pct}%${reset}")
 fi
-
-[[ -f "$diff_flag" ]] && parts+=("${green}󰈈${reset}")
 
 sep="${overlay1} │ ${reset}"
 result=""
