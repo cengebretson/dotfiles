@@ -1,6 +1,6 @@
 # Claude Code Config
 
-Personal Claude Code setup with a custom statusline and a diff review popup triggered after each response.
+Personal Claude Code setup with a custom statusline, a persistent diff review side pane, and vim mode integration.
 
 ## Statusline
 
@@ -29,33 +29,36 @@ Configured in `settings.json`:
 }
 ```
 
-## Diff Review Popup
+## Diff Review Side Pane
 
-After Claude finishes a response, if any files were edited a tmux popup opens showing the changed files alongside a delta diff preview.
+After Claude finishes a response, if any files were edited the side pane updates automatically. Open it with `prefix+P` — two panes appear on the right: changed files on top, delta diff preview below. Navigate files with arrow keys. Use `prefix+z` to zoom any pane full screen.
 
 ### How it works
 
-1. **`hooks/track-changes.sh`** — `PostToolUse` hook that fires after every Edit/Write. Records the changed file path to `/tmp/claude-changes-{session_id}`.
-2. **`hooks/diff-popup.sh`** — `Stop` hook that fires when Claude finishes responding. Reads the tracked files, opens a tmux popup running the viewer.
-3. **`hooks/diff-viewer.sh`** — fzf interface showing changed files (30%) with a delta diff preview (70%). File paths are displayed relative to `$HOME`.
-4. **`hooks/diff-preview.sh`** — called by fzf for each file. Diffs tracked files against HEAD; shows full content for new untracked files. Uses `--file-style omit --hunk-header-style omit` to show only changed code.
+1. **`hooks/snapshot-file.sh`** — `PreToolUse` hook. Saves a snapshot of each file before Claude edits it.
+2. **`hooks/track-changes.sh`** — `PostToolUse` hook. Records edited file paths to `/tmp/claude-changes-{session_id}`.
+3. **`hooks/diff-popup.sh`** — `Stop` hook. Reads tracked files, signals the preview pane if open, otherwise falls back to a tmux popup.
+4. **`hooks/preview-open.sh`** — creates the two-pane right column layout.
+5. **`hooks/preview-list.sh`** — top pane. Shows changed files, handles keyboard navigation, writes selected file to a shared target.
+6. **`hooks/preview-diff.sh`** — bottom pane. Watches the shared target and rerenders delta diff on selection change.
+7. **`hooks/diff-preview.sh`** — diff renderer. Diffs snapshot vs current file; falls back to HEAD diff or full content for new files.
 
-### Keybindings in the popup
+### Keybindings in the preview pane
 
 | Key | Action |
 |-----|--------|
-| `enter` | Open selected file in nvim (returns to popup on quit) |
-| `ctrl-u` / `ctrl-d` | Scroll diff half page up/down |
-| `shift-↑` / `shift-↓` | Scroll diff line by line |
-| `esc` / `q` | Close popup |
+| `↑` / `k` | Previous file |
+| `↓` / `j` | Next file |
+| `enter` | Open selected file in nvim |
+| `q` | Clear and return to waiting state |
 
-### Toggle
+### Tmux bindings
 
-```fish
-claude_diff   # toggle diff popup on/off
-```
-
-The toggle state is a flag file at `~/.config/claude/flags/diff-popup`. When active, a `󰈈` icon appears in the statusline.
+| Binding | Action |
+|---------|--------|
+| `prefix+P` | Open preview panes (or unzoom if already open) |
+| `prefix+D` | Toggle fallback popup mode on/off |
+| `prefix+z` | Zoom focused pane full screen |
 
 ## Gallery
 
