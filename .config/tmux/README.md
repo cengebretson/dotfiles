@@ -7,14 +7,14 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | Key | Action |
 |-----|--------|
 | `C-Space` | Prefix |
-| `C-Space` (hold) | Window switcher (fzf popup) |
+| `prefix + j` | Pane/window switcher (fzf popup) |
 | `prefix + r` | Reload config |
 | `prefix + \|` | Split horizontal (current path) |
 | `prefix + -` | Split vertical (current path) |
 | `prefix + T` | Toggle theme |
 | `prefix + y` | Lazygit popup |
-| `prefix + C-n` | New session popup |
-| `prefix + d` | Dotfiles menu |
+| `prefix + c` | New window (with name prompt) |
+| `prefix + S` | New session (with name prompt) |
 | `Option + h/l` | Previous / next window |
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
 | `C-k` | Which-key menu |
