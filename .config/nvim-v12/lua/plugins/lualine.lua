@@ -13,7 +13,7 @@ function M.setup()
 
 	local colors = require("catppuccin.palettes").get_palette("mocha")
 	local auto = require("lualine.themes.auto")
-	local bg = "NONE"
+	local bg = colors.surface0
 
 	vim.api.nvim_set_hl(0, "StatusLine", { bg = bg })
 
