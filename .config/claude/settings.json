@@ -1,6 +1,4 @@
 {
-  "editorMode": "vim",
-  "effortLevel": "medium",
   "hooks": {
     "PostToolUse": [
       {
@@ -40,5 +38,7 @@
     "command": "~/.config/claude/statusline.sh",
     "hideVimModeIndicator": true
   },
-  "theme": "dark"
+  "effortLevel": "medium",
+  "theme": "dark-ansi",
+  "editorMode": "vim"
 }
