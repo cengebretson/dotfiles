@@ -113,18 +113,22 @@ Git-aware file explorer with:
 | `<leader><leader>` | Buffers (quick) |
 | `-` | Open Oil file explorer |
 
-### Git
+### Version Control
 
 | Key | Action |
 |-----|--------|
-| `<leader>gl` | Lazygit |
-| `<leader>gf` | Lazygit file log |
-| `<leader>gb` | Blame line (float) |
-| `<leader>gB` | Toggle inline blame virtualtext |
-| `<leader>gp` | Preview hunk |
-| `<leader>gs` | Stage hunk |
-| `<leader>gr` | Reset hunk |
-| `<leader>gd` | Diff this |
+| `<leader>vl` | Lazygit |
+| `<leader>vf` | Lazygit file log |
+| `<leader>vb` | Blame line (float) |
+| `<leader>vB` | Toggle inline blame virtualtext |
+| `<leader>vp` | Preview hunk |
+| `<leader>vs` | Stage hunk |
+| `<leader>vr` | Reset hunk |
+| `<leader>vd` | Diff this (gitsigns) |
+| `<leader>vD` | Diffview open |
+| `<leader>vh` | Diffview file history |
+| `<leader>vH` | Diffview repo history |
+| `<leader>vx` | Diffview close |
 | `]h` / `[h` | Next / prev hunk |
 
 ### LSP
@@ -138,7 +142,8 @@ Git-aware file explorer with:
 | `<leader>rn` | Rename |
 | `<leader>ca` | Code action |
 | `<leader>D` | Type definition |
-| `]d` / `[d` | Next / prev diagnostic |
+| `<leader>=` | Format file or range |
+| `]d` / `[d` | Next / prev diagnostic (Trouble) |
 | `<leader>e` | Show diagnostic float |
 
 ### Editing
@@ -180,6 +185,18 @@ Git-aware file explorer with:
 | `r` | Flash remote (operate on a remote location) |
 | `R` | Flash treesitter search (operator + visual) |
 
+### Trouble
+
+| Key | Action |
+|-----|--------|
+| `<leader>xx` | Workspace diagnostics |
+| `<leader>xd` | Document diagnostics |
+| `<leader>xs` | Symbols |
+| `<leader>xl` | LSP references |
+| `<leader>xt` | TODOs |
+| `<leader>xq` | Quickfix list |
+| `<leader>xL` | Location list |
+
 ### Tests (neotest)
 
 | Key | Action |
@@ -214,17 +231,9 @@ Git-aware file explorer with:
 |-----|------|--------|
 | `<leader>cq` | visual | Ask Claude about selection (sends code + prompt) |
 | `<leader>cc` | normal | Ask Claude about current function/class |
+| `<leader>cl` | normal | Ask Claude about current line |
 | `<leader>cf` | normal | Ask Claude about current file |
 | `<leader>cx` | normal | Send file diagnostics to Claude |
-| `<leader>yf` | normal | Copy file path to clipboard |
-| `<leader>yc` | visual | Copy selection with file:line context to clipboard |
-
-### Copy Context (clipboard)
-
-| Key | Action |
-|-----|--------|
-| `<leader>yf` | Copy file path |
-| `<leader>yc` | Copy selection with file:line header (visual) |
 
 ## Format on Save
 
@@ -233,10 +242,11 @@ Configured via conform.nvim. Formatters by filetype:
 | Filetype | Formatter |
 |----------|-----------|
 | Lua | stylua |
-| JavaScript / TypeScript / Vue | prettierd → prettier |
+| JavaScript / TypeScript / Vue | biome → prettierd → prettier |
+| Go | goimports → gofumpt |
+| Python | ruff |
 | Java | google-java-format |
 | Fish | fish_indent |
-| Python | ruff |
 
 ## Mason-managed Tools
 
@@ -249,9 +259,14 @@ Installed automatically on first launch:
 | `ruff` | Python LSP + formatter |
 | `ts_ls` | TypeScript LSP |
 | `vue_ls` | Vue LSP |
+| `cssls` | CSS LSP |
+| `gopls` | Go LSP |
+| `biome` | JS/TS formatter + linter |
 | `stylua` | Lua formatter |
 | `shellcheck` | Shell script linter |
-| `eslint_d` | JS/TS linter |
+| `prettierd` | JS/TS/Vue formatter (fallback) |
+| `goimports` | Go import organizer + formatter |
+| `gofumpt` | Go strict formatter |
 | `debugpy` | Python debugger |
 | `js-debug-adapter` | JS/TS/Bun/Chrome debugger |
 

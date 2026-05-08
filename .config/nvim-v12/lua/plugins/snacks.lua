@@ -30,7 +30,7 @@ function M.setup()
 					{ icon = "󱩾 ", key = "g", desc = "Live Grep", action = ":lua Snacks.picker.grep()" },
 					{ icon = "󰋚 ", key = "r", desc = "Recent Files", action = ":lua Snacks.picker.recent()" },
 					{ icon = "󰊢 ", key = "l", desc = "Lazygit", action = ":lua Snacks.lazygit()" },
-					{ icon = "󰚰 ", key = "s", desc = "Sync Plugins", action = ":Pack sync" },
+					{ icon = "󰚰 ", key = "s", desc = "Sync Plugins + Tools", action = ":Pack sync | MasonToolsInstall" },
 					{
 						icon = "󱩷 ",
 						key = "c",
@@ -146,10 +146,10 @@ function M.setup()
 	end, { desc = "Projects" })
 
 	-- Git
-	vim.keymap.set("n", "<leader>gl", function()
+	vim.keymap.set("n", "<leader>vl", function()
 		Snacks.lazygit()
 	end, { desc = "Lazygit" })
-	vim.keymap.set("n", "<leader>gf", function()
+	vim.keymap.set("n", "<leader>vf", function()
 		Snacks.lazygit.log_file()
 	end, { desc = "Lazygit File Log" })
 

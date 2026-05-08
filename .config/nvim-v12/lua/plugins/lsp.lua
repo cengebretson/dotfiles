@@ -72,7 +72,7 @@ function M.setup()
 	})
 
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls", "biome" },
+		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls", "biome", "cssls", "gopls" },
 		automatic_enable = true,
 	})
 
@@ -82,6 +82,9 @@ function M.setup()
 			"shellcheck",
 			"ruff",
 			"biome",
+			"prettierd",
+			"goimports",
+			"gofumpt",
 			"debugpy",
 			"js-debug-adapter",
 		},

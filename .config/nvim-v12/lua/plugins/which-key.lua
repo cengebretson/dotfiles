@@ -25,7 +25,7 @@ function M.setup()
 		{ "<leader>pt", "<cmd>Pack status<cr>", desc = "Pack Status" },
 		{ "<leader>b", group = "Buffers" },
 		{ "<leader>f", group = "Find" },
-		{ "<leader>g", group = "Git" },
+		{ "<leader>v", group = "Version Control" },
 		{ "<leader>m", group = "Modification/Format" },
 		{ "<leader>r", group = "Refactor" },
 		{ "<leader>c", group = "Code / Claude" },

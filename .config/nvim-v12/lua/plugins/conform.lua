@@ -16,6 +16,7 @@ function M.setup()
 			javascriptreact = { "biome", "prettierd", "prettier", stop_after_first = true },
 			typescriptreact = { "biome", "prettierd", "prettier", stop_after_first = true },
 			vue = { "biome", "prettierd", "prettier", stop_after_first = true },
+			go = { "goimports", "gofumpt" },
 			python = { "ruff_format" },
 			java = { "google-java-format" },
 			fish = { "fish_indent" },
@@ -26,13 +27,13 @@ function M.setup()
 		},
 	})
 
-	vim.keymap.set({ "n", "v" }, "<leader>mp", function()
+	vim.keymap.set({ "n", "v" }, "<leader>=", function()
 		require("conform").format({
 			lsp_fallback = true,
 			async = false,
 			timeout_ms = 500,
 		})
-	end, { desc = "Format file or range (manually)" })
+	end, { desc = "Format file or range" })
 end
 
 return M

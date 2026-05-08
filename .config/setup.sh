@@ -67,7 +67,7 @@ if [ "$SHELL" != "$FISH_PATH" ]; then
 fi
 echo "✓ Fish shell"
 
-# ── Mise (Node, Bun, and other runtimes) ──────────────────────────────────────
+# ── Mise (Node, Bun, Go, Python, and other runtimes) ─────────────────────────
 mise install
 echo "✓ Mise runtimes"
 

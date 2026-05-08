@@ -82,6 +82,17 @@ vim.keymap.set("n", "<leader>cf", function()
 	ask_claude(pane_id, vim.fn.expand("%:p"))
 end, { desc = "Ask Claude about file" })
 
+-- Send current line with context
+vim.keymap.set("n", "<leader>cl", function()
+	local pane_id, err = find_claude_pane()
+	if not pane_id then vim.notify(err, vim.log.levels.WARN) return end
+	local line = vim.fn.line(".")
+	local path = vim.fn.expand("%:p")
+	local content = vim.api.nvim_get_current_line()
+	local context = path .. ":" .. line .. "\n" .. content
+	ask_claude(pane_id, context)
+end, { desc = "Ask Claude about current line" })
+
 -- Send diagnostics for current file
 vim.keymap.set("n", "<leader>cx", function()
 	local pane_id, err = find_claude_pane()
