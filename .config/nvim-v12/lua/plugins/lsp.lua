@@ -72,7 +72,7 @@ function M.setup()
 	})
 
 	require("mason-lspconfig").setup({
-		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls", "biome", "cssls", "gopls" },
+		ensure_installed = { "lua_ls", "basedpyright", "ruff", "ts_ls", "vue_ls", "biome", "cssls", "gopls", "bashls" },
 		automatic_enable = true,
 	})
 
@@ -80,6 +80,7 @@ function M.setup()
 		ensure_installed = {
 			"stylua",
 			"shellcheck",
+			"shfmt",
 			"ruff",
 			"biome",
 			"prettierd",

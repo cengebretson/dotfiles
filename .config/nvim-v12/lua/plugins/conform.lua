@@ -17,6 +17,8 @@ function M.setup()
 			typescriptreact = { "biome", "prettierd", "prettier", stop_after_first = true },
 			vue = { "biome", "prettierd", "prettier", stop_after_first = true },
 			go = { "goimports", "gofumpt" },
+			sh = { "shfmt" },
+			bash = { "shfmt" },
 			python = { "ruff_format" },
 			java = { "google-java-format" },
 			fish = { "fish_indent" },
