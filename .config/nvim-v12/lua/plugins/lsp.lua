@@ -28,7 +28,9 @@ function M.setup()
 		pattern = "python",
 		callback = function(ev)
 			local root = vim.fs.root(ev.buf, { "pyproject.toml", "setup.py", "setup.cfg", ".git" })
-			if not root then return end
+			if not root then
+				return
+			end
 			local venv_names = { ".venv", "venv", "env", ".env" }
 			for _, name in ipairs(venv_names) do
 				local venv = root .. "/" .. name
@@ -56,12 +58,15 @@ function M.setup()
 		},
 	})
 
-	vim.lsp.handlers["textDocument/signatureHelp"] = function(err, result, ctx, config)
-		return vim.lsp.handlers.signature_help(err, result, ctx, vim.tbl_extend("force", config or {}, {
-			border = "rounded",
-			max_width = 80,
-		}))
-	end
+	vim.lsp.config("*", {
+		handlers = {
+			---@diagnostic disable-next-line: deprecated
+			["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
+				border = "rounded",
+				max_width = 80,
+			}),
+		},
+	})
 
 	require("mason").setup({
 		ui = {

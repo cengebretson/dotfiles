@@ -1,6 +1,26 @@
+local ok, catppuccin = pcall(require, "catppuccin.palettes")
+local p = ok and catppuccin.get_palette("mocha") or {}
+
 return {
-	accent      = "#89b4fa", -- catppuccin mocha blue
-	line_nr     = "#7f849c", -- catppuccin mocha overlay1
-	tab_inactive = "#585b70", -- catppuccin mocha overlay0
-	tab_sep     = "#45475a", -- catppuccin mocha surface1
+	-- statusline
+	statusline_bg = p.surface0,  -- lualine section backgrounds
+	mode_fg       = p.flamingo,  -- mode indicator
+	branch_fg     = p.green,     -- git branch
+	separator_fg  = p.overlay2,  -- separator icons
+	cursor_fg     = p.red,       -- cursor position
+	filename_fg   = p.blue,      -- filename
+	lsp_fg        = p.yellow,    -- LSP client names / progress
+	diff_add      = p.teal,      -- git diff added
+	diff_mod      = p.yellow,    -- git diff modified
+	diff_del      = p.red,       -- git diff removed
+	diag_error    = p.red,
+	diag_warn     = p.yellow,
+	diag_info     = p.blue,
+	diag_hint     = p.teal,
+
+	-- tabline / statuscolumn
+	accent        = p.blue,      -- current line number, active tab
+	line_nr       = p.overlay1,  -- inactive line numbers
+	tab_inactive  = p.overlay0,  -- inactive tab text
+	tab_sep       = p.surface1,  -- tab separator
 }

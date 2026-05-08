@@ -11,9 +11,9 @@ function M.setup()
 		return
 	end
 
-	local colors = require("catppuccin.palettes").get_palette("mocha")
+	local colors = require("core.colors")
 	local auto = require("lualine.themes.auto")
-	local bg = colors.surface0
+	local bg = colors.statusline_bg
 
 	vim.api.nvim_set_hl(0, "StatusLine", { bg = bg })
 
@@ -32,7 +32,7 @@ function M.setup()
 			function()
 				return "󰇝"
 			end,
-			color = { fg = colors.overlay2, bg = bg },
+			color = { fg = colors.separator_fg, bg = bg },
 			padding = { left = 0, right = 0 },
 		}
 	end
@@ -72,7 +72,7 @@ function M.setup()
 			lualine_a = {
 				{
 					"mode",
-					color = { fg = colors.flamingo, bg = bg, gui = "bold" },
+					color = { fg = colors.mode_fg, bg = bg, gui = "bold" },
 					fmt = function(str)
 						local reg = vim.fn.reg_recording()
 						local prefix = reg ~= "" and (" " .. reg .. "  ") or ""
@@ -85,16 +85,16 @@ function M.setup()
 			lualine_b = {
 				{
 					custom_branch,
-					color = { fg = colors.green, bg = bg },
+					color = { fg = colors.branch_fg, bg = bg },
 					padding = { left = 1, right = 1 },
 				},
 				{
 					"diff",
 					colored = true,
 					diff_color = {
-						added = { fg = colors.teal, bg = bg, gui = "bold" },
-						modified = { fg = colors.yellow, bg = bg, gui = "bold" },
-						removed = { fg = colors.red, bg = bg, gui = "bold" },
+						added = { fg = colors.diff_add, bg = bg, gui = "bold" },
+						modified = { fg = colors.diff_mod, bg = bg, gui = "bold" },
+						removed = { fg = colors.diff_del, bg = bg, gui = "bold" },
 					},
 					padding = { left = 0, right = 1 },
 				},
@@ -119,7 +119,7 @@ function M.setup()
 						unnamed = "[?]",
 						newfile = "[!]",
 					},
-					color = { fg = colors.blue, bg = bg },
+					color = { fg = colors.filename_fg, bg = bg },
 					padding = { left = 0, right = 1 },
 				},
 				{
@@ -127,10 +127,10 @@ function M.setup()
 					sources = { "nvim_diagnostic" },
 					sections = { "error", "warn", "info", "hint" },
 					diagnostics_color = {
-						error = { fg = colors.red, bg = bg, gui = "bold" },
-						warn = { fg = colors.yellow, bg = bg, gui = "bold" },
-						info = { fg = colors.blue, bg = bg, gui = "bold" },
-						hint = { fg = colors.teal, bg = bg, gui = "bold" },
+						error = { fg = colors.diag_error, bg = bg, gui = "bold" },
+						warn = { fg = colors.diag_warn, bg = bg, gui = "bold" },
+						info = { fg = colors.diag_info, bg = bg, gui = "bold" },
+						hint = { fg = colors.diag_hint, bg = bg, gui = "bold" },
 					},
 					symbols = {
 						error = "󰅚 ",
@@ -155,7 +155,7 @@ function M.setup()
 						local names = vim.tbl_map(function(c) return c.name end, clients)
 						return " " .. table.concat(names, " ")
 					end,
-					color = { fg = colors.yellow, bg = "none" },
+					color = { fg = colors.lsp_fg, bg = "none" },
 					padding = { left = 1, right = 1 },
 					icon = { " ", align = "right" },
 				},
@@ -166,7 +166,7 @@ function M.setup()
 					function()
 						return " " .. vim.fn.line(".") .. ":" .. vim.fn.col(".")
 					end,
-					color = { fg = colors.red, bg = bg },
+					color = { fg = colors.cursor_fg, bg = bg },
 					padding = { left = 1, right = 1 },
 				},
 			},
