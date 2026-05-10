@@ -55,6 +55,18 @@ echo "Installing packages from Brewfile..."
 brew bundle --file="$HOME/.config/Brewfile"
 echo "✓ Brew bundle complete"
 
+read -rp "Install apps? (Ghostty, Tower, Raycast, etc.) [y/N] " apps
+if [[ "$apps" =~ ^[Yy]$ ]]; then
+  brew bundle --file="$HOME/.config/Brewfile.apps"
+  echo "✓ Apps installed"
+fi
+
+read -rp "Install optional apps? (Bitwig, Steam, Discord, etc.) [y/N] " optional
+if [[ "$optional" =~ ^[Yy]$ ]]; then
+  brew bundle --file="$HOME/.config/Brewfile.optional"
+  echo "✓ Optional apps installed"
+fi
+
 # ── Fish as default shell ──────────────────────────────────────────────────────
 FISH_PATH="$(brew --prefix)/bin/fish"
 if ! grep -qF "$FISH_PATH" /etc/shells; then
