@@ -80,7 +80,7 @@ echo "✓ Claude Code"
 
 # ── Fisher plugins ─────────────────────────────────────────────────────────────
 echo "Installing fisher plugins..."
-fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher update"
+fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source; fisher install jorgebucaran/fisher; fisher update"
 echo "✓ Fisher plugins"
 
 # ── fzf universal variable ─────────────────────────────────────────────────────
