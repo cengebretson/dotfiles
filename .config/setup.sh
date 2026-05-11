@@ -84,7 +84,7 @@ fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/fun
 echo "✓ Fisher plugins"
 
 # ── fzf universal variable ─────────────────────────────────────────────────────
-fish -c "set -U FZF_DEFAULT_OPTS \"--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 --color=selected-bg:#45475A --color=border:#6C7086,label:#CDD6F4 --input-border --list-border --info=inline\n--ansi --preview-window 'right:60%' --preview 'test -f {} && bat --color=always --style=header,grid --line-range :300 {} || echo {}'\""
+fish -c "set -U FZF_DEFAULT_OPTS \"--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC --color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 --color=selected-bg:#45475A --color=border:#6C7086,label:#CDD6F4 --input-border --list-border --info=inline --ansi --preview-window 'right:60%' --preview 'test -f {} && bat --color=always --style=header,grid --line-range :300 {} || echo {}'\""
 echo "✓ fzf config"
 
 echo ""
