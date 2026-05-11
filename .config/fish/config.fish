@@ -17,7 +17,9 @@ set -gx NVIM_APPNAME nvim-v12
 set -gx CLAUDE_CONFIG_DIR "$HOME/.config/claude"
 
 # fzf settings
-fzf_configure_bindings --directory=\ct
+if functions -q fzf_configure_bindings
+    fzf_configure_bindings --directory=\ct
+end
 
 # suppress window title
 function fish_title
