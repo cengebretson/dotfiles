@@ -29,7 +29,7 @@ function dotfiles {
 
 if [ ! -d "$HOME/.dotfiles" ]; then
   echo "Cloning dotfiles..."
-  git clone --bare git@github.com:cengebretson/dotfiles.git "$HOME/.dotfiles"
+  git clone --bare https://github.com/cengebretson/dotfiles.git "$HOME/.dotfiles"
   dotfiles config --local core.bare false
   dotfiles config --local core.worktree "$HOME"
   dotfiles config --local status.showUntrackedFiles no
