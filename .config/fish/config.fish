@@ -9,6 +9,9 @@ source ~/.config/fish/alias.fish
 # mise (manages node, bun, and other runtimes)
 mise activate fish | source
 
+# vi key bindings
+fish_vi_key_bindings
+
 # make nvim the default editor
 set -gx EDITOR nvim
 set -gx TERMINAL ghostty
