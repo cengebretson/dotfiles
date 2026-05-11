@@ -72,6 +72,12 @@ echo "✓ Fish shell"
 mise install
 echo "✓ Mise runtimes"
 
+# ── Claude Code ────────────────────────────────────────────────────────────────
+if ! command -v claude &>/dev/null; then
+  npm install -g @anthropic-ai/claude-code
+fi
+echo "✓ Claude Code"
+
 # ── Fisher plugins ─────────────────────────────────────────────────────────────
 echo "Installing fisher plugins..."
 fish -c "fisher update"
