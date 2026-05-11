@@ -1,41 +1,56 @@
-brew "awscli"
+# ── Taps ───────────────────────────────────────────────────────────────────────
+tap "brevity1swos/tap"
+
+# ── Shell & Terminal ───────────────────────────────────────────────────────────
+brew "fish"
+brew "tmux"
+brew "starship"
+brew "zoxide"
+brew "fastfetch"
+
+# ── CLI Utilities ──────────────────────────────────────────────────────────────
 brew "bat"
 brew "btop"
 brew "eza"
 brew "fd"
-brew "ffmpeg"
-brew "fish"
-brew "mise"
 brew "fzf"
+brew "jq"
+brew "yq"
+brew "sd"
+brew "scc"
+brew "unar"
+brew "tlrc"
+brew "television"
+brew "superfile"
+brew "prettyping"
+brew "wakeonlan"
+
+# ── Git ────────────────────────────────────────────────────────────────────────
 brew "git"
 brew "git-delta"
-brew "httpie"
-brew "imagemagick"
-brew "jq"
 brew "lazygit"
-brew "fastfetch"
-brew "tree-sitter"
-brew "neovim"
-brew "pass"
-brew "prettyping"
+
+# ── Search & Code Intelligence ─────────────────────────────────────────────────
 brew "ripgrep"
-brew "starship"
-brew "television"
-brew "tlrc"
-brew "tmux"
-brew "tree-sitter-cli"
-brew "unar"
-brew "wakeonlan"
-brew "zoxide"
 brew "ast-grep"
 brew "difftastic"
-brew "sd"
 brew "shellcheck"
-brew "scc"
-brew "yq"
-brew "superfile"
-tap "brevity1swos/tap"
 brew "brevity1swos/tap/rgx"
+
+# ── Editors & Runtimes ─────────────────────────────────────────────────────────
+brew "neovim"
+brew "mise"
+brew "tree-sitter"
+brew "tree-sitter-cli"
+
+# ── Dev Tools ──────────────────────────────────────────────────────────────────
+brew "awscli"
+brew "pass"
+brew "imagemagick"
+brew "ffmpeg"
+brew "httpie"
+
+# ── Fonts ──────────────────────────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"
 cask "font-monaspace-nerd-font"
 cask "font-fira-code-nerd-font"
