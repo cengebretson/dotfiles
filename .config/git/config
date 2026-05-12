@@ -65,3 +65,6 @@
 	diffFilter = delta --color-only
 [delta]
 	navigate = true
+	file-modified-label = "modified:"
+	hunk-header-style = line-number syntax
+	hunk-header-decoration-style = none
