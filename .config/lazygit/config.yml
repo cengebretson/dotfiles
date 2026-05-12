@@ -1,5 +1,22 @@
+gui:
+  theme:
+    activeBorderColor:
+      - '#fab387' # catppuccin peach
+      - bold
+    inactiveBorderColor:
+      - '#6c7086' # catppuccin overlay0
+  showFileTree: true
+  nerdFontsVersion: "3"
+  showRandomTip: false
 git:
   log:
     order: "topo-order"
     showGraph: "always"
     showWholeGraph: false
+  pagers:
+    - colorArg: always
+      pager: delta --paging=never
+  commit:
+    signOff: false
+  merging:
+    manualCommit: false
