@@ -40,4 +40,5 @@ alias vim "nvim"
 # git
 alias gcopy "git rev-parse --short HEAD | pbcopy"
 abbr --add --position anywhere dots -- --git-dir=$HOME/.dotfiles --work-tree=$HOME
+abbr --add zz ~/.config/fish/config.fish
 
