@@ -30,7 +30,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🛠 Mise
 
- * Runtime version manager for Node, Bun, Python, and uv. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
+ * Runtime version manager for Node, Bun, Python, uv, Go, Rust, and Lua. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
 
 #### 🤖 Claude Code
 
@@ -56,7 +56,7 @@ A curated collection of tools and configs that power my daily workflow.
  | `⌥+backspace` | Delete previous word |
  | `ctrl+r` | Fuzzy search shell history |
  | `ctrl+t` | Fuzzy search files and directories |
- | `ctrl+⌥+p` | Fuzzy search running processes |
+ | `ctrl+p` | Fuzzy search running processes |
  | `ctrl+⌥+l` | Fuzzy search git log |
  | `ctrl+⌥+s` | Fuzzy search git status |
 
@@ -68,6 +68,7 @@ A curated collection of tools and configs that power my daily workflow.
  | `ji` | Interactive zoxide picker |
  | `tldrf` | Fuzzy search tldr pages |
  | `kp` | Kill a process via fzf picker |
+ | `zz` | Open fish config.fish in `$EDITOR` |
  | `dots` | Shorthand for dotfiles git commands |
  | `l` / `ll` / `la` | eza listings with icons and git status |
  | `lt` / `ltd` | eza tree views (files / directories) |
