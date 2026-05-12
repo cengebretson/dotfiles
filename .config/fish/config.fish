@@ -21,7 +21,7 @@ set -gx CLAUDE_CONFIG_DIR "$HOME/.config/claude"
 
 # fzf settings
 if functions -q fzf_configure_bindings
-    fzf_configure_bindings --directory=\ct
+    fzf_configure_bindings --directory=\ct --processes=\cp
 end
 
 # suppress window title
