@@ -33,3 +33,8 @@ starship init fish | source
 
 # zoxide integration to use j and ji keys
 zoxide init --cmd j fish | source
+
+# Added by OrbStack: command-line tools and integration
+if test -f ~/.orbstack/shell/init2.fish
+    source ~/.orbstack/shell/init2.fish
+end
