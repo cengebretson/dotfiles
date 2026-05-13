@@ -70,3 +70,4 @@
 	hunk-header-decoration-style = none
 [credential]
 	helper = osxkeychain
+	useHttpPath = true
