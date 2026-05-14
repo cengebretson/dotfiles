@@ -4,8 +4,8 @@ function gitcredset
         echo "  gitcredset <path> <username> <token>"
         echo ""
         echo "Examples:"
-        echo "  gitcredset Lenders-Cooperative api ghp_xxx"
-        echo "  gitcredset Lenders-Cooperative/my-repo api ghp_xxx"
+        echo "  gitcredset orgName api ghp_xxx"
+        echo "  gitcredset orgName/my-repo api ghp_xxx"
         return 1
     end
 
