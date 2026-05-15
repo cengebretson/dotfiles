@@ -135,8 +135,8 @@ vim.keymap.set("n", "<leader>ch", function()
 	end)
 end, { desc = "Insert comment header" })
 
--- Claude Code tmux integration
-require("core.claude")
+-- AI CLI tmux integration
+require("core.ai")
 
 -- Treesitter incremental selection
 require("core.treesitter-select")
