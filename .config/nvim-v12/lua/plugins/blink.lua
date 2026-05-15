@@ -28,6 +28,11 @@ function M.setup()
 			menu = { border = "rounded" },
 			ghost_text = { enabled = true },
 		},
+
+		signature = {
+			enabled = true,
+			window = { border = "rounded" },
+		},
 	})
 end
 

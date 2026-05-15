@@ -6,7 +6,9 @@ M.specs = {
 
 function M.setup()
 	local ok, conform = pcall(require, "conform")
-	if not ok then return end
+	if not ok then
+		return
+	end
 
 	conform.setup({
 		formatters_by_ft = {
@@ -19,7 +21,7 @@ function M.setup()
 			go = { "goimports", "gofumpt" },
 			sh = { "shfmt" },
 			bash = { "shfmt" },
-			python = { "ruff_format" },
+			python = { "ruff_organize_imports", "ruff_format" },
 			java = { "google-java-format" },
 			fish = { "fish_indent" },
 		},
@@ -31,11 +33,19 @@ function M.setup()
 
 	vim.keymap.set({ "n", "v" }, "<leader>=", function()
 		require("conform").format({
-			lsp_fallback = true,
+			lsp_format = "fallback",
 			async = false,
 			timeout_ms = 500,
 		})
 	end, { desc = "Format file or range" })
+
+	vim.keymap.set("n", "<leader>rF", function()
+		require("conform").format({
+			formatters = { "ruff_fix" },
+			async = false,
+			timeout_ms = 500,
+		})
+	end, { desc = "Ruff fix file" })
 end
 
 return M

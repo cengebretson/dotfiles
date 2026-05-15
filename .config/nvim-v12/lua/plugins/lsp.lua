@@ -12,37 +12,51 @@ function M.setup()
 		float = { border = "rounded" },
 	})
 
+	local function find_python_path(bufnr, root)
+		root = root or vim.fs.root(bufnr, { "pyproject.toml", "setup.py", "setup.cfg", "requirements.txt", ".git" })
+		if not root then
+			return nil
+		end
+
+		for _, name in ipairs({ ".venv", "venv", "env", ".env" }) do
+			local python = root .. "/" .. name .. "/bin/python"
+			if vim.fn.executable(python) == 1 then
+				return python
+			end
+		end
+	end
+
 	vim.lsp.config("basedpyright", {
 		settings = {
 			basedpyright = {
 				analysis = {
 					autoSearchPaths = true,
-					useLibraryCodeForTypes = true,
 					diagnosticMode = "openFilesOnly",
 				},
 			},
 		},
 	})
 
-	vim.api.nvim_create_autocmd("FileType", {
-		pattern = "python",
+	vim.api.nvim_create_autocmd("LspAttach", {
 		callback = function(ev)
-			local root = vim.fs.root(ev.buf, { "pyproject.toml", "setup.py", "setup.cfg", ".git" })
-			if not root then
+			local client = vim.lsp.get_client_by_id(ev.data.client_id)
+			if not client or client.name ~= "basedpyright" then
 				return
 			end
-			local venv_names = { ".venv", "venv", "env", ".env" }
-			for _, name in ipairs(venv_names) do
-				local venv = root .. "/" .. name
-				if vim.fn.isdirectory(venv .. "/bin") == 1 then
-					vim.lsp.config("basedpyright", {
-						settings = {
-							python = { venvPath = root, venv = name },
-						},
-					})
-					return
-				end
+
+			local python = find_python_path(ev.buf, client.root_dir)
+			if not python then
+				return
 			end
+
+			local python_settings = { pythonPath = python }
+			if client.settings then
+				client.settings.python = vim.tbl_deep_extend("force", client.settings.python or {}, python_settings)
+			else
+				client.config.settings =
+					vim.tbl_deep_extend("force", client.config.settings or {}, { python = python_settings })
+			end
+			client:notify("workspace/didChangeConfiguration", { settings = nil })
 		end,
 	})
 
