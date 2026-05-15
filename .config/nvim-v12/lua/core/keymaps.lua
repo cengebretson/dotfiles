@@ -63,6 +63,11 @@ vim.keymap.set("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementa
 vim.keymap.set("n", "K", function()
 	vim.lsp.buf.hover({ border = "rounded", focusable = true })
 end, { desc = "Hover docs" })
+local function signature_help()
+	vim.lsp.buf.signature_help({ border = "rounded", max_width = 80 })
+end
+vim.keymap.set("i", "<C-k>", signature_help, { desc = "Signature help" })
+vim.keymap.set("n", "<leader>k", signature_help, { desc = "Signature help" })
 vim.keymap.set("n", "<leader>rn", vim.lsp.buf.rename, { desc = "Rename" })
 vim.keymap.set("n", "<leader>ca", vim.lsp.buf.code_action, { desc = "Code action" })
 vim.keymap.set("n", "<leader>D", vim.lsp.buf.type_definition, { desc = "Type definition" })

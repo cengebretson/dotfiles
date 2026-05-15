@@ -58,16 +58,6 @@ function M.setup()
 		},
 	})
 
-	vim.lsp.config("*", {
-		handlers = {
-			---@diagnostic disable-next-line: deprecated
-			["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, {
-				border = "rounded",
-				max_width = 80,
-			}),
-		},
-	})
-
 	require("mason").setup({
 		ui = {
 			border = "rounded",
