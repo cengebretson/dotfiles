@@ -26,18 +26,18 @@ Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to sy
 
 Two themes are available and toggled with `prefix + T`:
 
-- **appearance1.conf** — centered window list, solid bg, block-style active window separators
-- **appearance2.conf** — left-aligned, transparent bg, custom inline separators
+- **appearance1.conf** — centered window list, solid background, online/battery/path modules
+- **appearance2.conf** — left-aligned window list, mocha theme, path/CPU/RAM modules
 
 `appearance.conf` is a symlink pointing to whichever is active. `toggle_theme.sh` swaps the symlink and reloads the config.
 
-Both themes share the same status bar modules and window text format.
+Both themes use custom status modules and window text formats.
 
 ## Status Bar
 
 **Left:** prefix indicator, session name
 
-**Right (appearance2):** current path, CPU%, RAM%, battery
+**Right (appearance2):** current path, CPU%, RAM%
 
 Window tabs use custom Unicode number glyphs via `custom_number.sh`. The active window uses filled square glyphs; inactive windows use double-stroke squares.
 
