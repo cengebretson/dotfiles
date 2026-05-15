@@ -7,7 +7,9 @@ fish_add_path "$HOME/.local/bin"
 source ~/.config/fish/alias.fish
 
 # mise (manages node, bun, and other runtimes)
-mise activate fish | source
+if status is-interactive; and command -sq mise
+    mise activate fish --shims --silent | source
+end
 
 # vi key bindings
 fish_vi_key_bindings

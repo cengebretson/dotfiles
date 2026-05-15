@@ -4,14 +4,18 @@ function fish_greeting
 end
 
 function select_random_image
+    set -l fastfetch_dir ~/.config/fastfetch
+    if not test -d "$fastfetch_dir"
+        return
+    end
 
-  # Get all files in the directory
-  set files (ls ~/.config/fastfetch/option*)
+    set -l files (command find "$fastfetch_dir" -type f -name 'option*' -print0 2>/dev/null | string split0)
+    if test (count $files) -eq 0
+        return
+    end
 
-  # Pick a random file
-  set count (count $files)
-  set rand (random 1 $count)
-  set selected $files[$rand]
+    set -l rand (random 1 (count $files))
+    set -l selected $files[$rand]
 
-  cp $selected ~/.config/fastfetch/ascii.txt
+    cp -- "$selected" ~/.config/fastfetch/ascii.txt
 end
