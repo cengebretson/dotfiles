@@ -2,6 +2,7 @@ vim.o.number = true
 vim.o.relativenumber = true
 vim.o.clipboard = "unnamedplus"
 vim.o.timeoutlen = 300
+vim.o.winborder = "rounded"
 
 function _G._statuscolumn()
 	local win = vim.api.nvim_get_current_win()
