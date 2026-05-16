@@ -46,11 +46,14 @@ brew "tree-sitter-cli"
 # ── Dev Tools ──────────────────────────────────────────────────────────────────
 brew "awscli"
 brew "pass"
+brew "gnupg"
+brew "pinentry"
 brew "imagemagick"
 brew "ffmpeg"
 brew "httpie"
 
 # ── Fonts ──────────────────────────────────────────────────────────────────────
+cask "orbstack"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-monaspace-nerd-font"
 cask "font-fira-code-nerd-font"
