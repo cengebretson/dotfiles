@@ -1,4 +1,6 @@
 {
+  "editorMode": "vim",
+  "effortLevel": "medium",
   "hooks": {
     "PostToolUse": [
       {
@@ -6,7 +8,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/chris/.config/claude/hooks/claude-code-preview.sh"
+            "command": "~/.config/claude/hooks/claude-code-preview.sh"
           }
         ]
       }
@@ -17,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/chris/.config/claude/hooks/claude-code-preview.sh"
+            "command": "~/.config/claude/hooks/claude-code-preview.sh"
           }
         ]
       }
@@ -27,7 +29,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/Users/chris/.config/claude/hooks/claude-code-preview.sh"
+            "command": "~/.config/claude/hooks/claude-code-preview.sh"
           }
         ]
       }
@@ -38,7 +40,5 @@
     "command": "~/.config/claude/statusline.sh",
     "hideVimModeIndicator": true
   },
-  "effortLevel": "medium",
-  "theme": "dark-ansi",
-  "editorMode": "vim"
+  "theme": "dark-ansi"
 }
