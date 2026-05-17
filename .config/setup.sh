@@ -78,6 +78,16 @@ if ! command -v claude &>/dev/null; then
 fi
 echo "✓ Claude Code"
 
+# ── Zed Extensions ─────────────────────────────────────────────────────────────
+if command -v zed &>/dev/null; then
+  for ext in catppuccin catppuccin-icons codebook fish git-firefly html lua make tokyo-night toml vue; do
+    zed --install-extension "$ext"
+  done
+  echo "✓ Zed extensions"
+else
+  echo "⚠ Zed not found, skipping extensions"
+fi
+
 # ── File Associations ──────────────────────────────────────────────────────────
 duti "$HOME/.config/duti"
 echo "✓ File associations"

@@ -55,6 +55,7 @@ brew "httpie"
 
 # ── Fonts ──────────────────────────────────────────────────────────────────────
 cask "orbstack"
+cask "zed"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-monaspace-nerd-font"
 cask "font-fira-code-nerd-font"

@@ -14,6 +14,8 @@
       // Git
       "space g h d": "editor::ToggleSelectedDiffHunks",
       "space g h r": "git::Restore",
+      "] h": "editor::GoToHunk",
+      "[ h": "editor::GoToPreviousHunk",
 
       // Toggle inlay hints
       "space t i": "editor::ToggleInlayHints",
@@ -50,6 +52,10 @@
       "ctrl-j": "workspace::ActivatePaneDown",
 
       // +LSP
+      "shift-k": "editor::Hover",
+      "ctrl-o": "pane::GoBack",
+      "ctrl-i": "pane::GoForward",
+      "space w": "workspace::Save",
       "space .": "editor::ToggleCodeActions",
       "g d": "editor::GoToDefinition",
       "g D": "editor::GoToDefinitionSplit",
@@ -102,8 +108,13 @@
   {
     "context": "Editor && vim_mode == visual && !VimWaiting && !menu",
     "bindings": {
-      // visual, visual line & visual block modes
       "g c": "editor::ToggleComments"
+    }
+  },
+  {
+    "context": "Editor && vim_mode == normal && !VimWaiting && !menu",
+    "bindings": {
+      "g c c": "editor::ToggleComments"
     }
   },
 
