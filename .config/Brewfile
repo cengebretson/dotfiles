@@ -28,6 +28,7 @@ brew "wakeonlan"
 # ── Git ────────────────────────────────────────────────────────────────────────
 brew "git"
 brew "git-delta"
+brew "gh"
 brew "lazygit"
 
 # ── Search & Code Intelligence ─────────────────────────────────────────────────
