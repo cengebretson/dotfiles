@@ -15,6 +15,7 @@ A curated collection of tools and configs that power my daily workflow.
 
  * My terminal of choice — modern, GPU-accelerated, and lightning fast.
  * Run `ghostty-help` for a searchable fzf picker of all Ghostty actions and their keybindings.
+ * `⌘+click` any file path or URL in the terminal to open it — files open in Neovide, URLs open in the default browser. Inside tmux, use `⌘+shift+click` since tmux captures mouse events.
 
 #### 📟 Tmux
 
@@ -31,6 +32,7 @@ A curated collection of tools and configs that power my daily workflow.
 #### 🛠 Mise
 
  * Runtime version manager for Node, Bun, Python, uv, Go, Rust, and Lua. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
+ * Also manages OrbStack as the Docker runtime — no Docker Desktop needed.
 
 #### 🤖 Claude Code
 
