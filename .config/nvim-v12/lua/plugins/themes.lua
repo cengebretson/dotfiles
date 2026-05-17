@@ -39,6 +39,16 @@ function M.setup()
 		vim.g.neovide_hide_mouse_when_typing = true
 		vim.g.neovide_input_macos_option_key_is_meta = "both"
 
+		local vfx_modes = { "", "railgun", "torpedo", "pixiedust", "sonicboom", "ripple", "wireframe" }
+		local vfx_index = 1
+		vim.g.neovide_cursor_vfx_mode = vfx_modes[vfx_index]
+
+		vim.keymap.set("n", "<leader>nc", function()
+			vfx_index = (vfx_index % #vfx_modes) + 1
+			vim.g.neovide_cursor_vfx_mode = vfx_modes[vfx_index]
+			vim.notify("Cursor: " .. (vfx_modes[vfx_index] == "" and "default" or vfx_modes[vfx_index]))
+		end, { desc = "Cycle Neovide cursor effect" })
+
 		-- Match floating window transparency to main window
 		vim.o.pumblend = 10
 		vim.api.nvim_create_autocmd("WinNew", {

@@ -1,9 +1,10 @@
 frame = "transparent"
+srgb = true
 title-hidden = true
 refresh-rate = 120
 
 [font]
-size = 16
+size = 13
 
 [[font.normal]]
 family = "FiraCode Nerd Font Light"
