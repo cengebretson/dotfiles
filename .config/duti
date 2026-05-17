@@ -1,0 +1,23 @@
+# Default file associations
+# Note: http/https (default browser) must be set via System Settings → General → Default web browser
+# duti cannot set browser URL scheme handlers
+# Format: bundle-id  extension  role (all/viewer/editor/shell)
+
+com.neovide.neovide  .c        all
+com.neovide.neovide  .cpp      all
+com.neovide.neovide  .css      all
+com.neovide.neovide  .go       all
+com.neovide.neovide  .html     all
+com.neovide.neovide  .js       all
+com.neovide.neovide  .json     all
+com.neovide.neovide  .lua      all
+com.neovide.neovide  .md       all
+com.neovide.neovide  .py       all
+com.neovide.neovide  .rs       all
+com.neovide.neovide  .sh       all
+com.neovide.neovide  .toml     all
+com.neovide.neovide  .ts       all
+com.neovide.neovide  .tsx      all
+com.neovide.neovide  .txt      all
+com.neovide.neovide  .yaml     all
+com.neovide.neovide  .yml      all

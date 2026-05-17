@@ -78,6 +78,10 @@ if ! command -v claude &>/dev/null; then
 fi
 echo "✓ Claude Code"
 
+# ── File Associations ──────────────────────────────────────────────────────────
+duti "$HOME/.config/duti"
+echo "✓ File associations"
+
 # ── Fisher plugins ─────────────────────────────────────────────────────────────
 echo "Installing fisher plugins..."
 fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source; fisher install jorgebucaran/fisher; fisher update"
