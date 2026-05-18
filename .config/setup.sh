@@ -79,14 +79,7 @@ fi
 echo "✓ Claude Code"
 
 # ── Zed Extensions ─────────────────────────────────────────────────────────────
-if command -v zed &>/dev/null; then
-  for ext in catppuccin catppuccin-icons codebook fish git-firefly html lua make tokyo-night toml vue; do
-    zed --install-extension "$ext"
-  done
-  echo "✓ Zed extensions"
-else
-  echo "⚠ Zed not found, skipping extensions"
-fi
+echo "✓ Zed extensions will auto-install on first launch (configured via settings.json)"
 
 # ── File Associations ──────────────────────────────────────────────────────────
 duti "$HOME/.config/duti"
