@@ -18,10 +18,19 @@ function M.setup()
 			return nil
 		end
 
+		-- Check local venv directories first
 		for _, name in ipairs({ ".venv", "venv", "env", ".env" }) do
 			local python = root .. "/" .. name .. "/bin/python"
 			if vim.fn.executable(python) == 1 then
 				return python
+			end
+		end
+
+		-- Fall back to uv's managed venv for this project
+		if vim.fn.executable("uv") == 1 then
+			local uv_python = vim.fn.trim(vim.fn.system("uv run --project " .. vim.fn.shellescape(root) .. " which python 2>/dev/null"))
+			if uv_python ~= "" and vim.fn.executable(uv_python) == 1 then
+				return uv_python
 			end
 		end
 	end

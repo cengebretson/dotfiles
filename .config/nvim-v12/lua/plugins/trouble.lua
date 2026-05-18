@@ -15,10 +15,16 @@ function M.setup()
 			diagnostics = {
 				auto_close = true,
 			},
+			errors = {
+				mode = "diagnostics",
+				auto_close = true,
+				filter = { severity = vim.diagnostic.severity.ERROR },
+			},
 		},
 	})
 
 	vim.keymap.set("n", "<leader>xx", "<cmd>Trouble diagnostics toggle<cr>", { desc = "Workspace Diagnostics" })
+	vim.keymap.set("n", "<leader>xe", "<cmd>Trouble errors toggle<cr>", { desc = "Errors Only" })
 	vim.keymap.set("n", "<leader>xd", "<cmd>Trouble diagnostics toggle filter.buf=0<cr>", { desc = "Document Diagnostics" })
 	vim.keymap.set("n", "<leader>xs", "<cmd>Trouble symbols toggle<cr>", { desc = "Symbols" })
 	vim.keymap.set("n", "<leader>xl", "<cmd>Trouble lsp toggle<cr>", { desc = "LSP References" })
