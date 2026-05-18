@@ -82,12 +82,24 @@ echo "✓ Claude Code"
 echo "✓ Zed extensions will auto-install on first launch (configured via settings.json)"
 
 # ── File Associations ──────────────────────────────────────────────────────────
-duti "$HOME/.config/duti"
+echo "Setting file associations (macOS may prompt to confirm changes)..."
+while IFS= read -r line; do
+  [[ "$line" =~ ^# || -z "$line" ]] && continue
+  read -r bundle ext role <<< "$line"
+  current=$(duti -x "$ext" 2>/dev/null | awk 'NR==2')
+  if [ "$current" != "$bundle" ]; then
+    duti -s "$bundle" "$ext" "$role" 2>/dev/null
+  fi
+done < "$HOME/.config/duti"
 echo "✓ File associations"
 
 # ── Fisher plugins ─────────────────────────────────────────────────────────────
 echo "Installing fisher plugins..."
-fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source; fisher install jorgebucaran/fisher; fisher update"
+if fish -c "type -q fisher" 2>/dev/null; then
+  fish -c "fisher update"
+else
+  fish -c "curl -sL https://raw.githubusercontent.com/jorgebucaran/fisher/main/functions/fisher.fish | source && fisher install jorgebucaran/fisher && fisher update"
+fi
 echo "✓ Fisher plugins"
 
 
