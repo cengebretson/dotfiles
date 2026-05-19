@@ -46,6 +46,7 @@ brew "tree-sitter-cli"
 
 # ── Dev Tools ──────────────────────────────────────────────────────────────────
 brew "duti"
+brew "mole"
 brew "awscli"
 brew "pass"
 brew "gnupg"
