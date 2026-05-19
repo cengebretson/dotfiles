@@ -34,6 +34,26 @@ for _, name in ipairs(modules) do
 	end
 end
 
+vim.api.nvim_create_autocmd("PackChanged", {
+	callback = function(ev)
+		local spec, kind, path = ev.data.spec, ev.data.kind, ev.data.path
+		if spec.name == "blink.cmp" and (kind == "install" or kind == "update") then
+			vim.notify("blink.cmp: building fuzzy matcher...", vim.log.levels.INFO)
+			vim.system({ "cargo", "build", "--release" }, { cwd = path }, function(result)
+				if result.code == 0 then
+					vim.schedule(function()
+						vim.notify("blink.cmp: build complete", vim.log.levels.INFO)
+					end)
+				else
+					vim.schedule(function()
+						vim.notify("blink.cmp: build failed\n" .. (result.stderr or ""), vim.log.levels.ERROR)
+					end)
+				end
+			end)
+		end
+	end,
+})
+
 vim.pack.add(all_specs)
 
 for _, name in ipairs(modules) do

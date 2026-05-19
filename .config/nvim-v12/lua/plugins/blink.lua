@@ -1,7 +1,7 @@
 local M = {}
 
 M.specs = {
-	{ src = "https://github.com/Saghen/blink.cmp", tag = "v1.*", build = "cargo build --release" },
+	{ src = "https://github.com/Saghen/blink.cmp", tag = "v1.*" },
 }
 
 function M.setup()
