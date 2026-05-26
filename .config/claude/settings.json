@@ -1,6 +1,4 @@
 {
-  "editorMode": "vim",
-  "effortLevel": "medium",
   "hooks": {
     "PostToolUse": [
       {
@@ -33,6 +31,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"/Users/cengebretson/.config/claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
@@ -40,5 +48,18 @@
     "command": "~/.config/claude/statusline.sh",
     "hideVimModeIndicator": true
   },
-  "theme": "dark-ansi"
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    }
+  },
+  "effortLevel": "medium",
+  "theme": "dark-ansi",
+  "editorMode": "vim",
+  "enabledPlugins": {
+    "context-mode@context-mode": true
+  }
 }
