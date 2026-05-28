@@ -48,6 +48,9 @@
     "command": "~/.config/claude/statusline.sh",
     "hideVimModeIndicator": true
   },
+  "enabledPlugins": {
+    "context-mode@context-mode": true
+  },
   "extraKnownMarketplaces": {
     "context-mode": {
       "source": {
@@ -58,8 +61,5 @@
   },
   "effortLevel": "medium",
   "theme": "dark-ansi",
-  "editorMode": "vim",
-  "enabledPlugins": {
-    "context-mode@context-mode": true
-  }
+  "editorMode": "vim"
 }
