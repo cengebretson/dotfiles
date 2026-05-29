@@ -40,11 +40,28 @@ function _brs_preview --argument branch
         set_color normal
     end
 
+    set -f wt_path (git worktree list --porcelain 2>/dev/null \
+        | awk -v b="refs/heads/$branch" '
+            /^$/ { block++ }
+            block >= 1 && /^worktree / { path = $2 }
+            block >= 1 && $0 == "branch " b { print path }
+        ')
+    if test -n "$wt_path"
+        set_color yellow
+        echo "  󰙅 $wt_path"
+        set_color normal
+    end
+
+    set -f base_branch (git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | string replace 'refs/remotes/origin/' '')
+    if test -z "$base_branch"
+        set base_branch develop
+    end
+
     echo ""
     set_color --bold cyan
-    echo "  COMMITS AHEAD OF DEVELOP"
+    echo "  COMMITS AHEAD OF $base_branch"
     set_color normal
-    set -f commits (git log --oneline --color=always origin/develop..$branch 2>/dev/null)
+    set -f commits (git log --oneline --color=always origin/$base_branch..$branch 2>/dev/null)
     if test (count $commits) -gt 0
         for line in $commits[1..10]
             echo "  $line"
@@ -59,7 +76,7 @@ function _brs_preview --argument branch
     set_color --bold cyan
     echo "  CHANGED FILES"
     set_color normal
-    set -f files (git diff --name-only origin/develop...$branch 2>/dev/null)
+    set -f files (git diff --name-only origin/$base_branch...$branch 2>/dev/null)
     set -f total (count $files)
     if test $total -gt 0
         for f in $files[1..30]
