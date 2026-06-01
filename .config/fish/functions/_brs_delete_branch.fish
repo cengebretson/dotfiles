@@ -5,6 +5,12 @@ function _brs_delete_branch --argument branch
         return 1
     end
 
+    read --prompt-str "Delete branch '$branch'? [y/N] " --local confirm
+    if not string match -qi 'y' $confirm
+        echo "brs: cancelled"
+        return 1
+    end
+
     if not git branch -d $branch
         echo "brs: '$branch' is not fully merged — use ⌥D to force delete"
         return 1
