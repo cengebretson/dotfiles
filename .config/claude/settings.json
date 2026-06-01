@@ -61,5 +61,48 @@
   },
   "effortLevel": "medium",
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "permissions": {
+    "allow": [
+      "Bash(make *)",
+      "Bash(docker compose *)",
+      "Bash(git fetch*)",
+      "Bash(git pull*)",
+      "Bash(git checkout*)",
+      "Bash(git switch*)",
+      "Bash(git add*)",
+      "Bash(git commit*)",
+      "Bash(git rebase*)",
+      "Bash(git worktree *)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git push)",
+      "Bash(git push origin*)",
+      "Bash(npm run lint*)",
+      "Bash(npm run test:unit *)",
+      "Bash(npx eslint*)",
+      "Bash(npx prettier*)",
+      "Bash(pre-commit *)",
+      "mcp__*atlassian*",
+      "mcp__github__*",
+      "mcp__plugin_context-mode_context-mode__*",
+      "Bash(mkdir -p *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(git stash *)",
+      "Bash(git merge *)",
+      "Bash(docker exec *)",
+      "Bash(npm run build*)",
+      "Bash(npm run dev*)",
+      "Bash(npm install *)",
+      "Bash(npm ci)"
+    ],
+    "deny": [
+      "Bash(git push --force *)",
+      "Bash(git push --force)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf *)",
+      "Bash(docker compose * down -v*)"
+    ]
+  }
 }

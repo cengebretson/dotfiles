@@ -1,3 +1,4 @@
+# Runtime and session data
 sessions/
 history.jsonl
 cache/
@@ -16,3 +17,6 @@ mcp-needs-auth-cache.json
 powerline/
 session-env/
 claude-powerline.json
+policy-limits.json
+context-mode/
+*.bak
