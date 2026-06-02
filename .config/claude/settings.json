@@ -46,7 +46,8 @@
   "statusLine": {
     "type": "command",
     "command": "~/.config/claude/statusline.sh",
-    "hideVimModeIndicator": true
+    "hideVimModeIndicator": true,
+    "refreshIntervalMs": 5000
   },
   "enabledPlugins": {
     "context-mode@context-mode": true
@@ -94,7 +95,9 @@
       "Bash(npm run build*)",
       "Bash(npm run dev*)",
       "Bash(npm install *)",
-      "Bash(npm ci)"
+      "Bash(npm ci)",
+      "Bash(ssh-add -l)",
+      "Bash(npx vitest run *)"
     ],
     "deny": [
       "Bash(git push --force *)",
