@@ -31,16 +31,6 @@
           }
         ]
       }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"/Users/cengebretson/.config/claude/hooks/context-mode-cache-heal.mjs\""
-          }
-        ]
-      }
     ]
   },
   "statusLine": {
