@@ -36,7 +36,7 @@ function _brs_preview --argument branch
     set -f jira_key (string match -r '(?:DLOS|LOSIMP|FLYWL|YELHAM)-[0-9]+' $branch)
     if test -n "$jira_key"
         set_color brblack
-        echo "  https://summitgrp.atlassian.net/browse/$jira_key"
+        echo "  https://venturesgo.atlassian.net/browse/$jira_key"
         set_color normal
     end
 
