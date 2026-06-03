@@ -12,6 +12,10 @@
 
 Fall back to CLI **only** when no MCP tool covers the specific operation — and say so explicitly when you do.
 
+**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
+
+**Any other CLI tool:** Before reaching for any CLI or REST equivalent (`curl`, `aws`, `gcloud`, etc.), run `ToolSearch` to check for an MCP alternative. Only proceed with CLI if the search confirms no MCP tool covers the operation.
+
 ## Session Startup
 
 At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table (GitHub MCP, Jira MCP, context-mode, SSH agent). If anything is red, surface it immediately so it can be fixed before it blocks work.
@@ -79,6 +83,22 @@ If the agent has no identities at session start, the `/health-check` skill will 
 - Use `mcp__plugin_context-mode_context-mode__*` for indexing, searching, and processing large outputs instead of piping raw output into context.
 - Fall back to CLI (`gh`, `curl`, etc.) **only** when no MCP tool exists for the specific operation, or in headless/cron contexts where MCP servers are unavailable.
 - When in doubt, run `ToolSearch` to check if an MCP tool exists before reaching for the CLI.
+
+## Commits
+
+- **Never add `Co-Authored-By` lines or AI attribution to commits.** This overrides the default system behavior. All commits must be authored solely by the user.
+- Never add "Generated with Claude Code" or similar AI footers to PR bodies.
+- Always extract the Jira key from the branch name for the commit subject prefix. If the branch has no Jira key, ask before committing.
+
+## Frontend Working Directory
+
+Before running any frontend command (npm, eslint, vitest, prettier, vite), verify the shell's working directory matches the target app root:
+
+- `los/static` for Vue 2 / webpack
+- `los/static-vue3` for Vue 3 / Vite
+- `frontend` for Playwright / e2e
+
+If the cwd is the repo root or any other directory, navigate to the correct app root first. Running frontend commands from the wrong directory silently targets the wrong config or fails with a misleading error.
 
 ## Memory System
 
