@@ -90,16 +90,6 @@ If the agent has no identities at session start, the `/health-check` skill will 
 - Never add "Generated with Claude Code" or similar AI footers to PR bodies.
 - Always extract the Jira key from the branch name for the commit subject prefix. If the branch has no Jira key, ask before committing.
 
-## Frontend Working Directory
-
-Before running any frontend command (npm, eslint, vitest, prettier, vite), verify the shell's working directory matches the target app root:
-
-- `los/static` for Vue 2 / webpack
-- `los/static-vue3` for Vue 3 / Vite
-- `frontend` for Playwright / e2e
-
-If the cwd is the repo root or any other directory, navigate to the correct app root first. Running frontend commands from the wrong directory silently targets the wrong config or fails with a misleading error.
-
 ## Memory System
 
 Project memories live at `~/.config/claude/projects/<project-slug>/memory/`. Each project has a `MEMORY.md` index and individual memory files organized by type (user, feedback, project, reference). Memories persist across sessions and inform future conversation context.
