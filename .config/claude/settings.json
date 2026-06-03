@@ -1,33 +1,11 @@
 {
   "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.config/claude/hooks/claude-code-preview.sh"
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Edit|Write|NotebookEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.config/claude/hooks/claude-code-preview.sh"
-          }
-        ]
-      }
-    ],
-    "Stop": [
+    "SessionStart": [
       {
         "hooks": [
           {
             "type": "command",
-            "command": "~/.config/claude/hooks/claude-code-preview.sh"
+            "command": "\"/Users/cengebretson/.claude/hooks/context-mode-cache-heal.mjs\""
           }
         ]
       }
