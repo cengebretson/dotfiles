@@ -1,12 +1,35 @@
 function _brs_preview --argument branch
+    set -f base_branch (git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | string replace 'refs/remotes/origin/' '')
+    if test -z "$base_branch"
+        set base_branch develop
+    end
+
     set_color --bold white
     echo "  $branch"
     set_color normal
 
-    set -f last (git log -1 --format='%ar by %an' $branch 2>/dev/null)
+    set -f last (git log -1 --format='%cr by %an' $branch 2>/dev/null)
     set_color brblack
     echo "  $last"
     set_color normal
+
+    set -f ahead (git rev-list --count origin/$base_branch..$branch 2>/dev/null)
+    set -f behind (git rev-list --count $branch..origin/$base_branch 2>/dev/null)
+    if test -n "$ahead" -a -n "$behind"
+        if test "$ahead" = 0 -a "$behind" = 0
+            set_color brblack
+            echo "  up to date with $base_branch"
+        else
+            set_color cyan
+            printf '  ↑%s ahead' $ahead
+            if test "$behind" -gt 0
+                set_color yellow
+                printf '  ↓%s behind' $behind
+            end
+            echo ''
+        end
+        set_color normal
+    end
     echo ""
 
     # PR and Jira up top so they're visible without scrolling
@@ -50,11 +73,6 @@ function _brs_preview --argument branch
         set_color yellow
         echo "  󰙅 $wt_path"
         set_color normal
-    end
-
-    set -f base_branch (git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | string replace 'refs/remotes/origin/' '')
-    if test -z "$base_branch"
-        set base_branch develop
     end
 
     echo ""
