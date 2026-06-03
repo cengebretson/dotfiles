@@ -1,6 +1,6 @@
 # Claude Code Config
 
-Personal Claude Code setup with a custom statusline, a persistent diff review side pane, and vim mode integration.
+Personal Claude Code setup with a custom statusline and vim mode integration.
 
 ## Statusline
 
@@ -27,43 +27,6 @@ Configured in `settings.json`:
 }
 ```
 
-## Diff Review Side Pane
-
-Powered by [claude-code-preview](https://github.com/cengebretson/claude-code-preview) — a Go bubbletea TUI that shows changed files and delta diffs after each Claude response. Open it with `prefix+P`.
-
-### How it works
-
-A single hook script (`hooks/claude-code-preview.sh`) handles all three events:
-
-1. **PreToolUse** — snapshots each file before Claude edits it (once per file per session, preserving the original)
-2. **PostToolUse** — records edited file paths
-3. **Stop** — signals the TUI with the list of changed files
-
-Multiple edits to the same file in one response show as a single net diff.
-
-### Keybindings
-
-| Key | Action |
-|-----|--------|
-| `↑` / `k` / `↓` / `j` | Navigate files |
-| `enter` | Open in `$VISUAL` / `$EDITOR` (tmux popup by default) |
-| `u` / `U` | Restore current file / all files from snapshot |
-| `s` | Toggle side-by-side diff |
-| `y` | Copy file path to clipboard |
-| `r` | Refresh diff |
-| `q` | Clear / quit |
-| `?` | Show keybindings help |
-
-### Tmux binding
-
-| Binding | Action |
-|---------|--------|
-| `prefix+P` | Open preview pane (or unzoom if already open) |
-
-## Gallery
-
-![Claude Code statusline and diff popup](../assets/statusline.png)
-
 ## AI-Helpful CLI Tools
 
 Tools installed to give Claude better ways to read, search, and modify code.
@@ -79,9 +42,9 @@ Tools installed to give Claude better ways to read, search, and modify code.
 
 ## Dependencies
 
-- `jq` — JSON parsing in statusline and hooks
+- `jq` — JSON parsing in statusline
 - `delta` — diff renderer (uses your git config theme automatically)
-- `tmux` — required for the preview pane
+- `tmux` — required for popup features
 - Nerd Fonts — required for all icons in the statusline
 
 ## File Structure
@@ -90,7 +53,6 @@ Tools installed to give Claude better ways to read, search, and modify code.
 ~/.config/claude/
 ├── settings.json                   # theme, vim mode, statusline, hooks
 ├── statusline.sh                   # custom status bar script
-├── hooks/
-│   └── claude-code-preview.sh      # single hook handling PreToolUse, PostToolUse, Stop
+├── hooks/                          # hook scripts
 └── memory/                         # persistent memory across sessions
 ```
