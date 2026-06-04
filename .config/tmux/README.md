@@ -57,3 +57,7 @@ When a background window receives a bell alert, a `󰂞` icon appears in red in 
 - `catppuccin/tmux` — theme framework
 - `christoomey/vim-tmux-navigator` — seamless pane/split navigation with Neovim
 - `cengebretson/tmux-which-key` — which-key menu
+
+## Version Notes
+
+- tmux 3.6: `display-popup` height **percentages** (`-h 10%`) do not render correctly — use fixed line counts (`-h 3`) instead. Width percentages (`-w 40%`) work fine.
