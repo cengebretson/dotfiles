@@ -10,6 +10,7 @@ A curated collection of tools and configs that power my daily workflow.
 #### 🐟 Fish Shell
 
  * My interactive shell for a smooth terminal experience, with fzf wired in for fuzzy finding and bat-powered previews.
+ * Machine-local environment variables (not committed to dotfiles) go in `~/.config/fish/conf.d/local-env.fish` — fish sources everything in `conf.d/` automatically.
 
 #### 👻 Ghostty
 
@@ -31,12 +32,20 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🛠 Mise
 
- * Runtime version manager for Node, Bun, Python, uv, Go, Rust, and Lua. Replaces Volta and pyenv with a single tool, with per-project version pinning via `.mise.toml`.
- * Also manages OrbStack as the Docker runtime — no Docker Desktop needed.
+ * Runtime version manager for Node, Bun, Python, uv, Go, Rust, and Lua — per-project version pinning via `.mise.toml`.
 
 #### 🤖 Claude Code
 
  * AI coding assistant with a custom statusline, vim mode, and diff review popup. See [claude config](.config/claude/README.md) for the full setup.
+
+#### 📖 Glow
+
+ * Terminal markdown renderer — pipe or point at any `.md` file for formatted output with layout and syntax highlighting.
+ * Quick Look integration via `qlmarkdown` cask — spacebar in Finder renders markdown in place.
+
+#### 📺 Television
+
+ * A fast, extensible fuzzy finder TUI for files, commands, git objects, and custom sources.
 
 #### 💻 Fastfetch
 
