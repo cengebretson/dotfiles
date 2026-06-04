@@ -47,9 +47,3 @@ Each `lua/plugins/*.lua` file exports a table with a `setup()` function. The loa
 - **Transparency**: The catppuccin theme uses a pure black base (`#000000`) for Ghostty terminal transparency. Floating windows use `winblend = 10`. Preserve this when adding new windows.
 - **Format tools**: `stylua` (Lua), `prettierd`/`prettier` (JS), `google-java-format` (Java), `fish_indent` (Fish) — all managed via Mason except `fish_indent`.
 
-## External Dependencies
-
-Must be available on `$PATH` or installed via Mason before features work:
-- `cargo` — required for `blink.cmp` build step
-- `fish_indent` — bundled with Fish shell (no Mason install)
-- LSP servers and formatters are installed by Mason automatically on first launch
