@@ -39,7 +39,7 @@ At the start of every session, run `/health-check` automatically before respondi
 Config files are tracked in a bare git repo. Always use these flags for dotfiles git operations:
 
 ```bash
-git --git-dir=/Users/chris/.dotfiles --work-tree=/Users/chris <command>
+git --git-dir=$HOME/.dotfiles --work-tree=$HOME <command>
 ```
 
 `dots` is a fish **abbreviation** — it expands inline when typing in the terminal but is not a real command. Always use the full `git --git-dir=...` form in scripts, tool calls, and non-interactive contexts. Paths in the index are relative to `~` (e.g. `.config/tmux/tmux.conf`). Run git commands from `~` to get full paths, or from `~/.config` where paths appear without the `.config/` prefix.
@@ -73,16 +73,6 @@ If the agent has no identities at session start, the `/health-check` skill will 
 - When updating Claude settings or permissions (e.g. via `/update-config`, allowlists, hooks), always default to the **global** settings at `~/.config/claude/settings.json`.
 - Never write to a project-level `.claude/settings.json` unless the user explicitly says to update the project settings.
 - If it's ambiguous, ask before writing to a project settings file.
-
-## MCP-First Rule
-
-**Always prefer MCP tools over CLI or API equivalents when both are available.** This is a hard rule, not a suggestion.
-
-- Use `mcp__github__*` for all GitHub operations: PR comments, replies, resolving/unresolving review threads, issue management, file contents, search, etc.
-- Use `mcp__claude_ai_Atlassian__*` for all Jira and Confluence operations instead of `curl` or REST calls.
-- Use `mcp__plugin_context-mode_context-mode__*` for indexing, searching, and processing large outputs instead of piping raw output into context.
-- Fall back to CLI (`gh`, `curl`, etc.) **only** when no MCP tool exists for the specific operation, or in headless/cron contexts where MCP servers are unavailable.
-- When in doubt, run `ToolSearch` to check if an MCP tool exists before reaching for the CLI.
 
 ## Commits
 
@@ -121,3 +111,4 @@ These tools are installed and available. Prefer them over naive alternatives whe
 | `rg` (ripgrep) | `grep` | Fast recursive text search |
 | `bat` | `cat` | Viewing files with syntax highlighting |
 | `eza` | `ls` | Directory listings with icons and git status |
+| `glow` | `cat` for markdown | Rendering markdown files in the terminal with syntax highlighting and layout |

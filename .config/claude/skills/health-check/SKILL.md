@@ -35,8 +35,8 @@ Report as a table followed by any action items:
 |---|---|---|
 | GitHub MCP | ✅ | cengebretson |
 | Jira MCP | ✅ | cengebretson@lenderscooperative.com |
-| context-mode | ✅ | v1.0.161 |
-| SSH agent | ✅ | 2 key(s) loaded |
+| context-mode | ✅ | v1.0.162 |
+| SSH agent | ✅ | 1 key(s) loaded |
 ```
 
 If anything failed, list action items below the table. Keep it concise — one line per item.

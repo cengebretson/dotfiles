@@ -31,19 +31,24 @@ Configured in `settings.json`:
 
 Tools installed to give Claude better ways to read, search, and modify code.
 
-| Tool | Install | Purpose |
-|------|---------|---------|
-| **difftastic** | `brew install difftastic` | Structural diff — understands syntax trees so diffs show what logically changed, not just line deltas. Great for reviewing refactors. |
-| **ast-grep** | `brew install ast-grep` | AST-aware code search and rewriting. Like grep but understands code structure — find patterns across languages without regex hacks. |
-| **shellcheck** | `brew install shellcheck` | Static analysis for shell scripts. Catches bugs, bad practices, and portability issues before they cause problems. |
-| **sd** | `brew install sd` | Simpler, faster `sed` replacement for find-and-replace. Supports regex and literal strings with cleaner syntax. |
-| **scc** | `brew install scc` | Fast code counter (lines, blanks, comments, complexity). Gives a quick codebase overview without cloning context. |
-| **yq** | `brew install yq` | `jq` for YAML, JSON, TOML, and XML. Useful for reading and editing config files in pipelines. |
+| Tool | Purpose |
+|------|---------|
+| **difftastic** | Structural diff — understands syntax trees so diffs show what logically changed, not just line deltas. |
+| **ast-grep** | AST-aware code search and rewriting — find patterns across languages without regex hacks. |
+| **shellcheck** | Static analysis for shell scripts — catches bugs, bad practices, and portability issues. |
+| **sd** | Simpler `sed` replacement for find-and-replace. Supports regex and literal strings. |
+| **scc** | Fast code counter (lines, blanks, comments, complexity) — quick codebase overview. |
+| **yq** | `jq` for YAML, JSON, TOML, and XML. Read and edit config files in pipelines. |
+| **jq** | JSON parsing and transformation in pipelines. Used by the statusline script. |
+| **fd** | Fast `find` replacement with cleaner syntax and sane defaults. |
+| **rg** | Fast recursive text search — smarter defaults than `grep`. |
+| **bat** | `cat` with syntax highlighting and line numbers. |
+| **eza** | Modern `ls` with icons, git status, and tree views. |
+| **glow** | Render markdown in the terminal with formatting and layout. |
+| **delta** | Syntax-highlighted diff renderer — wired into git config automatically. |
 
 ## Dependencies
 
-- `jq` — JSON parsing in statusline
-- `delta` — diff renderer (uses your git config theme automatically)
 - `tmux` — required for popup features
 - Nerd Fonts — required for all icons in the statusline
 
@@ -54,5 +59,6 @@ Tools installed to give Claude better ways to read, search, and modify code.
 ├── settings.json                   # theme, vim mode, statusline, hooks
 ├── statusline.sh                   # custom status bar script
 ├── hooks/                          # hook scripts
+├── skills/                         # skill definitions (e.g. health-check)
 └── memory/                         # persistent memory across sessions
 ```

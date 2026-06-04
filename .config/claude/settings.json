@@ -65,7 +65,8 @@
       "Bash(npm install *)",
       "Bash(npm ci)",
       "Bash(ssh-add -l)",
-      "Bash(npx vitest run *)"
+      "Bash(npx vitest run *)",
+      "Bash(eza *)"
     ],
     "deny": [
       "Bash(git push --force *)",
