@@ -1,4 +1,20 @@
 function coral --description "Browse local branches with fzf"
+    _coral_load_config
+
+    if test (count $argv) -gt 0
+        switch $argv[1]
+            case --doctor
+                _coral_doctor
+                return $status
+            case --version
+                _coral_version
+                return 0
+            case --slack
+                _coral_slack $argv[2..]
+                return $status
+        end
+    end
+
     if not git rev-parse --git-dir >/dev/null 2>&1
         echo 'coral: not in a git repository.' >&2
         return 1
@@ -28,12 +44,11 @@ function coral --description "Browse local branches with fzf"
 
     set -f preview_toggle 'ctrl-p:toggle-preview'
 
-    set -f jira_flags
-    set -f header "checkout(↵) | PR(⌃o) | preview(⌃p) | rebase(⌥e) | force delete(⌥D) | refresh(⌥r)"
-    if set -q CORAL_JIRA_DOMAIN
-        set -f jira_flags --bind 'ctrl-j:execute(_coral_open_jira {1})'
-        set -f header "checkout(↵) | PR(⌃o) | Jira(⌃j) | preview(⌃p) | rebase(⌥e) | force delete(⌥D) | refresh(⌥r)"
-    end
+    set -f jira_flags --bind 'ctrl-j:execute(_coral_open_jira {1})'
+    set -f header "checkout(↵) | PR(⌃o) | Jira(⌃j) | preview(⌃p) | rebase(⌥e) | delete(⌥D) | refresh(⌥r)"
+
+    # Strip input-border and list-border from global FZF_DEFAULT_OPTS — coral owns its layout.
+    set -lx FZF_DEFAULT_OPTS (string replace --regex --all -- '--(?:input|list)-border\S*' '' "$FZF_DEFAULT_OPTS")
 
     set -f result (_coral_list \
         | _fzf_wrapper \
@@ -41,17 +56,17 @@ function coral --description "Browse local branches with fzf"
             $query_flags \
             --ansi \
             --layout=default \
-            --border=rounded \
+            --border=none \
             --input-border=none \
             --list-border=none \
             --info=inline-right \
             --delimiter='\t' \
             --with-nth=2 \
             --bind $preview_toggle \
-            --bind 'ctrl-o:execute(gh pr view {1} --web)' \
+            --bind 'ctrl-o:execute(_coral_open_pr {1})' \
             $jira_flags \
             --bind $force_bind \
-            --bind 'alt-r:execute(rm -f /tmp/coral_pr2_*.cache)+reload(_coral_list)' \
+            --bind 'alt-r:execute(_coral_clear_cache)+reload(_coral_list)' \
             --bind $rebase_bind \
             --prompt="Branch> " \
             --preview='_coral_preview {1}' \

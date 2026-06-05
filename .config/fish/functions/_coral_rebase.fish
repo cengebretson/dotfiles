@@ -1,5 +1,12 @@
 function _coral_rebase --argument-names branch
-    set -f upstream (_coral_upstream "$branch"); or return 1
+    # Use the PR target branch if one exists — it's the exact right base.
+    # Fall back to the inferred upstream for branches without a PR.
+    set -f pr_base (gh pr view "$branch" --json baseRefName --jq '.baseRefName' 2>/dev/null)
+    if test -n "$pr_base"
+        set -f upstream "origin/$pr_base"
+    else
+        set -f upstream (_coral_upstream "$branch"); or return 1
+    end
 
     # Extract remote and remote branch from upstream (e.g. origin/develop → origin, develop)
     set -f remote (string split / $upstream)[1]
@@ -14,14 +21,13 @@ function _coral_rebase --argument-names branch
     # Confirm intent before doing anything
     _coral_confirm "Rebase '$branch' onto '$upstream'?"; or return 0
 
-    # Check for uncommitted changes before switching branches
-    if test "$branch" != "$original"
-        git diff --quiet 2>/dev/null
-        and git diff --cached --quiet 2>/dev/null
-        or begin
-            echo "coral: '$original' has uncommitted changes — commit or stash them first" >&2
-            return 1
-        end
+    # Check for uncommitted changes before any git operation — guards both the current-branch
+    # rebase case and the checkout-then-rebase case.
+    git diff --quiet 2>/dev/null
+    and git diff --cached --quiet 2>/dev/null
+    or begin
+        echo "coral: '$original' has uncommitted changes — commit or stash them first" >&2
+        return 1
     end
 
     echo "Fetching $upstream..."
@@ -54,8 +60,7 @@ function _coral_rebase --argument-names branch
     echo ""
     echo "Done. $branch is up to date with $upstream."
     echo ""
-    read --prompt-str "Force push to origin/$branch? [y/N] " confirm
-    if string match -qi y $confirm
+    if _coral_confirm "Force push '$branch' to origin?"
         echo "Force pushing..."
         git push --force-with-lease origin "$branch" 2>&1
         and echo "Done."

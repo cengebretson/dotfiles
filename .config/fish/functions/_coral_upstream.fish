@@ -1,4 +1,6 @@
 function _coral_upstream --argument-names branch
+    _coral_load_config
+
     set -f tracking (git rev-parse --abbrev-ref "$branch@{upstream}" 2>/dev/null)
     # Only trust tracking if it points to a true base, not the branch's own remote counterpart.
     if test -n "$tracking" -a "$tracking" != "origin/$branch"
@@ -6,13 +8,15 @@ function _coral_upstream --argument-names branch
         return 0
     end
 
-    # Infer the parent branch: find which remote base branch has the most recent
-    # common ancestor (merge-base) with this branch. The most recent merge-base
-    # timestamp means we forked from that branch most recently.
-    # Exclude feature/bugfix/chore siblings — only base-like branches are candidates.
-    set -f candidates (git for-each-ref --format='%(refname:short)' refs/remotes/origin/ 2>/dev/null \
-        | grep -vE '(HEAD|/feature/|/bugfix/|/chore/|/fix/)' \
-        | grep -v "origin/$branch")
+    # Only consider base-like remote branches active in the last 30 days.
+    # -F on grep -v treats the branch name as a literal string, not a regex.
+    set -f cutoff (math (date +%s) - 2592000)
+    set -f candidates (git for-each-ref \
+        --format='%(committerdate:unix) %(refname:short)' \
+        refs/remotes/origin/ 2>/dev/null \
+        | awk -v c="$cutoff" '$1 >= c {print $2}' \
+        | grep -E "origin/($CORAL_BASE_BRANCHES)" \
+        | grep -Fv "origin/$branch")
 
     set -f best_ref
     set -f best_date 0
