@@ -9,7 +9,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🐟 Fish Shell
 
- * My interactive shell for a smooth terminal experience, with fzf wired in for fuzzy finding and bat-powered previews.
+ * My interactive shell for a smooth terminal experience, with fzf wired in for fuzzy finding and bat-powered previews. See [fish config](.config/fish/README.md) for plugins, shortcuts, and custom functions.
  * Machine-local environment variables (not committed to dotfiles) go in `~/.config/fish/conf.d/local-env.fish` — fish sources everything in `conf.d/` automatically.
 
 #### 👻 Ghostty
@@ -57,6 +57,8 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### Fish Shortcuts
 
+ See [fish config](.config/fish/README.md) for the full Fish shortcut and function catalog.
+
  | Key | Action |
  |-----|--------|
  | `→` / `ctrl+f` | Accept autosuggestion |
@@ -77,8 +79,9 @@ A curated collection of tools and configs that power my daily workflow.
  |---------|-------------|
  | `j <dir>` | Smart directory jump (zoxide) |
  | `ji` | Interactive zoxide picker |
- | `tldrf` | Fuzzy search tldr pages |
+ | `coral` | Browse local Git branches with PR status and branch actions |
  | `kp` | Kill a process via fzf picker |
+ | `pr` | Open the current branch PR in the browser |
  | `zz` | Open fish config.fish in `$EDITOR` |
  | `dots` | Shorthand for dotfiles git commands |
  | `l` / `ll` / `la` | eza listings with icons and git status |

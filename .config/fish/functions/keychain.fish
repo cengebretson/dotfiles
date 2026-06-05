@@ -1,4 +1,27 @@
-function keychain
+function keychain --description 'Inspect macOS Keychain entries and export secrets'
+    set -l show_passwords 0
+    set -l command list
+
+    if test (count $argv) -gt 0
+        switch $argv[1]
+            case list ls show
+                set command list
+                set -e argv[1]
+            case setenv env export
+                set command env
+                set -e argv[1]
+        end
+    end
+
+    switch $command
+        case list
+            _keychain_list $argv
+        case env
+            _keychain_env $argv
+    end
+end
+
+function _keychain_list
     set -l show_passwords 0
     set -l host ""
 
@@ -14,7 +37,8 @@ function keychain
 
     if test -z "$host"
         echo "Usage:"
-        echo "  keychaincreds <host> [--show-passwords]"
+        echo "  keychain [list] <host> [--show-passwords]"
+        echo "  keychain setenv <env-var> <host> <account> [path]"
         return 1
     end
 
@@ -115,5 +139,40 @@ function keychain
         end
 
         echo ""
+    end
+end
+
+function _keychain_env
+    if test (count $argv) -lt 3
+        echo "Usage:"
+        echo "  keychain setenv <env-var> <host> <account> [path]"
+        return 1
+    end
+
+    set -l env_name $argv[1]
+    set -l host $argv[2]
+    set -l acct $argv[3]
+
+    if test (count $argv) -ge 4
+        set -l path $argv[4]
+
+        set -l secret (
+            security find-internet-password \
+                -s $host \
+                -a "$acct" \
+                -p "$path" \
+                -w 2>/dev/null
+        )
+    else
+        set -l secret (
+            security find-internet-password \
+                -s $host \
+                -a "$acct" \
+                -w 2>/dev/null
+        )
+    end
+
+    if test -n "$secret"
+        set -gx $env_name $secret
     end
 end

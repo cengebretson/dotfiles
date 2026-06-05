@@ -1,13 +1,24 @@
-function kp --description 'Kill processes'
-  set -l __kp__pid (ps -ef | sed 1d | eval "fzf $FZF_DEFAULT_OPTS -m --header='[kill:process]'" | awk '{print $2}')
-  set -l __kp__kc $argv[1]
+function kp --description 'Kill processes selected with fzf'
+    set -l signal TERM
 
-  if test "x$__kp__pid" != "x"
-    if test "x$argv[1]" != "x"
-      echo $__kp__pid | xargs kill $argv[1]
-    else
-      echo $__kp__pid | xargs kill -9
+    if test (count $argv) -gt 0
+        set signal $argv[1]
     end
-    kp
-  end
+
+    set -l selected (
+        ps -eo pid=,user=,comm=,args= \
+            | string trim \
+            | fzf --multi --header="kill:$signal"
+    )
+
+    test (count $selected) -gt 0; or return 0
+
+    set -l pids
+    for process in $selected
+        set -a pids (string split --max 1 ' ' $process)[1]
+    end
+
+    test (count $pids) -gt 0; or return 0
+
+    kill -s $signal $pids
 end
