@@ -44,6 +44,13 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <command>
 
 `dots` is a fish **abbreviation** — it expands inline when typing in the terminal but is not a real command. Always use the full `git --git-dir=...` form in scripts, tool calls, and non-interactive contexts. Paths in the index are relative to `~` (e.g. `.config/tmux/tmux.conf`). Run git commands from `~` to get full paths, or from `~/.config` where paths appear without the `.config/` prefix.
 
+## Fish Config
+
+- `~/.config/fish/fish_plugins` is the source of truth for Fisher plugins; do not commit Fisher-generated files from `functions/`, `conf.d/`, or `completions/` unless they are custom dotfiles.
+- Custom Fish commands live in `~/.config/fish/functions/` and should be documented in `~/.config/fish/README.md`.
+- `~/.config/fish/secrets.fish` is machine-local and must not be committed. It is sourced by `~/.config/fish/conf.d/local-secrets.fish`.
+- Use `fish -n` on changed Fish files before finishing Fish config work.
+
 ## Tmux
 
 - tmux 3.6 — `display-popup` height percentages (`-h 10%`) do not render; use fixed line counts (`-h 3`) instead
