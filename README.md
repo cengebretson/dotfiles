@@ -10,7 +10,7 @@ A curated collection of tools and configs that power my daily workflow.
 #### 🐟 Fish Shell
 
  * My interactive shell for a smooth terminal experience, with fzf wired in for fuzzy finding and bat-powered previews. See [fish config](.config/fish/README.md) for plugins, shortcuts, and custom functions.
- * Machine-local environment variables (not committed to dotfiles) go in `~/.config/fish/conf.d/local-env.fish` — fish sources everything in `conf.d/` automatically.
+ * Machine-local secrets live in `~/.config/fish/secrets.fish`, sourced by `~/.config/fish/conf.d/local-secrets.fish`. Keep token values out of dotfiles.
 
 #### 👻 Ghostty
 

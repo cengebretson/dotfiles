@@ -62,7 +62,7 @@ These live in `functions/` and are not Fisher-managed.
 | `kp` | Kill processes selected with fzf |
 | `ports` | List listening TCP ports, filter by port, or stop a listener |
 | `pr` | Open the current branch's GitHub PR in the browser |
-| `speed` | Run macOS `networkQuality` |
+| `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
 
 ## Coral
 
