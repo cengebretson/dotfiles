@@ -140,29 +140,9 @@ function _coral_list
         end
 
         if test -n "$pr_state"
-            switch $pr_state
-                case OPEN
-                    switch $pr_review
-                        case APPROVED
-                            set -f dot_color '\e[32m'
-                            set -f dot '✓'
-                        case CHANGES_REQUESTED
-                            set -f dot_color '\e[33m'
-                            set -f dot '!'
-                        case '*'
-                            set -f dot_color '\e[32m'
-                            set -f dot '●'
-                    end
-                case MERGED
-                    set -f dot_color '\e[35m'
-                    set -f dot '󰘬'
-                case CLOSED
-                    set -f dot_color '\e[31m'
-                    set -f dot '●'
-                case '*'
-                    set -f dot_color '\e[32m'
-                    set -f dot '●'
-            end
+            set -f pr_display (string split \t (_coral_pr_status_display "$pr_state" "$pr_review"))
+            set -f dot_color $pr_display[2]
+            set -f dot $pr_display[3]
             set -f suffix (printf '%s'"$dot_color"'%s\e[0m  %s' $wt_marker $dot $age)
             if test -n "$pr_labels"
                 for label in (string split , $pr_labels)

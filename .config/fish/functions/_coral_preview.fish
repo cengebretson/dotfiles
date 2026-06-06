@@ -49,17 +49,9 @@ function _coral_preview --argument-names branch
         set -f state (string split \t $pr_parsed)[2]
         set -f url (string split \t $pr_parsed)[3]
         set -f labels (echo $pr | jq -r '.labels[].name' 2>/dev/null)
-        switch $state
-            case OPEN
-                set_color green
-                set -f icon ●
-            case MERGED
-                set_color magenta
-                set -f icon ✓
-            case CLOSED
-                set_color red
-                set -f icon ✕
-        end
+        set -f pr_display (string split \t (_coral_pr_status_display "$state" ""))
+        set_color $pr_display[1]
+        set -f icon $pr_display[3]
         echo "  $icon $title"
         set_color normal
         if test (count $labels) -gt 0
