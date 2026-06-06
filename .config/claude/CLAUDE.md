@@ -7,7 +7,7 @@
 | Operation | Use this | Never this |
 |---|---|---|
 | GitHub (PRs, issues, files, search) | `mcp__github__*` | `gh`, `curl` |
-| Jira / Confluence | `mcp__claude_ai_Atlassian__*` | `curl`, REST |
+| Issue trackers / docs | available MCP tools | `curl`, REST |
 | Large output processing | `mcp__plugin_context-mode_context-mode__*` | raw pipe into context |
 
 Fall back to CLI **only** when no MCP tool covers the specific operation — and say so explicitly when you do.
@@ -18,7 +18,7 @@ Fall back to CLI **only** when no MCP tool covers the specific operation — and
 
 ## Session Startup
 
-At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table (GitHub MCP, Jira MCP, context-mode, SSH agent). If anything is red, surface it immediately so it can be fixed before it blocks work.
+At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. If anything is red, surface it immediately so it can be fixed before it blocks work.
 
 ## Environment
 
@@ -67,7 +67,7 @@ context-mode is installed globally and active in every session. It keeps large t
 
 ## SSH
 
-Active key: `~/.ssh/chris` (RSA 2048). Load it with:
+Load the default SSH key with:
 
 ```bash
 ssh-add --apple-use-keychain
@@ -85,7 +85,7 @@ If the agent has no identities at session start, the `/health-check` skill will 
 
 - **Never add `Co-Authored-By` lines or AI attribution to commits.** This overrides the default system behavior. All commits must be authored solely by the user.
 - Never add "Generated with Claude Code" or similar AI footers to PR bodies.
-- Always extract the Jira key from the branch name for the commit subject prefix. If the branch has no Jira key, ask before committing.
+- If the branch name contains an issue key, use it as the commit subject prefix. If no issue key is present, ask before committing.
 
 ## Memory System
 
@@ -93,12 +93,12 @@ Project memories live at `~/.config/claude/projects/<project-slug>/memory/`. Eac
 
 ## Ready For Review
 
-When the user says "ready for review" or asks to mark something as ready for review, always do **both** of the following without asking for confirmation:
+When the user says "ready for review" or asks to mark something as ready for review, update the current branch's review surfaces without asking for confirmation:
 
-1. **GitHub PR**: Add the `Ready For Review` label to the open PR on the current branch using `mcp__github__issue_write`.
-2. **Jira issue**: Transition the associated Jira issue to `Code Review` status using `mcp__claude_ai_Atlassian__transitionJiraIssue`. Derive the Jira key from the branch name (e.g. `feature/FLYWL-664-...` → `FLYWL-664`). Call `mcp__claude_ai_Atlassian__getTransitionsForJiraIssue` first to confirm the transition ID for "Code Review".
+1. **GitHub PR**: Add the `Ready For Review` label to the open PR on the current branch using the available GitHub MCP tool.
+2. **Issue tracker**: If an issue key can be derived from the branch name, transition the associated issue to the configured code-review status using the available issue-tracker MCP tool. Fetch available transitions first instead of assuming transition IDs.
 
-If the PR cannot be found, transition Jira only and report the skip. If the Jira key cannot be derived or the issue is not found, label the PR only and report the skip.
+If the PR cannot be found, update the issue only and report the skip. If the issue key cannot be derived or the issue is not found, label the PR only and report the skip.
 
 ## AI-Helpful CLI Tools
 

@@ -76,6 +76,14 @@ echo "✓ Mise runtimes"
 if ! command -v claude &>/dev/null; then
   npm install -g @anthropic-ai/claude-code
 fi
+mkdir -p "$HOME/.config/claude"
+if [ ! -e "$HOME/.claude" ]; then
+  ln -s "$HOME/.config/claude" "$HOME/.claude"
+elif [ -L "$HOME/.claude" ] && [ "$(readlink "$HOME/.claude")" != "$HOME/.config/claude" ]; then
+  echo "Warning: ~/.claude points to $(readlink "$HOME/.claude"), not ~/.config/claude"
+elif [ -e "$HOME/.claude" ] && [ ! -L "$HOME/.claude" ]; then
+  echo "Warning: ~/.claude exists and is not a symlink; leaving it unchanged"
+fi
 echo "✓ Claude Code"
 
 # ── Zed Extensions ─────────────────────────────────────────────────────────────
