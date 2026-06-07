@@ -28,15 +28,18 @@ Run `ssh-add -l`.
 
 ## Output Format
 
-Report as a compact inline list — one line per service, no table borders:
+Report one service per line, no table borders:
 
 ```
-GitHub MCP ✅ · Jira MCP ✅ · context-mode ✅ v1.0.162 · SSH ✅ 1 key
+✅ GitHub MCP · cengebretson
+✅ Jira MCP · cengebretson@lenderscooperative.com
+✅ context-mode · v1.0.162
+✅ SSH · 1 key
 ```
 
-If anything failed, append a short action item on the next line:
+If a service failed, append the action item on its own line immediately after:
 ```
-SSH ❌ — run: ssh-add --apple-use-keychain
+❌ SSH · run: ssh-add --apple-use-keychain
 ```
 
-Keep it to two lines maximum total. No headers, no table, no trailing summary.
+No headers, no table, no trailing summary.
