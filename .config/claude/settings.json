@@ -51,7 +51,7 @@
       "Bash(npx eslint*)",
       "Bash(npx prettier*)",
       "Bash(pre-commit *)",
-      "mcp__*atlassian*",
+      "mcp__claude_ai_Atlassian__*",
       "mcp__github__*",
       "mcp__plugin_context-mode_context-mode__*",
       "Bash(mkdir -p *)",
