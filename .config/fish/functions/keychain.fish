@@ -10,6 +10,9 @@ function keychain --description 'Inspect macOS Keychain entries and export secre
             case setenv env export
                 set command env
                 set -e argv[1]
+            case add store
+                set command add
+                set -e argv[1]
         end
     end
 
@@ -18,6 +21,8 @@ function keychain --description 'Inspect macOS Keychain entries and export secre
             _keychain_list $argv
         case env
             _keychain_env $argv
+        case add
+            _keychain_add $argv
     end
 end
 
@@ -142,6 +147,47 @@ function _keychain_list
     end
 end
 
+function _keychain_add
+    if test (count $argv) -lt 2
+        echo "Usage:"
+        echo "  keychain add <host> <account> [path]"
+        return 1
+    end
+
+    set -l host $argv[1]
+    set -l acct $argv[2]
+    set -l path ""
+
+    if test (count $argv) -ge 3
+        set path $argv[3]
+    end
+
+    read -s -P "Token: " token
+    echo
+
+    if test -z "$token"
+        echo "No token entered, aborting."
+        return 1
+    end
+
+    if test -n "$path"
+        security add-internet-password -r htps -s $host -a "$acct" -p "$path" -w "$token"
+    else
+        security add-internet-password -r htps -s $host -a "$acct" -w "$token"
+    end
+
+    if test $status -eq 0
+        if test -n "$path"
+            echo "Stored: $acct @ $host / $path"
+        else
+            echo "Stored: $acct @ $host"
+        end
+    else
+        echo "Failed to store credential."
+        return 1
+    end
+end
+
 function _keychain_env
     if test (count $argv) -lt 3
         echo "Usage:"
@@ -153,10 +199,10 @@ function _keychain_env
     set -l host $argv[2]
     set -l acct $argv[3]
 
+    set -l secret ""
     if test (count $argv) -ge 4
         set -l path $argv[4]
-
-        set -l secret (
+        set secret (
             security find-internet-password \
                 -s $host \
                 -a "$acct" \
@@ -164,7 +210,7 @@ function _keychain_env
                 -w 2>/dev/null
         )
     else
-        set -l secret (
+        set secret (
             security find-internet-password \
                 -s $host \
                 -a "$acct" \
