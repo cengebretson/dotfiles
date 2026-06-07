@@ -63,6 +63,7 @@ These live in `functions/` and are not Fisher-managed.
 | `ports` | List listening TCP ports, filter by port, or stop a listener |
 | `pr` | Open the current branch's GitHub PR in the browser |
 | `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
+| `copilot-pr-report` | List open PRs in the current repo with unresolved Copilot review threads |
 
 ## Coral
 
