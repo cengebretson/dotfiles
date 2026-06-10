@@ -1,36 +1,4 @@
 {
-  "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"/Users/cengebretson/.claude/hooks/context-mode-cache-heal.mjs\""
-          }
-        ]
-      }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.config/claude/statusline.sh",
-    "hideVimModeIndicator": true,
-    "refreshIntervalMs": 5000
-  },
-  "enabledPlugins": {
-    "context-mode@context-mode": true
-  },
-  "extraKnownMarketplaces": {
-    "context-mode": {
-      "source": {
-        "source": "github",
-        "repo": "mksglu/context-mode"
-      }
-    }
-  },
-  "effortLevel": "medium",
-  "theme": "dark-ansi",
-  "editorMode": "vim",
   "permissions": {
     "allow": [
       "Bash(make *)",
@@ -96,5 +64,37 @@
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
     ]
-  }
+  },
+  "model": "claude-fable-5[1m]",
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"/Users/cengebretson/.claude/hooks/context-mode-cache-heal.mjs\""
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "~/.config/claude/statusline.sh",
+    "hideVimModeIndicator": true
+  },
+  "enabledPlugins": {
+    "context-mode@context-mode": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    }
+  },
+  "effortLevel": "high",
+  "theme": "dark-ansi",
+  "editorMode": "vim"
 }
