@@ -8,13 +8,13 @@ Use when the user runs `/health-check` or asks for a "health check" or "session 
 
 ## Instructions
 
-Run all four checks, then report results in a single markdown table.
+Run the checks below (Jira is optional), then report results in a single markdown table.
 
 ### 1. GitHub MCP
 Call `mcp__github__get_me`. Report the authenticated username on success.
 
-### 2. Jira / Atlassian MCP
-Call `mcp__claude_ai_Atlassian__atlassianUserInfo`. Report the authenticated email on success.
+### 2. Jira / Atlassian MCP (optional)
+This check only applies when the Atlassian MCP is installed. First check whether `mcp__claude_ai_Atlassian__atlassianUserInfo` is available (use ToolSearch if it is deferred). If the tool does not exist in this session, skip the check and report it as skipped — not as a failure. If it exists, call it and report the authenticated email on success.
 
 ### 3. context-mode
 Call `mcp__plugin_context-mode_context-mode__ctx_stats`. Report the version on success.
@@ -40,6 +40,11 @@ Report one service per line, no table borders:
 If a service failed, append the action item on its own line immediately after:
 ```
 ❌ SSH · run: ssh-add --apple-use-keychain
+```
+
+If the Jira MCP is not installed, report it as skipped rather than failed:
+```
+⏭️ Jira MCP · not installed (skipped)
 ```
 
 No headers, no table, no trailing summary.

@@ -70,6 +70,8 @@ echo "✓ Fish shell"
 
 # ── Mise (Node, Bun, Go, Python, and other runtimes) ─────────────────────────
 mise install
+# Put mise-managed runtimes (node/npm, etc.) on PATH for the rest of this script
+eval "$(mise activate bash --shims)"
 echo "✓ Mise runtimes"
 
 # ── Claude Code ────────────────────────────────────────────────────────────────
