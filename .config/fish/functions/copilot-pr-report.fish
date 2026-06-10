@@ -20,6 +20,10 @@ function copilot-pr-report --description "List open PRs with unresolved Copilot 
 
     set -l pr_lines (gh api "repos/$repo/pulls?state=open&per_page=100" \
         --jq ".[] | select(.user.login == \"$me\") | [(.number | tostring), .title] | @tsv" 2>/dev/null)
+    if test $status -ne 0
+        set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
+        return 1
+    end
 
     if test -z "$pr_lines"
         set_color yellow; echo "  No open PRs found."; set_color normal
@@ -37,7 +41,7 @@ function copilot-pr-report --description "List open PRs with unresolved Copilot 
         set -l count (gh api graphql \
             -F owner=$owner -F repo=$reponame -F number=$pr_num \
             -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}' \
-            --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false and (.comments.nodes[].author.login|ascii_downcase|contains("copilot")))]|length' 2>/dev/null)
+            --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false and any(.comments.nodes[];.author!=null and (.author.login|ascii_downcase|contains("copilot"))))]|length' 2>/dev/null)
 
         if test -n "$count" -a "$count" -gt 0 2>/dev/null
             set_color yellow; printf "  ●"; set_color normal

@@ -86,8 +86,26 @@ elif [ -e "$HOME/.claude" ] && [ ! -L "$HOME/.claude" ]; then
 fi
 echo "✓ Claude Code"
 
-# ── Zed Extensions ─────────────────────────────────────────────────────────────
-echo "✓ Zed extensions will auto-install on first launch (configured via settings.json)"
+# ── Codex ─────────────────────────────────────────────────────────────────────
+mkdir -p "$HOME/.config"
+if [ -L "$HOME/.codex" ]; then
+  if [ "$(readlink "$HOME/.codex")" != "$HOME/.config/codex" ]; then
+    echo "Warning: ~/.codex points to $(readlink "$HOME/.codex"), not ~/.config/codex"
+  fi
+elif [ -d "$HOME/.codex" ]; then
+  if [ ! -e "$HOME/.config/codex" ]; then
+    mv "$HOME/.codex" "$HOME/.config/codex"
+    ln -s "$HOME/.config/codex" "$HOME/.codex"
+  else
+    echo "Warning: both ~/.codex and ~/.config/codex exist; leaving them unchanged"
+  fi
+elif [ ! -e "$HOME/.codex" ]; then
+  mkdir -p "$HOME/.config/codex"
+  ln -s "$HOME/.config/codex" "$HOME/.codex"
+else
+  echo "Warning: ~/.codex exists and is not a directory or symlink; leaving it unchanged"
+fi
+echo "✓ Codex"
 
 # ── File Associations ──────────────────────────────────────────────────────────
 echo "Setting file associations (macOS may prompt to confirm changes)..."
