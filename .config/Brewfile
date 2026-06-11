@@ -25,6 +25,8 @@ brew "television"
 brew "superfile"
 brew "prettyping"
 brew "wakeonlan"
+brew "chafa"
+brew "vhs"
 
 # ── Git ────────────────────────────────────────────────────────────────────────
 brew "git"
@@ -58,6 +60,7 @@ brew "httpie"
 
 # ── AI Tools ───────────────────────────────────────────────────────────────────
 cask "codex"
+cask "copilot-cli"
 
 # ── Fonts ──────────────────────────────────────────────────────────────────────
 cask "orbstack"
