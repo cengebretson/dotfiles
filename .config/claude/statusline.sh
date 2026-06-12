@@ -13,6 +13,7 @@ changes=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
 
 # Catppuccin Mocha
 green=$'\033[38;2;166;227;161m'
+teal=$'\033[38;2;148;226;213m'
 peach=$'\033[38;2;250;179;135m'
 red=$'\033[38;2;243;139;168m'
 mauve=$'\033[38;2;203;166;247m'
@@ -62,6 +63,28 @@ case "$effort" in
 esac
 [[ "$fast_mode" == "true" ]] && mode_seg+=" ${yellow}⚡${reset}"
 [[ -n "$mode_seg" ]] && parts+=("${mode_seg}")
+
+# context-mode savings — first KPI block from its statusline command
+# (e.g. "14.6 KB kept out" / "2.1 KB this chat"); skip the no-data
+# marketing headline ("saves ~98% ...") and fail silently if unavailable
+ctxmode_root="$HOME/.config/claude/plugins/marketplaces/context-mode"
+ctxmode_bin="$ctxmode_root/bin/statusline.mjs"
+# plugin updates wipe the compiled build/ the statusline command needs for
+# real numbers — rebuild it in the background, at most once per hour
+if [[ -f "$ctxmode_bin" && ! -f "$ctxmode_root/build/session/analytics.js" ]]; then
+    stamp="${TMPDIR:-/tmp}/ctxmode-statusline-rebuild"
+    if [[ ! -f "$stamp" ]] || [[ -n "$(find "$stamp" -mmin +60 2>/dev/null)" ]]; then
+        touch "$stamp"
+        (cd "$ctxmode_root" && npx tsc) >/dev/null 2>&1 &
+    fi
+fi
+if [[ -f "$ctxmode_bin" ]] && command -v node >/dev/null 2>&1; then
+    ctx_saved=$(printf '%s' "$json" | node "$ctxmode_bin" 2>/dev/null \
+        | sed -E 's/.*●[[:space:]]*//; s/[[:space:]]+·.*//')
+    if [[ -n "$ctx_saved" && "$ctx_saved" != saves* ]]; then
+        parts+=("${teal}󰆼 ${ctx_saved}${reset}")
+    fi
+fi
 
 if [[ -n "$ctx_pct" ]]; then
     if   (( ctx_pct >= 90 )); then ctx_color="$red"
