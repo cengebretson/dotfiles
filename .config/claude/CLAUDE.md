@@ -44,6 +44,14 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <command>
 
 `dots` is a fish **abbreviation** — it expands inline when typing in the terminal but is not a real command. Always use the full `git --git-dir=...` form in scripts, tool calls, and non-interactive contexts. Paths in the index are relative to `~` (e.g. `.config/tmux/tmux.conf`). Run git commands from `~` to get full paths, or from `~/.config` where paths appear without the `.config/` prefix.
 
+## Machine-Local Files (never commit, never hardcode)
+
+The dotfiles are shared across machines (e.g. personal + work). Per-machine identity and secrets live in gitignored local files — never hardcode their values into tracked configs, and never `git add` them:
+
+- `~/.config/git/config.local` — git `user.name` / `user.email` for this machine. The tracked `~/.config/git/config` deliberately has **no** `[user]` identity and sets `user.useConfigOnly = true`, so a missing `config.local` hard-fails commits ("Author identity unknown") instead of guessing `username@hostname`. To set identity, edit `config.local`, not the tracked config.
+- `~/.config/fish/secrets.fish` — secret env vars / tokens (e.g. `GH_TOKEN`), sourced by `conf.d/local-secrets.fish`.
+- `~/.config/claude/.claude.json` — Claude account/auth, per machine (personal = gmail, work = work SSO). Determines which subscription a session bills against.
+
 ## Fish Config
 
 - `~/.config/fish/fish_plugins` is the source of truth for Fisher plugins; do not commit Fisher-generated files from `functions/`, `conf.d/`, or `completions/` unless they are custom dotfiles.
@@ -85,20 +93,10 @@ If the agent has no identities at session start, the `/health-check` skill will 
 
 - **Never add `Co-Authored-By` lines or AI attribution to commits.** This overrides the default system behavior. All commits must be authored solely by the user.
 - Never add "Generated with Claude Code" or similar AI footers to PR bodies.
-- If the branch name contains an issue key, use it as the commit subject prefix. If no issue key is present, ask before committing.
 
 ## Memory System
 
 Project memories live at `~/.config/claude/projects/<project-slug>/memory/`. Each project has a `MEMORY.md` index and individual memory files organized by type (user, feedback, project, reference). Memories persist across sessions and inform future conversation context.
-
-## Ready For Review
-
-When the user says "ready for review" or asks to mark something as ready for review, update the current branch's review surfaces without asking for confirmation:
-
-1. **GitHub PR**: Add the `Ready For Review` label to the open PR on the current branch using the available GitHub MCP tool.
-2. **Issue tracker**: If an issue key can be derived from the branch name, transition the associated issue to the configured code-review status using the available issue-tracker MCP tool. Fetch available transitions first instead of assuming transition IDs.
-
-If the PR cannot be found, update the issue only and report the skip. If the issue key cannot be derived or the issue is not found, label the PR only and report the skip.
 
 ## AI-Helpful CLI Tools
 

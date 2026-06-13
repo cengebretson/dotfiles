@@ -54,9 +54,6 @@
 [merge]
 	tool = Kaleidoscope
 	conflictStyle = zdiff3
-[user]
-	email = chris@mob.net
-	name = Chris Engebretson
 [filter "lfs"]
 	clean = git-lfs clean %f
 	smudge = git-lfs smudge %f
@@ -75,3 +72,9 @@
 	defaultBranch = main
 [pull]
 	rebase = true
+# Refuse to auto-guess identity from username@hostname — forces config.local to provide it
+[user]
+	useConfigOnly = true
+# Machine-local identity and settings (untracked) — must come last so it can override
+[include]
+	path = ~/.config/git/config.local

@@ -31,8 +31,8 @@ Run `ssh-add -l`.
 Report one service per line, no table borders:
 
 ```
-✅ GitHub MCP · cengebretson
-✅ Jira MCP · cengebretson@lenderscooperative.com
+✅ GitHub MCP · your-gh-username
+✅ Jira MCP · you@example.com
 ✅ context-mode · v1.0.162
 ✅ SSH · 1 key
 ```

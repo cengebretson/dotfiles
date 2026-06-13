@@ -1,0 +1,2 @@
+# Machine-local, untracked git config (identity, signing keys, work-only settings)
+config.local

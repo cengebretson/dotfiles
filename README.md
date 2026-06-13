@@ -101,6 +101,22 @@ curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setu
 
 - Open Neovim — plugins, LSP servers, and tools all install automatically on first launch
 
+#### Machine-local files
+
+The setup script installs configs but **not** per-machine identity or secrets. Create these on each new machine — they're gitignored and never shared, so personal and work machines stay separate:
+
+| File | Purpose |
+|------|---------|
+| `~/.config/git/config.local` | Git `user.name` / `user.email` for this machine (personal vs. work) |
+| `~/.config/fish/secrets.fish` | Secret env vars / API tokens (e.g. `GH_TOKEN`), sourced by `conf.d/local-secrets.fish` |
+| `~/.config/claude/.claude.json` | Created automatically on first `claude` login (personal = gmail, work = work SSO) |
+
+Git sets `user.useConfigOnly = true`, so commits hard-fail with *"Author identity unknown"* until `config.local` provides an identity — no accidental `username@hostname` authors slip through.
+
+```bash
+printf '[user]\n\temail = you@example.com\n\tname = Chris Engebretson\n' > ~/.config/git/config.local
+```
+
 ---
 
 ### Gallery

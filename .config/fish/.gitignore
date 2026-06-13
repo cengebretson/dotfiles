@@ -1,0 +1,2 @@
+# Machine-local secrets — sourced by conf.d/local-secrets.fish, never committed
+secrets.fish

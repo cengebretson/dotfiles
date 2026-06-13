@@ -1,3 +1,8 @@
+# Per-machine account/auth state — never share across machines
+.claude.json
+.claude.json.backup
+.credentials.json
+
 # Runtime and session data
 sessions/
 history.jsonl
