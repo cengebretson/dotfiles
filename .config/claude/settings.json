@@ -65,7 +65,7 @@
       "Bash(docker compose * down -v*)"
     ]
   },
-  "model": "claude-fable-5[1m]",
+  "model": "opus",
   "hooks": {
     "SessionStart": [
       {

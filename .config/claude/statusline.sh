@@ -100,7 +100,7 @@ if [[ -n "$ctx_pct" ]]; then
     parts+=("${ctx_color}${bar} ${ctx_pct}%${reset}")
 fi
 
-sep="${overlay1} │ ${reset}"
+sep="${overlay1} | ${reset}"
 result=""
 for i in "${!parts[@]}"; do
     [[ $i -gt 0 ]] && result+="$sep"
