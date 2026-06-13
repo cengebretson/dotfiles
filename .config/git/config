@@ -41,7 +41,7 @@
 	unpublish   = "!git push origin :$(git branch-name)"
 	springclean = for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)'
 [push]
-	default = upstream
+	default = current
 [difftool "Kaleidoscope"]
 	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 [diff]
