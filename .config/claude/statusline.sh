@@ -1,15 +1,42 @@
 #!/usr/bin/env bash
 
 json=$(cat)
-model=$(printf '%s' "$json" | jq -r '(.model | if type == "object" then .id else . end) // ""' 2>/dev/null)
-model="${model#claude-}"  # strip "claude-" prefix
-vimmode=$(printf '%s' "$json" | jq -r '.vim.mode // ""' 2>/dev/null)
-ctx_pct=$(printf '%s' "$json" | jq -r '.context_window.used_percentage // ""' 2>/dev/null)
-effort=$(printf '%s' "$json" | jq -r '.effort.level // ""' 2>/dev/null)
-fast_mode=$(printf '%s' "$json" | jq -r '.fast_mode // ""' 2>/dev/null)
 
-branch=$(git branch --show-current 2>/dev/null)
-changes=$(git status --porcelain 2>/dev/null | wc -l | tr -d ' ')
+# One jq pass for every field — five separate jq spawns parsing the same JSON
+# was the bulk of the statusline's wall time. Each value lands on its own line.
+{
+    read -r model
+    read -r vimmode
+    read -r ctx_pct
+    read -r effort
+    read -r fast_mode
+    read -r session_id
+} < <(printf '%s' "$json" | jq -r '
+    (.model | if type == "object" then .id else . end) // "",
+    .vim.mode // "",
+    .context_window.used_percentage // "",
+    .effort.level // "",
+    .fast_mode // "",
+    .session_id // ""' 2>/dev/null)
+model="${model#claude-}"  # strip "claude-" prefix
+
+# One git pass for branch + change count: `git status --branch --porcelain`
+# carries the branch on its first line (`## branch...upstream`), so we avoid a
+# second `git branch` spawn. Branch and count come straight out of parameter
+# expansion — no mapfile (bash 4+) and no `wc` subprocess.
+branch=""
+changes=0
+git_out=$(git status --porcelain=v1 --branch 2>/dev/null)
+if [[ -n "$git_out" ]]; then
+    first="${git_out%%$'\n'*}"  # "## branch...upstream [ahead N]"
+    branch="${first#\#\# }"     # drop the leading "## "
+    branch="${branch%%...*}"    # strip "...upstream" when tracking
+    branch="${branch%% *}"      # strip trailing " [ahead N]" when not
+    # change count = number of newlines (every status line after the branch
+    # line); strip all non-newline chars and measure what's left.
+    nl="${git_out//[!$'\n']/}"
+    changes=${#nl}
+fi
 
 # Catppuccin Mocha
 green=$'\033[38;2;166;227;161m'
@@ -79,8 +106,20 @@ if [[ -f "$ctxmode_bin" && ! -f "$ctxmode_root/build/session/analytics.js" ]]; t
     fi
 fi
 if [[ -f "$ctxmode_bin" ]] && command -v node >/dev/null 2>&1; then
-    ctx_saved=$(printf '%s' "$json" | node "$ctxmode_bin" 2>/dev/null \
-        | sed -E 's/.*●[[:space:]]*//; s/[[:space:]]+·.*//')
+    # The node call is the statusline's biggest cost (~35ms). The savings figure
+    # barely moves between refreshes, so cache it per session for 30s and reuse
+    # the cached value on every refresh in that window.
+    ctx_cache="${TMPDIR:-/tmp}/ctxmode-sl-${session_id:-default}.cache"
+    ctx_saved=""
+    now=$(date +%s)
+    mtime=$(stat -f %m "$ctx_cache" 2>/dev/null || stat -c %Y "$ctx_cache" 2>/dev/null)
+    if [[ -n "$mtime" ]] && (( now - mtime < 30 )); then
+        ctx_saved=$(<"$ctx_cache")
+    else
+        ctx_saved=$(printf '%s' "$json" | node "$ctxmode_bin" 2>/dev/null \
+            | sed -E 's/.*●[[:space:]]*//; s/[[:space:]]+·.*//')
+        printf '%s' "$ctx_saved" > "$ctx_cache" 2>/dev/null
+    fi
     if [[ -n "$ctx_saved" && "$ctx_saved" != saves* ]]; then
         parts+=("${teal}󰆼 ${ctx_saved}${reset}")
     fi
