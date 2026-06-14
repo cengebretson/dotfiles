@@ -87,8 +87,8 @@ vim.keymap.set("n", "<C-Down>", ":resize -2<CR>")
 vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>")
 vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>")
 
--- Toggle spell check
-vim.keymap.set("n", "<leader>ts", function()
+-- Toggle spell check (moved off <leader>ts to avoid clashing with neotest Run Suite)
+vim.keymap.set("n", "<leader>us", function()
 	vim.wo.spell = not vim.wo.spell
 	vim.notify("Spell check " .. (vim.wo.spell and "enabled" or "disabled"), vim.log.levels.INFO)
 end, { desc = "Toggle spell check" })
