@@ -1,0 +1,16 @@
+# Per-machine account/auth state — never share across machines
+auth.json
+.credentials.json
+
+# Runtime and session data
+sessions/
+history.jsonl
+log/
+logs/
+tmp/
+cache/
+version.json
+*.log
+
+# Note: config.toml and AGENTS.md are intentionally trackable.
+# Keep secrets out of config.toml — use env vars, never hardcoded keys.
