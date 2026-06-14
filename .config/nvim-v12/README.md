@@ -272,4 +272,4 @@ Installed automatically on first launch:
 
 ## Transparency
 
-The catppuccin theme uses `#000000` as base for Ghostty terminal transparency. Floating windows use `winblend = 20`. `NormalFloat`, `FloatBorder`, `Pmenu` backgrounds are cleared to `NONE` on every colorscheme load.
+The catppuccin theme uses `#000000` as base for Ghostty terminal transparency. Floating windows use `winblend = 10`. `NormalFloat`, `FloatBorder`, `Pmenu` backgrounds are cleared to `NONE` on every colorscheme load.

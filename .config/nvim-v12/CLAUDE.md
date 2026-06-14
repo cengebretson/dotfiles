@@ -27,13 +27,8 @@ lua/
     keymaps.lua           # global keymaps, leader = <Space>
   plugins/
     init.lua              # plugin declarations + Pack command + loader loop
-    blink.lua             # completion (blink.cmp, super-tab preset)
-    conform.lua           # format-on-save (stylua, prettierd, google-java-format, fish_indent)
-    lsp.lua               # LSP via Mason + mason-lspconfig (automatic_enable = true)
-    oil.lua               # file explorer replacing netrw (floating, - to open)
-    themes.lua            # catppuccin-mocha, transparent bg for Ghostty
-    tree-sitter-manager.lua  # treesitter grammars
-    which-key.lua         # key hint popups + leader group labels
+    <name>.lua            # one file per plugin (~20: blink, lsp, conform, oil, dap,
+                          #   neotest, trouble, gitsigns, diffview, snacks, themes, …)
 after/ftplugin/           # empty, reserved for filetype overrides
 ```
 
@@ -45,5 +40,5 @@ Each `lua/plugins/*.lua` file exports a table with a `setup()` function. The loa
 - **Plugin config pattern**: Each plugin gets its own file in `lua/plugins/`, returning `{ setup = function() ... end }`. Register it in the `plugin_modules` list inside `lua/plugins/init.lua`.
 - **Filetype overrides**: Add to `after/ftplugin/<ft>.lua` (currently empty).
 - **Transparency**: The catppuccin theme uses a pure black base (`#000000`) for Ghostty terminal transparency. Floating windows use `winblend = 10`. Preserve this when adding new windows.
-- **Format tools**: `stylua` (Lua), `prettierd`/`prettier` (JS), `google-java-format` (Java), `fish_indent` (Fish) — all managed via Mason except `fish_indent`.
+- **Format tools** (conform.nvim): `stylua` (Lua), `biome`→`prettierd`→`prettier` (JS/TS/Vue), `goimports`→`gofumpt` (Go), `ruff` (Python), `google-java-format` (Java), `fish_indent` (Fish) — all Mason-managed except `fish_indent`.
 

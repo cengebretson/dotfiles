@@ -55,37 +55,14 @@ A curated collection of tools and configs that power my daily workflow.
 
 ### ⌨️ CLI Reference
 
-#### Fish Shortcuts
+Each config keeps its own reference, so there's a single source of truth per tool:
 
- See [fish config](.config/fish/README.md) for the full Fish shortcut and function catalog.
-
- | Key | Action |
- |-----|--------|
- | `→` / `ctrl+f` | Accept autosuggestion |
- | `⌥+→` | Accept one word of autosuggestion |
- | `⌥+e` | Edit current command in `$EDITOR` |
- | `⌥+s` | Prepend `sudo` to current command |
- | `ctrl+u` / `ctrl+k` | Delete to beginning / end of line |
- | `⌥+backspace` | Delete previous word |
- | `ctrl+r` | Fuzzy search shell history |
- | `ctrl+t` | Fuzzy search files and directories |
- | `ctrl+p` | Fuzzy search running processes |
- | `ctrl+⌥+l` | Fuzzy search git log |
- | `ctrl+⌥+s` | Fuzzy search git status |
-
-#### Functions & Aliases
-
- | Command | Description |
- |---------|-------------|
- | `j <dir>` | Smart directory jump (zoxide) |
- | `ji` | Interactive zoxide picker |
- | `coral` | Browse local Git branches with PR status and branch actions |
- | `kp` | Kill a process via fzf picker |
- | `pr` | Open the current branch PR in the browser |
- | `zz` | Open fish config.fish in `$EDITOR` |
- | `dots` | Shorthand for dotfiles git commands |
- | `l` / `ll` / `la` | eza listings with icons and git status |
- | `lt` / `ltd` | eza tree views (files / directories) |
+ | Area | Reference |
+ |------|-----------|
+ | Fish shortcuts, functions & aliases | [fish/README.md](.config/fish/README.md) |
+ | Tmux keybindings & status bar | [tmux/README.md](.config/tmux/README.md) |
+ | Neovim keymaps & features | [nvim-v12/README.md](.config/nvim-v12/README.md) |
+ | Claude Code statusline & tooling | [claude/README.md](.config/claude/README.md) |
 
 ---
 

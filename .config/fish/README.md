@@ -48,6 +48,26 @@ Current manifest:
 | `ctrl+option+l` | Fuzzy search git log |
 | `ctrl+option+s` | Fuzzy search git status |
 
+## Aliases & Abbreviations
+
+Defined in `alias.fish` (zoxide `j`/`ji` come from `config.fish`). Highlights:
+
+| Command | Expands to |
+|---------|-----------|
+| `j <dir>` / `ji` | zoxide smart jump / interactive picker |
+| `l` / `ll` / `la` | eza listings (compact / long+git / long by mtime) |
+| `lt` / `ltd` | eza tree view (all files / directories only) |
+| `dots` | `git --git-dir=$HOME/.dotfiles --work-tree=$HOME` (abbr, expands anywhere) |
+| `zz` | open `config.fish` in `$EDITOR` (abbr) |
+| `cat` / `find` / `vi`,`vim` | `bat` / `fd` / `nvim` |
+| `o` / `oo` | `open` / `open .` |
+| `reload` | `exec fish` |
+| `updates` | brew update + upgrade + completions + cleanup |
+| `gcopy` | copy short HEAD SHA to clipboard |
+| `ipl` / `ipx` | local IP (en0) / external IP |
+| `flush` | flush macOS DNS cache |
+| `weather` / `moon` | wttr.in forecast / moon phase |
+
 ## Custom Functions
 
 These live in `functions/` and are not Fisher-managed.
