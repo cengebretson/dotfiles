@@ -92,5 +92,8 @@ vim.api.nvim_create_autocmd("ColorScheme", {
 		vim.api.nvim_set_hl(0, "FloatBorder",             { bg = "NONE" })
 		vim.api.nvim_set_hl(0, "FloatTitle",              { bg = "NONE" })
 		vim.api.nvim_set_hl(0, "Pmenu",                   { bg = "NONE" })
+		-- Mason's window (winhl NormalFloat:MasonNormal) needs a solid bg to stay
+		-- readable, since NormalFloat above is cleared for transparency.
+		vim.api.nvim_set_hl(0, "MasonNormal",             { bg = c.float_bg })
 	end,
 })

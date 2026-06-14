@@ -23,4 +23,10 @@ return {
 	line_nr       = p.overlay1,  -- inactive line numbers
 	tab_inactive  = p.overlay0,  -- inactive tab text
 	tab_sep       = p.surface1,  -- tab separator
+
+	-- floats
+	-- catppuccin's real mocha base; hardcoded because themes.lua overrides
+	-- p.base to #000000 for terminal transparency. Used for floats that must
+	-- stay readable (e.g. Mason).
+	float_bg      = "#1e1e2e",
 }

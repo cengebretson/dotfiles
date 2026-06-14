@@ -112,8 +112,10 @@ function M.setup()
 	vim.api.nvim_create_autocmd("User", {
 		pattern = "MasonToolsStartingInstall",
 		callback = function()
+			-- vim.notify (snacks toast) instead of print(), which lingered on the
+			-- command line at every startup.
 			vim.schedule(function()
-				print("Mason: Checking for tools...")
+				vim.notify("Mason: checking for tools…", vim.log.levels.INFO, { title = "Mason" })
 			end)
 		end,
 	})
