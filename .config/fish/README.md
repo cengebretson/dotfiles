@@ -11,7 +11,6 @@ Interactive shell config, Fisher-managed plugins, and custom helper functions.
 | `fish_plugins` | Fisher plugin manifest |
 | `conf.d/` | Auto-sourced startup snippets |
 | `functions/` | Autoloaded Fish functions |
-| `functions/coral.spec.md` | Coral function/plugin design notes |
 | `secrets.fish` | Machine-local secrets, not for public docs |
 
 ## Fisher Plugins
@@ -26,11 +25,11 @@ Current manifest:
 | `patrickf1/colored_man_pages.fish` | Colored man pages |
 | `danhper/fish-ssh-agent` | SSH agent startup |
 | `jorgebucaran/autopair.fish` | Paired character insertion |
-| `reitzig/sdkman-for-fish@v1.4.0` | SDKMAN integration |
 | `jorgebucaran/fisher` | Fish plugin manager |
 | `nickeb96/puffer-fish` | Shell expansion helpers |
 | `icezyclon/zoxide.fish` | zoxide Fish integration |
 | `jorgebucaran/fishtape` | Fish test runner |
+| `cengebretson/coral` | Local-branch browser with fzf, PR status & branch actions |
 
 ## Shortcuts
 
@@ -76,7 +75,6 @@ These live in `functions/` and are not Fisher-managed.
 |---------|---------|
 | `claude` | Run Claude Code and rename the tmux window to `claude` while active |
 | `confetti` | Trigger the Raycast confetti extension |
-| `coral` | Browse local Git branches with fzf, PR status, previews, and branch actions |
 | `fish_greeting` | Show a custom shell greeting with random image/system info |
 | `keychain` | List macOS Keychain entries or set an environment variable from a Keychain value |
 | `kp` | Kill processes selected with fzf |
@@ -87,22 +85,12 @@ These live in `functions/` and are not Fisher-managed.
 
 ## Coral
 
-`coral` is a local Fish function suite, not a Fisher plugin yet. Its runtime config lives at:
+`coral` is now published as a Fisher plugin — [`cengebretson/coral`](https://github.com/cengebretson/coral). Its functions, completions, and `conf.d` setup are Fisher-managed (installed under `functions/`, `completions/`, `conf.d/`), so they are **not tracked** in these dotfiles.
+
+Runtime config lives at:
 
 ```text
 ~/.config/coral/config.fish
 ```
 
-Its local tests currently live at:
-
-```text
-~/.config/coral/tests/
-```
-
-Run them with:
-
-```fish
-fishtape ~/.config/coral/tests/*.test.fish
-```
-
-See `functions/coral.spec.md` for the design notes, dependency contract, config keys, and test expectations.
+Run `coral --doctor` for dependency, config, repo, cache, and GitHub-auth diagnostics. Source and tests live in the plugin repo.
