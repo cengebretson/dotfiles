@@ -11,7 +11,7 @@ function M.setup()
 		return
 	end
 
-	noice.setup({
+	local config = {
 		cmdline = { enabled = true },
 		messages = { enabled = true },
 		notify = { enabled = false },   -- snacks handles this
@@ -28,7 +28,21 @@ function M.setup()
 			long_message_to_split = true,
 			lsp_doc_border = true,
 		},
-	})
+	}
+
+	-- Defer noice.setup() until after startup so it isn't attached during the
+	-- initial redraw (dashboard/image render), which otherwise flashes a phantom
+	-- centered cmdline (command_palette) before the dashboard appears.
+	local function deferred_setup()
+		vim.schedule(function()
+			noice.setup(config)
+		end)
+	end
+	if vim.v.vim_did_enter == 1 then
+		deferred_setup()
+	else
+		vim.api.nvim_create_autocmd("VimEnter", { once = true, callback = deferred_setup })
+	end
 end
 
 return M
