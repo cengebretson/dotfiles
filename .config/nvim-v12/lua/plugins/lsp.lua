@@ -108,17 +108,6 @@ function M.setup()
 			"js-debug-adapter",
 		},
 	})
-
-	vim.api.nvim_create_autocmd("User", {
-		pattern = "MasonToolsStartingInstall",
-		callback = function()
-			-- vim.notify (snacks toast) instead of print(), which lingered on the
-			-- command line at every startup.
-			vim.schedule(function()
-				vim.notify("Mason: checking for tools…", vim.log.levels.INFO, { title = "Mason" })
-			end)
-		end,
-	})
 end
 
 return M
