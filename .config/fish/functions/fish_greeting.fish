@@ -1,9 +1,9 @@
 function fish_greeting
-    select_random_image
+    _select_random_image
     fastfetch
 end
 
-function select_random_image
+function _select_random_image
     set -l fastfetch_dir ~/.config/fastfetch
     if not test -d "$fastfetch_dir"
         return

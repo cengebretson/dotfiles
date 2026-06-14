@@ -43,7 +43,7 @@ function copilot-pr-report --description "List open PRs with unresolved Copilot 
             -f query='query($owner:String!,$repo:String!,$number:Int!){repository(owner:$owner,name:$repo){pullRequest(number:$number){reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}' \
             --jq '[.data.repository.pullRequest.reviewThreads.nodes[]|select(.isResolved==false and any(.comments.nodes[];.author!=null and (.author.login|ascii_downcase|contains("copilot"))))]|length' 2>/dev/null)
 
-        if test -n "$count" -a "$count" -gt 0 2>/dev/null
+        if test -n "$count"; and test "$count" -gt 0
             set_color yellow; printf "  ●"; set_color normal
             set_color --bold white; printf " #$pr_num"; set_color normal
             set_color red; printf " ($count unresolved)"; set_color normal
