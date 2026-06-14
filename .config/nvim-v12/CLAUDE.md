@@ -8,12 +8,12 @@ A Neovim 0.12 configuration built specifically around the **native `vim.pack` pl
 
 ## Plugin Management
 
-Plugins are declared in `lua/plugins/init.lua` using `vim.pack.add()` and pinned via `nvim-pack-lock.json` (SHA-based lockfile). Install path: `~/.local/share/nvim/pack/nvim-v12`.
+Plugins are declared in `lua/plugins/init.lua` using `vim.pack.add()`; versions are pinned per-spec via `version`/`tag` (e.g. `blink.cmp` uses `tag = "v1.*"`). Install path: `~/.local/share/nvim-v12/site/pack/core/opt/`.
 
 The custom `:Pack` command (also bound to `<leader>p*`) wraps the native API:
-- `:Pack sync` — install/update all plugins
-- `:Pack clean` — remove unused plugins
-- `:Pack status` — show install status
+- `:Pack sync` — install/update all plugins (`vim.pack.update`)
+- `:Pack clean` — remove orphaned plugins not in the declared specs (`vim.pack.del`, with confirm)
+- `:Pack status` — list installed plugins, revisions, and orphans (`vim.pack.get`)
 
 `blink.cmp` has a Rust build step (`cargo build --release`) that runs automatically on install/update — **Rust/cargo must be on PATH**.
 
