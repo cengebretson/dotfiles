@@ -115,6 +115,7 @@ vim.api.nvim_create_user_command("Pack", function(opts)
 	end
 end, {
 	nargs = 1,
+	bar = true, -- allow ':Pack sync | MasonToolsInstall' to chain (e.g. dashboard sync)
 	complete = function()
 		return { "sync", "clean", "status" }
 	end,
