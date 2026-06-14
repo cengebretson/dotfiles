@@ -76,40 +76,75 @@ end
 
 local pack_install_path = vim.fn.stdpath("data") .. "/site/pack/core/opt"
 
+local function pack_orphans()
+	local declared = pack_declared_names()
+	local orphans = {}
+	for _, p in ipairs(vim.pack.get()) do
+		if not declared[p.spec.name] then
+			table.insert(orphans, p.spec.name)
+		end
+	end
+	return orphans
+end
+
+-- :Pack status — installed plugins in a floating window (falls back to notify)
+local function pack_status()
+	local installed = vim.pack.get()
+	table.sort(installed, function(a, b)
+		return a.spec.name < b.spec.name
+	end)
+	local declared = pack_declared_names()
+	local lines = {}
+	for _, p in ipairs(installed) do
+		local tag = declared[p.spec.name] and "" or "  ● orphan"
+		table.insert(lines, ("  %-30s %s%s"):format(p.spec.name, (p.rev or ""):sub(1, 7), tag))
+	end
+	table.insert(lines, "")
+	table.insert(lines, "  install: " .. pack_install_path)
+
+	if not (Snacks and Snacks.win) then
+		vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO, { title = "Pack Status" })
+		return
+	end
+
+	Snacks.win({
+		title = (" Pack — %d plugins "):format(#installed),
+		title_pos = "center",
+		text = lines,
+		width = 0.5,
+		height = math.min(0.8, (#lines + 2) / vim.o.lines),
+		border = "rounded",
+		wo = { cursorline = true, wrap = false },
+		bo = { modifiable = false, filetype = "pack-status" },
+		keys = { q = "close", ["<esc>"] = "close" },
+	})
+end
+
+-- :Pack clean — remove orphaned plugins after a modal confirm
+local function pack_clean()
+	local orphans = pack_orphans()
+	if #orphans == 0 then
+		vim.notify("Pack: no orphaned plugins to remove", vim.log.levels.INFO)
+		return
+	end
+	vim.ui.select({ ("Remove %d orphaned plugin(s)"):format(#orphans), "Cancel" }, {
+		prompt = "Orphans: " .. table.concat(orphans, ", "),
+	}, function(_, idx)
+		if idx == 1 then
+			vim.pack.del(orphans)
+			vim.notify("Pack: removed " .. table.concat(orphans, ", "), vim.log.levels.INFO)
+		end
+	end)
+end
+
 vim.api.nvim_create_user_command("Pack", function(opts)
 	local action = opts.fargs[1]
 	if action == "sync" or action == "update" then
 		vim.pack.update()
 	elseif action == "status" then
-		local installed = vim.pack.get()
-		table.sort(installed, function(a, b)
-			return a.spec.name < b.spec.name
-		end)
-		local declared = pack_declared_names()
-		local lines = { ("Installed plugins (%d):"):format(#installed) }
-		for _, p in ipairs(installed) do
-			local tag = declared[p.spec.name] and "" or "  (orphan)"
-			table.insert(lines, ("  %-28s %s%s"):format(p.spec.name, (p.rev or ""):sub(1, 7), tag))
-		end
-		table.insert(lines, "Install path: " .. pack_install_path)
-		vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+		pack_status()
 	elseif action == "clean" or action == "remove" then
-		local declared = pack_declared_names()
-		local orphans = {}
-		for _, p in ipairs(vim.pack.get()) do
-			if not declared[p.spec.name] then
-				table.insert(orphans, p.spec.name)
-			end
-		end
-		if #orphans == 0 then
-			vim.notify("Pack: no orphaned plugins to remove", vim.log.levels.INFO)
-			return
-		end
-		local prompt = ("Remove %d orphaned plugin(s)?\n%s"):format(#orphans, table.concat(orphans, ", "))
-		if vim.fn.confirm(prompt, "&Yes\n&No", 2) == 1 then
-			vim.pack.del(orphans)
-			vim.notify("Pack: removed " .. table.concat(orphans, ", "), vim.log.levels.INFO)
-		end
+		pack_clean()
 	else
 		print("Usage: :Pack sync | :Pack clean | :Pack status")
 	end
