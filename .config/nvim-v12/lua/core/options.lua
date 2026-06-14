@@ -4,6 +4,14 @@ vim.o.clipboard = "unnamedplus"
 vim.o.timeoutlen = 300
 vim.o.winborder = "rounded"
 
+-- Treesitter-based folding (fold queries already ship via tree-sitter-manager).
+-- Buffers without a parser fall back to no folds gracefully.
+vim.o.foldmethod = "expr"
+vim.o.foldexpr = "v:lua.vim.treesitter.foldexpr()"
+vim.o.foldtext = ""
+vim.o.foldlevel = 99 -- open files unfolded; fold on demand with za/zM
+vim.o.foldlevelstart = 99
+
 function _G._statuscolumn()
 	local win = vim.api.nvim_get_current_win()
 	local buf = vim.api.nvim_win_get_buf(win)
