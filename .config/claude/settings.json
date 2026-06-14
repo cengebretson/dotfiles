@@ -20,7 +20,7 @@
       "Bash(npx prettier*)",
       "Bash(pre-commit *)",
       "mcp__claude_ai_Atlassian__*",
-      "mcp__github__*",
+      "mcp__plugin_github_github__*",
       "mcp__plugin_context-mode_context-mode__*",
       "Bash(mkdir -p *)",
       "Bash(cp *)",
@@ -84,7 +84,8 @@
     "hideVimModeIndicator": true
   },
   "enabledPlugins": {
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "github@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {

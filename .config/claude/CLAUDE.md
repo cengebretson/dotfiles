@@ -6,13 +6,13 @@
 
 | Operation | Use this | Never this |
 |---|---|---|
-| GitHub (PRs, issues, files, search) | `mcp__github__*` | `gh`, `curl` |
+| GitHub (PRs, issues, files, search) | `mcp__plugin_github_github__*` | `gh`, `curl` |
 | Issue trackers / docs | available MCP tools | `curl`, REST |
 | Large output processing | `mcp__plugin_context-mode_context-mode__*` | raw pipe into context |
 
 Fall back to CLI **only** when no MCP tool covers the specific operation — and say so explicitly when you do.
 
-**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
+**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__plugin_github_github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
 
 **Any other CLI tool:** Before reaching for any CLI or REST equivalent (`curl`, `aws`, `gcloud`, etc.), run `ToolSearch` to check for an MCP alternative. Only proceed with CLI if the search confirms no MCP tool covers the operation.
 

@@ -11,7 +11,7 @@ Use when the user runs `/health-check` or asks for a "health check" or "session 
 Run the checks below (Jira is optional), then report results in a single markdown table.
 
 ### 1. GitHub MCP
-Call `mcp__github__get_me`. Report the authenticated username on success.
+Call `mcp__plugin_github_github__get_me`. Report the authenticated username on success.
 
 ### 2. Jira / Atlassian MCP (optional)
 This check only applies when the Atlassian MCP is installed. First check whether `mcp__claude_ai_Atlassian__atlassianUserInfo` is available (use ToolSearch if it is deferred). If the tool does not exist in this session, skip the check and report it as skipped — not as a failure. If it exists, call it and report the authenticated email on success.
