@@ -2,7 +2,7 @@
 vim.g.mapleader = " "
 
 -- Fast saving
-vim.keymap.set("n", "<leader>w", ":w<CR>", { desc = "Save file" })
+vim.keymap.set("n", "<leader>w", "<cmd>w<CR>", { desc = "Save file" })
 vim.keymap.set("n", "<leader><leader>", function()
 	Snacks.picker.buffers()
 end, { desc = "Buffers" })
@@ -11,7 +11,7 @@ end, { desc = "Buffers" })
 vim.keymap.set("n", ";", ":", { desc = "Command mode" })
 
 -- Clear search highlights with ESC
-vim.keymap.set("n", "<Esc>", ":nohlsearch<CR>", { desc = "Clear search highlight" })
+vim.keymap.set("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 
 -- Stay in visual mode when indenting
 vim.keymap.set("v", "<", "<gv")
@@ -22,11 +22,11 @@ vim.keymap.set("v", "J", ":m '>+1<CR>gv=gv")
 vim.keymap.set("v", "K", ":m '<-2<CR>gv=gv")
 
 -- Fast buffer switching (Better than tabs for Java development)
-vim.keymap.set("n", "<S-h>", ":bprevious<CR>", { desc = "Prev Buffer" })
-vim.keymap.set("n", "<S-l>", ":bnext<CR>", { desc = "Next Buffer" })
+vim.keymap.set("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Prev Buffer" })
+vim.keymap.set("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next Buffer" })
 
 -- Close current buffer without closing the window
-vim.keymap.set("n", "<leader>bd", ":bdelete<CR>", { desc = "Delete Buffer" })
+vim.keymap.set("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete Buffer" })
 vim.keymap.set("n", "<leader>q", "<C-w>c", { desc = "Close Window" })
 
 -- Window splitting (Intuitive)
@@ -79,13 +79,13 @@ vim.keymap.set("n", "<leader>e", vim.diagnostic.open_float, { desc = "Show diagn
 
 -- Insert mode shortcuts
 vim.keymap.set("i", "jk", "<Esc>", { desc = "Exit insert mode" })
-vim.keymap.set("i", "<C-s>", "<Esc>:w<CR>", { desc = "Save from insert mode" })
+vim.keymap.set("i", "<C-s>", "<Esc><cmd>w<CR>", { desc = "Save from insert mode" })
 
 -- Split resizing
-vim.keymap.set("n", "<C-Up>", ":resize +2<CR>")
-vim.keymap.set("n", "<C-Down>", ":resize -2<CR>")
-vim.keymap.set("n", "<C-Left>", ":vertical resize -2<CR>")
-vim.keymap.set("n", "<C-Right>", ":vertical resize +2<CR>")
+vim.keymap.set("n", "<C-Up>", "<cmd>resize +2<CR>")
+vim.keymap.set("n", "<C-Down>", "<cmd>resize -2<CR>")
+vim.keymap.set("n", "<C-Left>", "<cmd>vertical resize -2<CR>")
+vim.keymap.set("n", "<C-Right>", "<cmd>vertical resize +2<CR>")
 
 -- Toggle spell check (moved off <leader>ts to avoid clashing with neotest Run Suite)
 vim.keymap.set("n", "<leader>us", function()
