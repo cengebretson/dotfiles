@@ -21,6 +21,7 @@ function M.setup()
 	wk.add({
 		{ "<leader>p", group = "Packages (0.12)" },
 		{ "<leader>ps", "<cmd>Pack sync<cr>", desc = "Sync Plugins" },
+		{ "<leader>po", "<cmd>Pack outdated<cr>", desc = "Check for Updates" },
 		{ "<leader>pr", "<cmd>Pack clean<cr>", desc = "Clean/Remove" },
 		{ "<leader>pt", "<cmd>Pack status<cr>", desc = "Pack Status" },
 		{ "<leader>b", group = "Buffers" },

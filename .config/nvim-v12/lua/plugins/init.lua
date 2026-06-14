@@ -139,19 +139,22 @@ end
 
 vim.api.nvim_create_user_command("Pack", function(opts)
 	local action = opts.fargs[1]
-	if action == "sync" or action == "update" then
+	if action == "sync" or action == "update" or action == "outdated" then
+		-- vim.pack.update() fetches and opens a confirmation buffer listing exactly
+		-- what's outdated per-plugin (changelog), pin/lockfile-aware. :write applies,
+		-- :quit discards — so it doubles as a non-destructive "what's outdated" view.
 		vim.pack.update()
 	elseif action == "status" then
 		pack_status()
 	elseif action == "clean" or action == "remove" then
 		pack_clean()
 	else
-		print("Usage: :Pack sync | :Pack clean | :Pack status")
+		print("Usage: :Pack sync | :Pack outdated | :Pack clean | :Pack status")
 	end
 end, {
 	nargs = 1,
 	bar = true, -- allow ':Pack sync | MasonToolsInstall' to chain (e.g. dashboard sync)
 	complete = function()
-		return { "sync", "clean", "status" }
+		return { "sync", "outdated", "clean", "status" }
 	end,
 })

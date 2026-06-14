@@ -14,9 +14,10 @@ A Neovim 0.12 configuration built around the **native `vim.pack` plugin manager*
 Plugins are declared in `lua/plugins/init.lua` using `vim.pack.add()`; versions are pinned per-spec via `version`/`tag` (e.g. `blink.cmp` uses `tag = "v1.*"`).
 
 ```
-:Pack sync     — install/update all plugins
-:Pack status   — list installed plugins, revisions, and orphans
-:Pack clean    — remove orphaned plugins (with confirmation)
+:Pack sync       — fetch + review/apply plugin updates (:write applies, :quit discards)
+:Pack outdated   — same native preview, for just checking what has updates
+:Pack status     — list installed plugins + revisions (floating window)
+:Pack clean      — remove orphaned plugins (with confirmation)
 ```
 
 Install path: `~/.local/share/nvim-v12/site/pack/core/opt/`
