@@ -1,7 +1,10 @@
 local M = {}
 
 M.specs = {
-	{ src = "https://github.com/Saghen/blink.cmp", tag = "v1.*" },
+	-- vim.pack uses `version` (not `tag`); `tag` was silently ignored, which left
+	-- blink tracking the dev `main` branch and pulling in an unsatisfied
+	-- `blink.lib` dependency. Pin to the latest v1.x release instead.
+	{ src = "https://github.com/Saghen/blink.cmp", version = vim.version.range("1.*") },
 }
 
 function M.setup()
