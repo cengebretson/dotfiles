@@ -61,7 +61,7 @@ vim.o.statuscolumn = "%{%v:lua._statuscolumn()%}"
 -- Highlight on yank
 vim.api.nvim_create_autocmd("TextYankPost", {
 	callback = function()
-		vim.highlight.on_yank({ higroup = "IncSearch", timeout = 150 })
+		vim.hl.on_yank({ higroup = "IncSearch", timeout = 150 })
 	end,
 })
 

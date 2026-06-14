@@ -63,14 +63,53 @@ for _, name in ipairs(modules) do
 	end
 end
 
+local function pack_declared_names()
+	local set = {}
+	for _, spec in ipairs(all_specs) do
+		local name = spec.name or spec.src:gsub("%.git$", ""):match("([^/]+)$")
+		if name then
+			set[name] = true
+		end
+	end
+	return set
+end
+
+local pack_install_path = vim.fn.stdpath("data") .. "/site/pack/core/opt"
+
 vim.api.nvim_create_user_command("Pack", function(opts)
 	local action = opts.fargs[1]
 	if action == "sync" or action == "update" then
 		vim.pack.update()
-	elseif action == "clean" or action == "remove" then
-		vim.notify("vim.pack has no clean command — remove unused plugins manually from: " .. vim.fn.stdpath("data") .. "/pack/nvim-v12/start/", vim.log.levels.WARN)
 	elseif action == "status" then
-		print("Install Path: " .. vim.fn.stdpath("data") .. "/pack/nvim-v12")
+		local installed = vim.pack.get()
+		table.sort(installed, function(a, b)
+			return a.spec.name < b.spec.name
+		end)
+		local declared = pack_declared_names()
+		local lines = { ("Installed plugins (%d):"):format(#installed) }
+		for _, p in ipairs(installed) do
+			local tag = declared[p.spec.name] and "" or "  (orphan)"
+			table.insert(lines, ("  %-28s %s%s"):format(p.spec.name, (p.rev or ""):sub(1, 7), tag))
+		end
+		table.insert(lines, "Install path: " .. pack_install_path)
+		vim.notify(table.concat(lines, "\n"), vim.log.levels.INFO)
+	elseif action == "clean" or action == "remove" then
+		local declared = pack_declared_names()
+		local orphans = {}
+		for _, p in ipairs(vim.pack.get()) do
+			if not declared[p.spec.name] then
+				table.insert(orphans, p.spec.name)
+			end
+		end
+		if #orphans == 0 then
+			vim.notify("Pack: no orphaned plugins to remove", vim.log.levels.INFO)
+			return
+		end
+		local prompt = ("Remove %d orphaned plugin(s)?\n%s"):format(#orphans, table.concat(orphans, ", "))
+		if vim.fn.confirm(prompt, "&Yes\n&No", 2) == 1 then
+			vim.pack.del(orphans)
+			vim.notify("Pack: removed " .. table.concat(orphans, ", "), vim.log.levels.INFO)
+		end
 	else
 		print("Usage: :Pack sync | :Pack clean | :Pack status")
 	end
