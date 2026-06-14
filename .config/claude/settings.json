@@ -54,7 +54,16 @@
       "Bash(npx vue-tsc*)",
       "Bash(shellcheck *)",
       "Bash(jq *)",
-      "Bash(yq *)"
+      "Bash(yq *)",
+      "Bash(go *)",
+      "Bash(git mv *)",
+      "Bash(git rm *)",
+      "Bash(bat *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(sed -n *)",
+      "Bash(head *)",
+      "Bash(tail *)"
     ],
     "deny": [
       "Bash(git push --force *)",
