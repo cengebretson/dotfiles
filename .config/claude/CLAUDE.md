@@ -20,6 +20,10 @@ Fall back to CLI **only** when no MCP tool covers the specific operation — and
 
 At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. If anything is red, surface it immediately so it can be fixed before it blocks work.
 
+## Autonomy
+
+Bias strongly to action. Don't end turns asking permission for the obvious next step in work already underway — do it and report what happened. Pause only for genuinely consequential or ambiguous decisions: irreversible or destructive actions that aren't already authorized, outward/published actions taken for the first time, or forks where my answer changes the outcome. Routine commits, pushes, and follow-ups within already-greenlit work don't need a fresh prompt each time.
+
 ## Environment
 
 - **Shell:** Fish (interactive), but all scripts must use `#!/usr/bin/env bash` — hooks and non-interactive contexts run bash
