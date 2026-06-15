@@ -11,8 +11,8 @@
 #
 # Repo-agnostic:
 #   * the project web URL is derived from the "origin" remote
-#   * the test runner is auto-detected: tests/check.sh, else `make test`
-#     (override with GIT_RELEASE_TEST_CMD)
+#   * the test runner is resolved from GIT_RELEASE_TEST_CMD,
+#     `git config release.test-command`, tests/check.sh, then `make test`
 set -euo pipefail
 
 die() { echo "git-release: $*" >&2; exit 1; }
@@ -69,6 +69,8 @@ Options:
   -n, --dry-run             preview the release without changing anything
   -p, --push                push the branch and tag when done
   --allow-empty-changelog   release even if [Unreleased] has no entries
+  --allow-branch            release from a branch other than the default
+  --no-fetch                skip the "behind origin" check (no network)
   -c, --current             print the current version and exit
   -h, --help                show this help
 
@@ -79,8 +81,10 @@ manually with:
   git push origin <branch> --follow-tags
 
 The current version comes from the VERSION file, or the latest git tag if there
-is none. The test runner is auto-detected (tests/check.sh, else `make test`;
-override with GIT_RELEASE_TEST_CMD). The project URL is derived from origin.
+is none. The test runner is resolved in order: GIT_RELEASE_TEST_CMD, then
+`git config release.test-command`, then tests/check.sh, then `make test`. The
+project URL is derived from origin. By default it releases only from the repo's
+default branch and warns if local is behind origin.
 EOF
 }
 
@@ -89,12 +93,16 @@ dry_run=false
 show_current=false
 push=false
 allow_empty_changelog=false
+allow_branch=false
+no_fetch=false
 for arg in "$@"; do
     case "${arg}" in
         -n|--dry-run) dry_run=true ;;
         -c|--current) show_current=true ;;
         -p|--push) push=true ;;
         --allow-empty-changelog) allow_empty_changelog=true ;;
+        --allow-branch) allow_branch=true ;;
+        --no-fetch) no_fetch=true ;;
         -h|--help) usage; exit 0 ;;
         -*) die "unknown option: ${arg}" ;;
         *) [[ -z "${spec}" ]] || die "unexpected argument: ${arg}"; spec="${arg}" ;;
@@ -156,14 +164,42 @@ if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null 2>&1; then
     precheck "tag ${tag} already exists"
 fi
 
+# Release from the default branch unless told otherwise.
+branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
+default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
+if [[ "${allow_branch}" != true ]]; then
+    if [[ -z "${branch}" ]]; then
+        precheck "detached HEAD; checkout a branch first (or pass --allow-branch)"
+    elif [[ -n "${default_branch}" && "${branch}" != "${default_branch}" ]]; then
+        precheck "on '${branch}', not the default branch '${default_branch}' (use --allow-branch)"
+    elif [[ -z "${default_branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
+        precheck "on '${branch}', not main/master (use --allow-branch)"
+    fi
+fi
+
+# Warn if local is behind origin, so we don't tag a stale commit.
+if [[ "${no_fetch}" != true && -n "${branch}" ]]; then
+    if git fetch -q origin "${branch}" 2>/dev/null; then
+        behind="$(git rev-list --count "HEAD..origin/${branch}" 2>/dev/null || echo 0)"
+        if [[ "${behind}" -gt 0 ]]; then
+            precheck "local ${branch} is ${behind} commit(s) behind origin/${branch}; pull first"
+        fi
+    else
+        echo "git-release: note: could not fetch origin (offline?); skipping behind-origin check" >&2
+    fi
+fi
+
 prev_tag="$(git describe --tags --abbrev=0 2>/dev/null || true)"
 date_str="$(date +%Y-%m-%d)"
 
 if [[ -f VERSION ]]; then old_version="$(cat VERSION)"; else old_version="(none)"; fi
 
-# Detect the test runner.
+# Resolve the test runner: env override, then per-repo git config, then the
+# conventional runners.
 if [[ -n "${GIT_RELEASE_TEST_CMD:-}" ]]; then
     test_cmd="${GIT_RELEASE_TEST_CMD}"
+elif test_cmd="$(git config --get release.test-command 2>/dev/null)" && [[ -n "${test_cmd}" ]]; then
+    : # set from git config release.test-command
 elif [[ -x tests/check.sh ]]; then
     test_cmd="tests/check.sh"
 elif [[ -f Makefile ]] && grep -qE '^test:' Makefile; then
@@ -213,6 +249,32 @@ EOF
     exit 0
 fi
 
+# Run the repo's tests first, against the current tree, so a failure leaves
+# nothing half-applied.
+if [[ -n "${test_cmd}" ]]; then
+    echo "Running tests: ${test_cmd}"
+    bash -c "${test_cmd}"
+else
+    echo "git-release: no test runner detected; skipping tests" >&2
+fi
+
+# Past this point we mutate the tree; restore it if anything below fails.
+version_existed=false; [[ -f VERSION ]] && version_existed=true
+changelog_existed=false; [[ -f CHANGELOG.md ]] && changelog_existed=true
+release_committed=false
+restore_on_failure() {
+    rm -f CHANGELOG.md.tmp
+    if [[ "${release_committed}" == true ]]; then
+        git reset -q --hard "HEAD^" || true
+    else
+        git checkout -q -- VERSION CHANGELOG.md 2>/dev/null || true
+    fi
+    [[ "${version_existed}" == true ]] || rm -f VERSION
+    [[ "${changelog_existed}" == true ]] || rm -f CHANGELOG.md
+    echo "git-release: release aborted; working tree restored" >&2
+}
+trap restore_on_failure EXIT
+
 # Bump the version file.
 printf "%s\n" "${version}" > VERSION
 
@@ -261,26 +323,21 @@ EOF
     } > CHANGELOG.md
 fi
 
-# Run the repo's tests before tagging.
-if [[ -n "${test_cmd}" ]]; then
-    echo "Running tests: ${test_cmd}"
-    bash -c "${test_cmd}"
-else
-    echo "git-release: no test runner detected; skipping tests" >&2
-fi
-
 git add -- VERSION
 if [[ -f CHANGELOG.md ]]; then git add -- CHANGELOG.md; fi
 git commit -m "Release ${tag}"
+release_committed=true
 git tag -a "${tag}" -m "${tag}"
+trap - EXIT
 
-branch="$(git symbolic-ref --short HEAD 2>/dev/null || echo main)"
 echo "Tagged ${tag}."
 
 if [[ "${push}" == true ]]; then
     echo "Pushing ${branch} and ${tag} to origin..."
     git push origin "${branch}" --follow-tags
     echo "Pushed ${tag}; the release workflow will publish it."
+    echo "  Actions: ${web}/actions"
+    echo "  Release: ${web}/releases/tag/${tag}"
 else
     cat <<EOF
 
