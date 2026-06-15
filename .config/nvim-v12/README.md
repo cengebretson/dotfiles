@@ -1,104 +1,67 @@
 # nvim-v12
 
-A Neovim 0.12 configuration built around the **native `vim.pack` plugin manager** — no lazy.nvim, no packer. The name reflects tight coupling to Neovim 0.12's new APIs.
+A Neovim 0.12 config built around the native **`vim.pack`** plugin manager — no lazy.nvim, no packer. The name reflects tight coupling to 0.12's new APIs.
 
 ## Requirements
 
 - Neovim 0.12+
-- `cargo` on PATH (for `blink.cmp` Rust build step)
-- `fish_indent` (bundled with Fish shell)
+- `cargo` on PATH (for the `blink.cmp` Rust build step)
+- `fish_indent` (bundled with Fish)
 - A Nerd Font terminal
 
 ## Plugin Management
 
-Plugins are declared in `lua/plugins/init.lua` using `vim.pack.add()`; versions are pinned per-spec via `version`/`tag` (e.g. `blink.cmp` uses `tag = "v1.*"`).
+Plugins are declared in `lua/plugins/init.lua` via `vim.pack.add()` and pinned per-spec with `version`/`tag` (e.g. `blink.cmp` → `tag = "v1.*"`). Install path: `~/.local/share/nvim-v12/site/pack/core/opt/`.
 
-```
-:Pack sync       — fetch + review/apply plugin updates (:write applies, :quit discards)
-:Pack outdated   — same native preview, for just checking what has updates
-:Pack status     — list installed plugins + revisions (floating window)
-:Pack clean      — remove orphaned plugins (with confirmation)
-```
-
-Install path: `~/.local/share/nvim-v12/site/pack/core/opt/`
-
+| Command | Key | Action |
+|---------|-----|--------|
+| `:Pack sync` | `<leader>ps` | Fetch + review/apply updates (`:write` applies, `:quit` discards) |
+| `:Pack outdated` | `<leader>po` | Same native preview, just to see what's outdated |
+| `:Pack status` | `<leader>pt` | List installed plugins + revisions (floating window) |
+| `:Pack clean` | `<leader>pr` | Remove orphaned plugins (with confirmation) |
 
 ## Notable Features
 
-### Dashboard with Random Image
+- **Dashboard** — random image from `assets/` each launch (Uncle Iroh paintings), rendered inline via the Kitty/iTerm protocol (snacks.image) at 1.5× fit-to-columns. Auto-hides/restores around the `:Pack sync` screen.
+- **Custom statuscolumn** (`options.lua`) — bold absolute number on the current line, relative numbers elsewhere, snacks sign/fold integration.
+- **System clipboard by default** — `clipboard=unnamedplus`. `d`/`D` go to the black-hole register so deletes don't clobber the clipboard; use `<leader>d` to delete *to* it.
+- **Treesitter incremental selection** — `<CR>`/`<BS>` to grow/shrink the selection, no plugin (uses `vim.treesitter`).
+- **Claude Code tmux integration** — send code to a Claude pane in the same tmux session; see [Claude keymaps](#claude-code). Disable the bell with `vim.g.claude_bell = false`.
+- **Comment-header dividers** — `<leader>ch` inserts a commented `── Header ─────` rule padded to 80 cols, using the buffer's commentstring.
+- **LSP status in statusline** — lualine `y` section shows live `vim.lsp.status()` progress, then active client names. Native `LspProgress` autocmd, no plugin.
+- **Oil file explorer** — git-aware; `gd` toggles detail view, `g.` toggles hidden files, git-status column, dir winbar. Gitignored hidden, tracked dotfiles shown.
+- **Snacks indent guides** — `│` with scope highlighting, animation off for performance.
+- **Transparency** — catppuccin on `#000000` base for Ghostty; floats at `winblend=10`; `NormalFloat`/`FloatBorder`/`Pmenu` backgrounds cleared on every colorscheme load.
 
-The dashboard picks a random image from `assets/` on each launch — currently a series of Uncle Iroh paintings. The image renders inline via Kitty/iTerm protocol using snacks.image, scaled to `1.5x` of its natural fit-to-columns size.
+### Language Support
 
-### Custom Statuscolumn
-
-A hand-rolled statuscolumn (`options.lua`) that:
-- Displays absolute line numbers left-aligned and **bold** on the current line (using `CursorLineNr`)
-- Displays relative numbers right-aligned on all other lines
-- Integrates with snacks' sign cache for git/diagnostic/mark icons
-- Keeps snacks' fold-click handler working
-
-### System Clipboard by Default
-
-`vim.o.clipboard = "unnamedplus"` — yanks go to the system clipboard automatically.
-
-The `d`/`D` keys send to the black hole register (`"_d`) so deleting doesn't clobber the clipboard. Use `<leader>d` to delete *to* the clipboard when you actually want that.
-
-### Treesitter Incremental Selection
-
-`<CR>` in normal mode selects the node under the cursor. `<CR>` in visual mode expands to the parent node. `<BS>` in visual mode shrinks back. No plugin — uses `vim.treesitter` directly.
-
-### Claude Code tmux Integration
-
-Send code directly to a Claude Code pane running in the same tmux session — no copy/paste needed. See [Claude keymaps](#claude-code) below. Disable the bell notification with `vim.g.claude_bell = false`.
-
-### Python Development
-
-- **basedpyright** for type checking and completions with automatic venv detection (`.venv`, `venv`, `env`, `.env`)
-- **ruff** as both LSP (inline linting) and formatter
-- **neotest-python** for pytest integration
-- **debugpy** via DAP for breakpoint debugging
-
-### TypeScript / Bun Development
-
-- **ts_ls** for TypeScript LSP
-- **neotest-jest** + custom Bun adapter for test running
-- **js-debug-adapter** for Node, TypeScript (tsx), Bun (`--inspect-brk`), and Chrome debugging
-
-### Bun Test Support
-
-Custom neotest adapter detects Bun projects via `bun.lock`/`bun.lockb` and runs `bun test <file>` (positional argument, not `--testPathPattern`).
-
-### LSP Status in Statusline
-
-The lualine `y` section shows live LSP progress (`vim.lsp.status()`) while operations are running, then falls back to showing active client names. Uses the native `LspProgress` autocmd — no plugin required.
-
-### Snacks Indent Guides
-
-Vertical indent guides (`│`) with scope highlighting for the current block. Animation disabled for performance.
-
-### Oil File Explorer
-
-Git-aware file explorer with:
-- `gd` — toggle detail view (permissions, size, mtime)
-- `g.` — toggle hidden files
-- `git_status` column showing `M`/`A`/`D`/`?` per file
-- Winbar showing current directory path
-- Gitignored files hidden, git-tracked dotfiles shown
+- **Python** — basedpyright (type-checking, auto venv detection: `.venv`/`venv`/`env`/`.env`), ruff (LSP + formatter), neotest-python, debugpy.
+- **TypeScript / Bun** — ts_ls, neotest-jest + a custom Bun adapter (detects `bun.lock`/`bun.lockb`, runs `bun test <file>`), js-debug-adapter for Node/tsx/Bun/Chrome.
 
 ## Key Mappings
+
+Leader is `<space>`.
+
+### General
+
+| Key | Action |
+|-----|--------|
+| `<leader>w` / `<C-s>` (insert) | Save file |
+| `;` | Command mode (`:`) |
+| `<Esc>` | Clear search highlight |
+| `jk` (insert) | Exit insert mode |
 
 ### Navigation
 
 | Key | Action |
 |-----|--------|
-| `s` | Flash jump |
-| `S` | Flash treesitter select |
-| `<CR>` | Select treesitter node (normal) / expand (visual) |
-| `<BS>` | Shrink treesitter selection (visual) |
+| `s` / `S` | Flash jump / Flash treesitter select |
+| `<CR>` / `<BS>` | Grow / shrink treesitter selection |
 | `<C-h/j/k/l>` | Navigate splits |
 | `<S-h>` / `<S-l>` | Previous / next buffer |
-| `<C-d>` / `<C-u>` | Scroll half-page (cursor centered) |
-| `n` / `N` | Search next/prev (cursor centered) |
+| `<C-d>` / `<C-u>` | Scroll half-page (centered) |
+| `n` / `N` | Search next / prev (centered) |
+| `*` / `#` | Search word under cursor (centered) |
 
 ### Files & Search (snacks picker)
 
@@ -106,110 +69,104 @@ Git-aware file explorer with:
 |-----|--------|
 | `<leader>ff` | Find files |
 | `<leader>fg` | Live grep |
-| `<leader>fb` | Buffers |
+| `<leader>fb` / `<leader><leader>` | Buffers |
 | `<leader>fr` | Recent files |
 | `<leader>fs` | LSP symbols |
 | `<leader>fd` | Diagnostics |
 | `<leader>fk` | Keymaps |
 | `<leader>fp` | Projects |
-| `<leader><leader>` | Buffers (quick) |
+| `<leader>ft` | Find TODOs |
+| `<leader>fD` | Open dashboard |
 | `-` | Open Oil file explorer |
 
-### Version Control
+### LSP & Code
 
 | Key | Action |
 |-----|--------|
-| `<leader>vl` | Lazygit |
-| `<leader>vf` | Lazygit file log |
-| `<leader>vb` | Blame line (float) |
-| `<leader>vB` | Toggle inline blame virtualtext |
-| `<leader>vp` | Preview hunk |
-| `<leader>vs` | Stage hunk |
-| `<leader>vr` | Reset hunk |
-| `<leader>vd` | Diff this (gitsigns) |
-| `<leader>vD` | Diffview open |
-| `<leader>vh` | Diffview file history |
-| `<leader>vH` | Diffview repo history |
-| `<leader>vx` | Diffview close |
-| `]h` / `[h` | Next / prev hunk |
-
-### LSP
-
-| Key | Action |
-|-----|--------|
-| `gd` | Go to definition |
-| `gr` | References |
-| `gi` | Implementation |
+| `gd` / `gr` / `gi` | Definition / references / implementation |
 | `K` | Hover docs |
+| `<leader>k` / `<C-k>` (insert) | Signature help |
 | `<leader>rn` | Rename |
 | `<leader>ca` | Code action |
 | `<leader>D` | Type definition |
-| `<leader>=` | Format file or range |
-| `]d` / `[d` | Next / prev diagnostic (Trouble) |
+| `<leader>=` | Format file or range (conform) |
+| `<leader>rF` | Ruff fix (Python) |
 | `<leader>e` | Show diagnostic float |
+| `]d` / `[d` | Next / prev diagnostic (Trouble) |
 
 ### Editing
 
 | Key | Action |
 |-----|--------|
-| `d` / `D` | Delete to black hole (clipboard safe) |
+| `d` / `D` | Delete to black hole (clipboard-safe) |
 | `<leader>d` | Delete to clipboard |
-| `p` (visual) | Paste, keep clipboard (`"_dP`) |
+| `p` (visual) | Paste, keep clipboard |
 | `<leader>p` (visual) | Paste from `+` register |
-| `<A-j>` / `<A-k>` | Move line/selection up or down |
-| `J` / `K` (visual) | Move selection up or down |
-| `<leader>o` / `<leader>O` | Add blank line below/above |
-| `jk` | Exit insert mode |
-| `<leader>ts` | Toggle spell check |
+| `<A-j>` / `<A-k>` | Move line / selection down or up |
+| `J` / `K` (visual) | Move selection down / up |
+| `J` (normal) | Join lines, keep cursor |
+| `<leader>o` / `<leader>O` | Blank line below / above |
+| `<leader>us` | Toggle spell check |
 
-### Quickfix
-
-| Key | Action |
-|-----|--------|
-| `]q` / `[q` | Next / prev (wraps around) |
-| `]Q` / `[Q` | Last / first |
-| `<leader>xq` | Toggle quickfix window |
-
-### Window & Buffer
+### Windows & Buffers
 
 | Key | Action |
 |-----|--------|
-| `<leader>sv` | Split vertical |
-| `<leader>sh` | Split horizontal |
+| `<leader>sv` / `<leader>sh` | Split vertical / horizontal |
+| `<C-Up/Down/Left/Right>` | Resize split |
 | `<leader>bd` | Delete buffer |
 | `<leader>q` | Close window |
 | `<C-/>` | Toggle terminal |
 
-### Flash Operator-Pending
+### Version Control
+
+| Key | Action |
+|-----|--------|
+| `<leader>vl` / `<leader>vf` | Lazygit / Lazygit file log |
+| `<leader>vb` / `<leader>vB` | Blame line / toggle inline blame |
+| `<leader>vp` / `<leader>vs` / `<leader>vr` | Preview / stage / reset hunk |
+| `]h` / `[h` | Next / prev hunk |
+| `<leader>vd` | Diff this (gitsigns) |
+| `<leader>vD` | Diffview open |
+| `<leader>vh` / `<leader>vH` | Diffview file / repo history |
+| `<leader>vx` | Diffview close |
+
+### Flash (operator-pending)
 
 | Key | Action |
 |-----|--------|
 | `r` | Flash remote (operate on a remote location) |
 | `R` | Flash treesitter search (operator + visual) |
 
-### Trouble
+### Trouble & TODOs
 
 | Key | Action |
 |-----|--------|
 | `<leader>xx` | Workspace diagnostics |
 | `<leader>xd` | Document diagnostics |
+| `<leader>xe` | Errors only |
 | `<leader>xs` | Symbols |
-| `<leader>xl` | LSP references |
+| `<leader>xl` / `<leader>xL` | LSP references / location list |
 | `<leader>xt` | TODOs |
 | `<leader>xq` | Quickfix list |
-| `<leader>xL` | Location list |
+| `]t` / `[t` | Next / prev TODO |
+
+### Quickfix
+
+| Key | Action |
+|-----|--------|
+| `]q` / `[q` | Next / prev (wraps) |
+| `]Q` / `[Q` | Last / first |
+| `<leader>xq` | Toggle quickfix window |
 
 ### Tests (neotest)
 
 | Key | Action |
 |-----|--------|
-| `<leader>tt` | Run nearest test |
-| `<leader>tf` | Run file |
-| `<leader>ts` | Run suite |
+| `<leader>tt` / `<leader>tf` / `<leader>ts` | Run nearest / file / suite |
 | `<leader>tl` | Run last |
 | `<leader>tS` | Toggle summary |
-| `<leader>to` | Open output |
-| `<leader>tp` | Toggle output panel |
+| `<leader>to` / `<leader>tp` | Open output / toggle panel |
 | `<leader>tx` | Trouble: neotest results |
 | `]n` / `[n` | Next / prev failed test |
 
@@ -231,20 +188,18 @@ Git-aware file explorer with:
 
 | Key | Mode | Action |
 |-----|------|--------|
-| `<leader>cq` | visual | Ask Claude about selection (sends code + prompt) |
-| `<leader>cc` | normal | Ask Claude about current function/class |
-| `<leader>cl` | normal | Ask Claude about current line |
-| `<leader>cf` | normal | Ask Claude about current file |
-| `<leader>cx` | normal | Send file diagnostics to Claude |
+| `<leader>cq` | visual | Ask about selection (code + prompt) |
+| `<leader>cc` | normal | Ask about current function/class |
+| `<leader>cl` | normal | Ask about current line |
+| `<leader>cf` | normal | Ask about current file |
+| `<leader>cx` | normal | Send file diagnostics |
 
-## Format on Save
-
-Configured via conform.nvim. Formatters by filetype:
+## Format on Save (conform.nvim)
 
 | Filetype | Formatter |
 |----------|-----------|
 | Lua | stylua |
-| JavaScript / TypeScript / Vue | biome → prettierd → prettier |
+| JS / TS / Vue | biome → prettierd → prettier |
 | Go | goimports → gofumpt |
 | Python | ruff |
 | Java | google-java-format |
@@ -252,26 +207,4 @@ Configured via conform.nvim. Formatters by filetype:
 
 ## Mason-managed Tools
 
-Installed automatically on first launch:
-
-| Tool | Purpose |
-|------|---------|
-| `lua_ls` | Lua LSP |
-| `basedpyright` | Python LSP (type checking) |
-| `ruff` | Python LSP + formatter |
-| `ts_ls` | TypeScript LSP |
-| `vue_ls` | Vue LSP |
-| `cssls` | CSS LSP |
-| `gopls` | Go LSP |
-| `biome` | JS/TS formatter + linter |
-| `stylua` | Lua formatter |
-| `shellcheck` | Shell script linter |
-| `prettierd` | JS/TS/Vue formatter (fallback) |
-| `goimports` | Go import organizer + formatter |
-| `gofumpt` | Go strict formatter |
-| `debugpy` | Python debugger |
-| `js-debug-adapter` | JS/TS/Bun/Chrome debugger |
-
-## Transparency
-
-The catppuccin theme uses `#000000` as base for Ghostty terminal transparency. Floating windows use `winblend = 10`. `NormalFloat`, `FloatBorder`, `Pmenu` backgrounds are cleared to `NONE` on every colorscheme load.
+Installed on first launch: `lua_ls`, `basedpyright`, `ruff`, `ts_ls`, `vue_ls`, `cssls`, `gopls` (LSPs); `biome`, `stylua`, `prettierd`, `goimports`, `gofumpt` (formatters); `shellcheck` (linter); `debugpy`, `js-debug-adapter` (debuggers).
