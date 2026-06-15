@@ -119,6 +119,48 @@ function M.setup()
 		end
 	end
 
+	-- The dashboard logo is a kitty-graphics placement in its own float.
+	-- :Pack sync opens its confirm buffer in a NEW tabpage, and a tabpage switch
+	-- never clears a kitty placement, so the logo bleeds over the sync screen.
+	-- Erase it when that buffer (ft=nvim-pack) appears, restore it when it closes.
+	local image = function()
+		return require("snacks.image")
+	end
+	vim.api.nvim_create_autocmd("FileType", {
+		group = vim.api.nvim_create_augroup("dashboard-pack-logo", { clear = true }),
+		pattern = "nvim-pack",
+		callback = function(ev)
+			-- Ghostty only clears the graphic with both d=a (delete placements)
+			-- and d=A (also free the data); routed via snacks for tmux passthrough.
+			pcall(function()
+				image().placement.clean()
+				image().terminal.request({ a = "d", d = "a" })
+				image().terminal.request({ a = "d", d = "A" })
+			end)
+			vim.api.nvim_exec_autocmds("User", { pattern = "SnacksDashboardUpdatePre", modeline = false })
+			pcall(vim.cmd.redraw)
+
+			vim.api.nvim_create_autocmd({ "BufWipeout", "BufDelete" }, {
+				buffer = ev.buf,
+				once = true,
+				callback = function()
+					vim.schedule(function()
+						if vim.bo[vim.api.nvim_get_current_buf()].filetype ~= "snacks_dashboard" then
+							return
+						end
+						-- d=A freed the data, so snacks' image cache is stale —
+						-- reset it (only here, not at hide) so the re-render
+						-- re-transmits the logo instead of placing an empty id.
+						pcall(function()
+							image().image.clear()
+						end)
+						vim.api.nvim_exec_autocmds("User", { pattern = "SnacksDashboardUpdate", modeline = false })
+					end)
+				end,
+			})
+		end,
+	})
+
 	-- Picker
 	vim.keymap.set("n", "<leader>ff", function()
 		Snacks.picker.files()
