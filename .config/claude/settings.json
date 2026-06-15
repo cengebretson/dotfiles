@@ -63,7 +63,16 @@
       "Bash(ls *)",
       "Bash(sed -n *)",
       "Bash(head *)",
-      "Bash(tail *)"
+      "Bash(tail *)",
+      "Bash(luac -p *)",
+      "Bash(glow *)",
+      "Bash(scc *)",
+      "Bash(delta *)",
+      "Bash(difft *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(comm *)",
+      "Bash(nvim --headless *)"
     ],
     "deny": [
       "Bash(git push --force *)",

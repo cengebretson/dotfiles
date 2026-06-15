@@ -117,3 +117,7 @@ These tools are installed and available. Prefer them over naive alternatives whe
 | `bat` | `cat` | Viewing files with syntax highlighting |
 | `eza` | `ls` | Directory listings with icons and git status |
 | `glow` | `cat` for markdown | Rendering markdown files in the terminal with syntax highlighting and layout |
+
+**Tool gotchas:**
+- `rg`: `-h` is `--help`, **not** "no filename" — `rg -oh PATTERN` silently dumps ripgrep's help instead of matches. Use `-I` / `--no-filename` (e.g. `rg -oI` or `rg --only-matching --no-filename`). If a command unexpectedly prints a tool's help text, you passed a bad flag — fix the flag before trusting the output.
+- Validate Lua before finishing (Neovim configs, etc.) with `luac -p <file>` — fast syntax check, no execution.
