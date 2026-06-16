@@ -94,6 +94,37 @@
           }
         ]
       }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt|idle_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/chris/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:claude:notification"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/chris/.config/tmux/plugins/tmux-attention/scripts/tmux-attention blocked # tmux-attention:claude:stop-failure"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/Users/chris/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:claude:user-prompt-submit"
+          }
+        ]
+      }
     ]
   },
   "statusLine": {
