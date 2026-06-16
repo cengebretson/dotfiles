@@ -13,6 +13,9 @@
 #   * the project web URL is derived from the "origin" remote
 #   * the test runner is resolved from GIT_RELEASE_TEST_CMD,
 #     `git config release.test-command`, tests/check.sh, then `make test`
+#   * an optional executable ./.release-sync hook is run with the new version
+#     after VERSION is bumped, to propagate it into other files (e.g. a source
+#     constant); whatever tracked files it changes are committed with the release
 set -euo pipefail
 
 die() { echo "git-release: $*" >&2; exit 1; }
@@ -85,6 +88,10 @@ is none. The test runner is resolved in order: GIT_RELEASE_TEST_CMD, then
 `git config release.test-command`, then tests/check.sh, then `make test`. The
 project URL is derived from origin. By default it releases only from the repo's
 default branch and warns if local is behind origin.
+
+If an executable ./.release-sync exists, it is run with the new version as its
+argument after VERSION is bumped (before the commit), so a repo can keep a
+version embedded elsewhere in sync; any tracked files it changes are committed.
 EOF
 }
 
@@ -267,7 +274,9 @@ restore_on_failure() {
     if [[ "${release_committed}" == true ]]; then
         git reset -q --hard "HEAD^" || true
     else
-        git checkout -q -- VERSION CHANGELOG.md 2>/dev/null || true
+        # The tree was clean before we started, so restoring all tracked files
+        # also reverts anything the after-bump hook touched.
+        git checkout -q -- . 2>/dev/null || true
     fi
     [[ "${version_existed}" == true ]] || rm -f VERSION
     [[ "${changelog_existed}" == true ]] || rm -f CHANGELOG.md
@@ -323,8 +332,20 @@ EOF
     } > CHANGELOG.md
 fi
 
+# Optional after-bump hook: lets a repo propagate the new version into files
+# other than VERSION (e.g. a source-embedded version constant). Runs from the
+# repo root with the new version as $1, after VERSION/CHANGELOG are written and
+# before the commit. Whatever tracked files it changes are staged below.
+if [[ -x ./.release-sync ]]; then
+    echo "Running after-bump hook: .release-sync ${version}"
+    ./.release-sync "${version}"
+fi
+
 git add -- VERSION
 if [[ -f CHANGELOG.md ]]; then git add -- CHANGELOG.md; fi
+# Stage any tracked files the after-bump hook modified (the tree was clean to
+# start, so this only picks up release changes).
+git add -u
 git commit -m "Release ${tag}"
 release_committed=true
 git tag -a "${tag}" -m "${tag}"
