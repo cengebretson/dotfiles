@@ -11,3 +11,6 @@ prefix_rule(pattern=["git", "add", "--", "CHANGELOG.md", "CLAUDE.md", "README.md
 prefix_rule(pattern=["/Users/chris/.local/bin/git-release"], decision="allow")
 prefix_rule(pattern=["/bin/zsh", "-lc", "node -e \"const fs=require('fs'); const p='/Users/chris/.claude/settings.json'; const data=JSON.parse(fs.readFileSync(p,'utf8')); data.hooks ||= {}; data.hooks.SessionStart = [{ hooks: [{ type: 'command', command: '\\\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\\\" >/dev/null 2>&1' }] }]; fs.writeFileSync(p, JSON.stringify(data,null,2)+'\\n');\""], decision="allow")
 prefix_rule(pattern=["node", "-e", "const fs=require(\"fs\"); const p=\"/Users/chris/.claude/settings.json\"; const data=JSON.parse(fs.readFileSync(p,\"utf8\")); data.hooks ||= {}; data.hooks.SessionStart = [{ hooks: [{ type: \"command\", command: \"\\\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\\\" >/dev/null 2>&1\" }] }]; fs.writeFileSync(p, JSON.stringify(data,null,2)+\"\\n\");"], decision="allow")
+prefix_rule(pattern=["tests/check.sh"], decision="allow")
+prefix_rule(pattern=["git", "add", "--", "CHANGELOG.md", "README.md", "scripts/clear-after-delay", "scripts/tmux-attention", "tests/check.sh"], decision="allow")
+prefix_rule(pattern=["git", "push", "origin"], decision="allow")
