@@ -85,16 +85,6 @@
   },
   "model": "opus",
   "hooks": {
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\""
-          }
-        ]
-      }
-    ],
     "Notification": [
       {
         "matcher": "permission_prompt|idle_prompt",
@@ -122,6 +112,16 @@
           {
             "type": "command",
             "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:claude:user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\" >/dev/null 2>&1"
           }
         ]
       }
