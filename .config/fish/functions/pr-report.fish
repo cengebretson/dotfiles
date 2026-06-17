@@ -12,7 +12,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         echo "    pr-report [--slack | --json] [FILTER...]"
         echo
         set_color --bold white; echo "OPTIONS"; set_color normal
-        echo "    -s, --slack   Plain text for pasting into Slack (raw URLs auto-link, *bold* renders)."
+        echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
@@ -248,24 +248,12 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8])
             continue
         else if test "$mode" = slack
-            # Status pieces, only the noteworthy ones, joined with " · ".
-            set -l bits $review_text
-            if test -n "$jira_key"
-                if test -n "$jira_status"
-                    set -a bits "$jira_key $jira_status"
-                else
-                    set -a bits "$jira_key"
-                end
-            end
-            if test "$ci_fail" -gt 0 2>/dev/null
-                set -a bits "CI ✗$ci_fail"
-            else if test "$ci_pend" -gt 0 2>/dev/null
-                set -a bits "CI ●$ci_pend"
-            end
-            if test "$count" -gt 0 2>/dev/null
-                set -a bits "$count Copilot"
-            end
-            set -a slack_lines "• *$pr_title* — $pr_url — "(string join " · " $bits)
+            # Lean entry: title, then link + GitHub review status, then labels (if
+            # any) on their own line. Plain text — Slack does not render *bold* on
+            # paste. Blank line between entries for readability.
+            test (count $slack_lines) -gt 0; and set -a slack_lines ""
+            set -a slack_lines "• $pr_title" "   $pr_url — $review_text"
+            test -n "$parts[8]"; and set -a slack_lines "   🏷️ "(string join " · " $pr_labels)
             continue
         end
 
@@ -389,7 +377,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             })'
         return 0
     else if test "$mode" = slack
-        echo "*PRs needing review — $repo*  ($found need attention, $clean clean)"
+        echo "📋 PRs for review — $repo"
+        echo ""
         printf '%s\n' $slack_lines
         return 0
     end
