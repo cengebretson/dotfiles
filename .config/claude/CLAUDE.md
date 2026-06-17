@@ -1,5 +1,13 @@
 # Global Claude Instructions
 
+## Autonomy and Confirmation
+
+Default to acting, not asking. When the next step is clear from the request, the code, or sensible defaults, do it and report what you did afterward, instead of asking "want me to...?" first. This applies across all projects.
+
+- Proceed without pre-confirmation on: implementation work, rebases and conflict resolution, commits, pushes (including `--force-with-lease`), branch creation, replying to and resolving PR review threads, requesting reviews, opening or transitioning tickets, running quality gates, and opening local files or URLs.
+- Still stop and ask only when the action is genuinely irreversible or ambiguous: a force-push that could clobber someone else's commits, deletes of tracked work, history rewrites on shared base branches, anything touching `stgcore-app-ulp`, or a decision where reasonable choices diverge and the wrong one is costly to undo.
+- Batch independent confirmations into one question rather than asking serially. Prefer reporting outcomes over narrating intentions.
+
 ## STOP — MCP-First Rule (read before every tool call)
 
 **Never use `gh`, `curl`, or any CLI/API equivalent when an MCP tool exists for the operation.** Check for an MCP tool first, every time, no exceptions.
