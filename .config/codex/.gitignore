@@ -8,9 +8,34 @@ history.jsonl
 log/
 logs/
 tmp/
+.tmp/
 cache/
+context-mode/
+plugins/cache/
+plugins/.marketplace-plugin-source-staging/
+shell_snapshots/
 version.json
 *.log
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal
+*.db
+*.db-shm
+*.db-wal
 
-# Note: config.toml and AGENTS.md are intentionally trackable.
-# Keep secrets out of config.toml — use env vars, never hardcoded keys.
+# Machine-local Codex state
+config.toml
+installation_id
+.personality_migration
+models_cache.json
+hooks.json.bak.*
+goals_*
+logs_*
+memories_*
+state_*
+
+# Installed system skills are managed by Codex, not personal dotfiles
+skills/.system/
+
+# Note: AGENTS.md and config.shared.toml are intentionally trackable.
+# Keep secrets out of shared config — use env vars, never hardcoded keys.

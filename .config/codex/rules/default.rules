@@ -1,0 +1,8 @@
+prefix_rule(pattern=["cp"], decision="allow")
+prefix_rule(pattern=["ssh-add", "-l"], decision="allow")
+prefix_rule(pattern=["codex", "plugin", "add"], decision="allow")
+prefix_rule(pattern=["node", "/Users/chris/.codex/plugins/cache/context-mode/context-mode/1.0.162/cli.bundle.mjs"], decision="allow")
+prefix_rule(pattern=["node", "/Users/chris/.config/codex/skills/.system/openai-docs/scripts/fetch-codex-manual.mjs"], decision="allow")
+prefix_rule(pattern=["git", "--git-dir=/Users/chris/.dotfiles", "--work-tree=/Users/chris"], decision="allow")
+prefix_rule(pattern=["git", "-C", "/Users/chris", "--git-dir=/Users/chris/.dotfiles", "--work-tree=/Users/chris", "add", "--", ".config/codex/.gitignore", ".config/codex/AGENTS.md", ".config/codex/hooks.json", ".config/codex/rules/default.rules", ".config/codex/skills/health-check/SKILL.md", ".config/codex/skills/health-check/agents/openai.yaml"], decision="allow")
+prefix_rule(pattern=["git", "-C", "/Users/chris", "--git-dir=/Users/chris/.dotfiles", "--work-tree=/Users/chris", "add", "--"], decision="allow")

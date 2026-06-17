@@ -1,0 +1,4 @@
+interface:
+  display_name: "Health Check"
+  short_description: "Check session integrations and SSH status"
+  default_prompt: "Use $health-check to check this Codex session before starting work."
