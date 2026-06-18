@@ -248,11 +248,13 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8])
             continue
         else if test "$mode" = slack
-            # Lean entry: title, then link + GitHub review status, then labels (if
-            # any) on their own line. Plain text — Slack does not render *bold* on
-            # paste. Blank line between entries for readability.
+            # Lean entry: status marker + title, then link + GitHub review status,
+            # then labels (if any). Plain text — Slack does not render *bold* on
+            # paste. Marker mirrors pretty mode: ✅ all good, 🟡 needs attention.
+            set -l marker ✅
+            test $needs -eq 1; and set marker 🟡
             test (count $slack_lines) -gt 0; and set -a slack_lines ""
-            set -a slack_lines "• $pr_title" "   $pr_url — $review_text"
+            set -a slack_lines "$marker $pr_title" "   $pr_url — $review_text"
             test -n "$parts[8]"; and set -a slack_lines "   🏷️ "(string join " · " $pr_labels)
             continue
         end
