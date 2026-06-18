@@ -258,12 +258,20 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         end
 
         # --- pretty (default) terminal rendering ---
+        set -l num_color
         if test $needs -eq 1
             set_color yellow; printf "  ●"; set_color normal
-            set_color --bold white; printf " #$pr_num"; set_color normal
+            set num_color white
         else
             set_color green; printf "  ✓"; set_color normal
-            set_color --bold $dim; printf " #$pr_num"; set_color normal
+            set num_color $dim
+        end
+        # PR number is a click-to-open OSC 8 hyperlink to the PR on GitHub.
+        set_color --bold $num_color
+        if test -n "$pr_url"
+            printf ' \e]8;;%s\a#%s\e]8;;\a' $pr_url $pr_num
+        else
+            printf ' #%s' $pr_num
         end
         set_color normal; echo "  $pr_title"
 
