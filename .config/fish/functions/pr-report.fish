@@ -20,21 +20,30 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold white; echo "FILTER"; set_color normal
         echo "    Any extra words are matched case-insensitively as a substring against each PR's"
         echo "    title + branch + labels. Works in any mode and in any position."
+        echo "    Prefix with '!' to negate — list everything that does NOT match."
         echo
         set_color --bold white; echo "EXAMPLES"; set_color normal
         echo "    pr-report                          # full report, current repo"
         echo "    pr-report login                    # only PRs matching \"login\""
+        echo "    pr-report '!review'                # everything NOT matching \"review\""
         echo "    pr-report --slack \"Ready for Review\"   # paste-ready list of that label"
         echo "    pr-report --json | jq '.[].url'    # just the PR URLs"
         echo
         set_color --bold white; echo "NOTES"; set_color normal
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
-        echo "    • Jira status/links are optional — they appear only when jira-cli is configured"
-        echo "      (run 'jira init'). The Jira segment is a click-to-open link in supporting terminals."
+        echo "    • Jira status/links are optional — they appear only when acli is authenticated"
+        echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
         return 0
     end
 
+    # Filter matches title + branch + labels. A leading '!' negates it (exclude
+    # matches), e.g. `pr-report '!review'` lists everything NOT matching "review".
     set -l filter (string lower -- "$argv")
+    set -l filter_negate 0
+    if string match -q '!*' -- "$filter"
+        set filter_negate 1
+        set filter (string trim -- (string sub -s 2 -- "$filter"))
+    end
     set -l mode pretty
     set -q _flag_json; and set mode json
     set -q _flag_slack; and set mode slack
@@ -55,24 +64,20 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         return 1
     end
 
-    # Jira is optional: only enrich rows when jira-cli is installed AND actually
-    # hooked up. `jira me` exits 0 even with no token (warning goes to stderr), so
-    # gate on non-empty stdout — that only appears when auth resolves. One network
-    # probe per run; skip entirely when it fails.
+    # Jira is optional: only enrich rows when acli is installed AND authenticated.
+    # `acli jira auth status` exits 0 only when a Jira site is authenticated.
     set -l jira_ok 0
-    if command -q jira
-        set -l jira_user (jira me 2>/dev/null)
-        test -n "$jira_user"; and set jira_ok 1
+    if command -q acli; and acli jira auth status >/dev/null 2>&1
+        set jira_ok 1
     end
 
-    # Jira base URL for click-to-open links — read from jira-cli config (present
-    # whenever `jira init` has run, even if the token later fails). Trailing slash
-    # trimmed; left empty when unknown so the segment falls back to plain text.
+    # Jira base URL for click-to-open links — derived from the authenticated acli
+    # site (e.g. "Site: venturesgo.atlassian.net"). Left empty when unknown so the
+    # segment falls back to plain text.
     set -l jira_server ""
-    if test -f "$HOME/.config/.jira/.config.yml"
-        set jira_server (yq '.server' "$HOME/.config/.jira/.config.yml" 2>/dev/null | string trim)
-        test "$jira_server" = null; and set jira_server ""
-        set jira_server (string replace -r '/$' '' -- "$jira_server")
+    if test $jira_ok -eq 1
+        set -l site (acli jira auth status 2>/dev/null | string match -rg 'Site:\s*(\S+)')
+        test -n "$site"; and set jira_server "https://$site"
     end
 
     # Decorative header is for humans only — keep it out of json/slack payloads.
@@ -80,10 +85,14 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold cyan; echo "󰊤  PR Report"; set_color normal
         set_color $dim; echo "   $repo · @$me"; set_color normal
         if test -n "$filter"
-            set_color $dim; echo "   filter: \"$filter\""; set_color normal
+            if test $filter_negate -eq 1
+                set_color $dim; echo "   filter: not \"$filter\""; set_color normal
+            else
+                set_color $dim; echo "   filter: \"$filter\""; set_color normal
+            end
         end
         if test $jira_ok -eq 0
-            set_color $dim; echo "   jira: not configured — run 'jira init' to add issue status"; set_color normal
+            set_color $dim; echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"; set_color normal
         end
         echo ""
     end
@@ -149,8 +158,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     end
     set pr_lines $attn_lines $rest_lines
 
-    # Batch every branch's Jira key into ONE list query, then look statuses up in
-    # the render loop — instead of one `jira issue view` per PR. Parallel arrays
+    # Batch every branch's Jira key into ONE search query, then look statuses up in
+    # the render loop — instead of one acli view per PR. Parallel arrays
     # (jira_keys[i] -> jira_vals[i]) act as the lookup table.
     set -l jira_keys
     set -l jira_vals
@@ -161,20 +170,21 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             test -n "$k"; and set -a keys $k
         end
         if test (count $keys) -gt 0
-            set -l rows (jira issue list -q "key in ("(string join , $keys)")" --raw 2>/dev/null \
-                | jq -r '.issues[]? | [.key, (.fields.status.name // "")] | @tsv' 2>/dev/null)
+            set -l rows (acli jira workitem search --jql "key in ("(string join , $keys)")" \
+                --fields "key,status" --limit 100 --json 2>/dev/null \
+                | jq -r '.[]? | [.key, (.fields.status.name // "")] | @tsv' 2>/dev/null)
             for r in $rows
                 set -l p (string split \t $r)
                 set -a jira_keys $p[1]
                 set -a jira_vals $p[2]
             end
-            # Safety net: one nonexistent key makes Jira reject the whole
-            # `key in (...)` query. If the batch came back empty despite having
-            # keys, fall back to resilient per-key lookups so a single bad branch
-            # doesn't blank out every status.
+            # Safety net: one nonexistent key can make the JQL query fail. If the
+            # batch came back empty despite having keys, fall back to resilient
+            # per-key views so a single bad branch doesn't blank out every status.
             if test (count $jira_keys) -eq 0
                 for k in $keys
-                    set -l st (jira issue view $k --raw 2>/dev/null | jq -r '.fields.status.name // empty' 2>/dev/null)
+                    set -l st (acli jira workitem view $k --fields "key,status" --json 2>/dev/null \
+                        | jq -r '.fields.status.name // empty' 2>/dev/null)
                     set -a jira_keys $k
                     set -a jira_vals "$st" # quote: keep arrays aligned even when status is empty
                 end
@@ -202,9 +212,14 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set -l pr_url $parts[10]
 
         # Apply the filter before rendering (title + branch + labels).
+        # filter_negate flips it: skip the matches instead of the non-matches.
         if test -n "$filter"
-            if not string match -q -- "*$filter*" (string lower -- "$pr_title $pr_branch $parts[8]")
-                continue
+            set -l hit 0
+            string match -q -- "*$filter*" (string lower -- "$pr_title $pr_branch $parts[8]"); and set hit 1
+            if test $filter_negate -eq 1
+                test $hit -eq 1; and continue
+            else
+                test $hit -eq 0; and continue
             end
         end
 
@@ -304,6 +319,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
         if test -n "$jira_key"
             set_color $dim; printf "  ·  "; set_color normal
+            set_color 2684FF; printf '\U000f0e6f '; set_color normal # Atlassian-blue Jira clipboard glyph (nf-md-clipboard)
             set -l jira_text
             if test -n "$jira_status"
                 switch (string lower -- $jira_status)
