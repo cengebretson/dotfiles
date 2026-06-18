@@ -21,3 +21,4 @@ prefix_rule(pattern=["git", "-C", "/Users/chris/Desktop/projects/tmux/tmux-fzf-j
 prefix_rule(pattern=["git", "add", "--"], decision="allow")
 prefix_rule(pattern=["git", "commit", "-m"], decision="allow")
 prefix_rule(pattern=["make", "lint"], decision="allow")
+prefix_rule(pattern=["/bin/zsh", "-lc", "GIT_RELEASE_TEST_CMD='MISE_CACHE_DIR=/private/tmp/mise-cache GOCACHE=/private/tmp/go-build-cache go test ./...' /Users/chris/.local/bin/git-release patch --push"], decision="allow")
