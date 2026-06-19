@@ -52,6 +52,7 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 ## Git And Commits
 
 - Never run destructive git commands such as `git reset --hard` or `git checkout --` without explicit user authorization.
+- For non-interactive Git operations that may open an editor, use `core.editor=true` or `GIT_EDITOR=true` so rebases and commits do not block on an interactive editor.
 - Do not revert user changes unless the user explicitly asks.
 - Keep commits focused and authored solely by the user.
 - Never add AI attribution to commits, PR descriptions, or generated notes.
