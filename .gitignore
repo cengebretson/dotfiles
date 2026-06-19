@@ -2,3 +2,7 @@
 /.config/tmux/appearance.conf
 .config/tmux/appearance.conf
 .config/fish/fish_variables
+.config/git/config.local
+.config/fish/secrets.fish
+.config/claude/.claude.json
+.config/codex/config.toml
