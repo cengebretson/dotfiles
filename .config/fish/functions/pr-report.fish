@@ -1,7 +1,7 @@
 function pr-report --description "List your open PRs with Copilot threads, CI/review status, and Jira status"
     # Flags: --json (machine-readable) / --slack (paste-into-Slack). Remaining args
     # are an optional filter matched case-insensitively against title, branch, labels.
-    argparse h/help j/json s/slack -- $argv
+    argparse h/help j/json s/slack short -- $argv
     or return
 
     if set -q _flag_help
@@ -14,6 +14,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold white; echo "OPTIONS"; set_color normal
         echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
+        echo "        --short   One line per PR (marker + #number + title), no detail/labels."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
         echo
@@ -156,19 +157,23 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         return 0
     end
 
-    # Sort attention-first: PRs with open Copilot threads, failing CI, or changes
-    # requested float to the top; original order is preserved within each group.
+    # Group by status so like rows cluster: attention first (needs your action),
+    # then awaiting reviewer, then approved. Original order kept within each group.
+    # Fields: 4 review · 6 ci_fail · 9 copilot · 12 comments.
     set -l attn_lines
-    set -l rest_lines
+    set -l wait_lines
+    set -l appr_lines
     for line in $pr_lines
         set -l p (string split \t $line)
-        if test "$p[9]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
+        if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
             set -a attn_lines $line
+        else if test "$p[4]" = APPROVED
+            set -a appr_lines $line
         else
-            set -a rest_lines $line
+            set -a wait_lines $line
         end
     end
-    set pr_lines $attn_lines $rest_lines
+    set pr_lines $attn_lines $wait_lines $appr_lines
 
     # Batch every branch's Jira key into ONE search query, then look statuses up in
     # the render loop — instead of one acli view per PR. Parallel arrays
@@ -324,6 +329,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             printf ' #%s' $pr_num
         end
         set_color normal; echo "  $pr_title"
+        set -q _flag_short; and continue # --short: marker + #num + title only
 
         # Detail line — only segments that carry signal, joined by a dim " · ".
         # $pre holds the separator: empty before the first printed segment, then
