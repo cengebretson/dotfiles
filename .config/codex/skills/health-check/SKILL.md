@@ -1,74 +1,93 @@
 ---
 name: health-check
-description: Run a session health check across critical Codex integrations and local SSH status. Use when the user invokes $health-check, asks for /health-check, or asks for a health check, session check, startup check, or integration check before work begins.
+description: Run a fast, pretty startup health check at the start of a Codex session or when the user asks for "health check", "$health-check", "startup check", "check tools", or "verify environment". Covers repository state, GitHub CLI auth, Jira/Atlassian MCP auth, context-mode, GitHub MCP/app auth, SSH agent, Docker, and core local tools.
 ---
 
 # Health Check
 
-Run a compact session health check and report one status line per service. Use available MCP/app/plugin tools when present; skip optional integrations that are not available instead of treating them as failures.
+Run this at the start of a new session before substantive work, or whenever the
+user asks for a health check. Default to the fast path. The fast path still performs lightweight plugin discovery for context-mode, Jira/Atlassian, and GitHub MCP/app surfaces before reporting them unavailable. Use the deep path only
+when the user asks for "deep", "full", "debug", or when a fast check fails and the extra detail changes the next action.
 
-## Checks
+## Fast Path
 
-### GitHub
+Run these checks, parallelizing independent shell commands when possible:
 
-Check whether a GitHub MCP/app/plugin tool is available.
+- Repo: `git rev-parse --show-toplevel`, `git status --short --branch`, and `git log -1 --format=%h%x09%D%x09%s`.
+- Core tools: `command -v rg git make docker gh ssh-add`.
+- context-mode: if `ctx_doctor` is not already available, call `tool_search` for context-mode tools, then run `ctx_doctor` when discovered.
+- Jira/Atlassian MCP: if no Atlassian tool is already available, call `tool_search` for Atlassian/Jira tools, then run a minimal current-user probe when discovered.
+- GitHub CLI auth: `gh auth status`.
+- GitHub MCP/app: if no GitHub MCP/app tool is already available, call `tool_search` for GitHub tools, then run a minimal authenticated-user probe when discovered.
+- SSH agent: `ssh-add -l`.
+- Docker: `docker version --format '{{.Client.Version}} client / {{.Server.Version}} server'`.
 
-- Use tool discovery when available to look for GitHub account/profile tools such as `get_me`, `viewer`, or user-info equivalents.
-- If a suitable tool exists, call it and report the authenticated username on success.
-- If no GitHub tool exists in the current session, report skipped, not failed.
-- Do not use `gh` as a fallback unless the user explicitly asks for a CLI-based check.
+## Deep Path
 
-### Jira / Atlassian
+For a deep/full/debug health check, also run:
 
-This check is optional.
+- Additional capability discovery for task-specific MCPs requested by the user or implied by the work, such as Slack, Datadog, or Sentry.
+- Expanded MCP diagnostics only when a fast-path probe fails or returns an ambiguous authentication/authorization error.
+- Full `docker version` only when the terse Docker probe fails or the user asks
+  for Docker detail.
 
-- Use tool discovery when available to look for Atlassian/Jira user-info tools.
-- If a suitable tool exists, call it and report the authenticated email or username on success.
-- If no Atlassian/Jira tool exists, report skipped, not failed.
+## Sandbox-Sensitive Checks
 
-### context-mode
+`gh auth status`, `ssh-add -l`, and Docker daemon checks may fail inside the
+Codex sandbox even when the host shell is healthy. If any fail with permission,
+keychain, socket, or token-looking errors, rerun the same check with escalated
+permissions before reporting a failure.
 
-Check whether context-mode is available.
+The approved global commands are expected to include:
 
-- Use tool discovery when available to look for context-mode tools such as `ctx_stats`.
-- If available, call the stats tool and report the version plus any upgrade notice.
-- If unavailable, check installed Codex plugins with `codex plugin list` when appropriate and report not installed/skipped if absent.
+- `gh auth status`
+- `ssh-add -l`
+- `docker version`
+- `docker version --format '{{.Client.Version}} client / {{.Server.Version}} server'`
 
-### SSH Agent
+If escalation is unavailable or denied, report the check as `⚠️ Sandbox-limited`,
+not broken.
 
-Run:
+## Output Style
 
-```bash
-ssh-add -l
+Return a compact, pretty checklist. Use these status markers:
+
+- `✅` healthy
+- `❌` confirmed broken outside the sandbox
+- `⚠️` unavailable, degraded, or sandbox-limited
+
+Use this shape:
+
+```markdown
+**Health Check**
+✅ Repo: clean on `branch-name`, last commit `abc1234`
+✅ Core tools: `rg`, `git`, `make`, `docker`, `gh`, `ssh-add`
+✅ context-mode: healthy, vX.Y.Z
+✅ Jira MCP: authenticated as Name
+✅ GitHub CLI: authenticated as user
+✅ SSH agent: 1 key loaded
+✅ Docker: client and daemon reachable
+
+No blockers.
 ```
 
-Interpretation:
+When there are problems, keep them concrete:
 
-- Keys listed: pass; show key count.
-- "The agent has no identities": fail; suggest `ssh-add --apple-use-keychain`.
-- Agent not running: fail; suggest starting the agent, for Fish usually `eval (ssh-agent -c)`.
+```markdown
+**Health Check**
+✅ Repo: clean on `feature/foo`
+✅ GitHub CLI: authenticated as `cengebretson`
+❌ Docker: daemon unreachable outside sandbox, OrbStack socket missing
 
-## Output
-
-Report only real health-check results. Do not include examples, raw tool output, verbose diagnostics, or explanatory summaries unless the user explicitly asks for details.
-
-Report one service per line. No heading, no summary, no table borders.
-
-Use compact status icons:
-
-- `✅` for passing checks
-- `⏭️` for skipped optional integrations
-- `❌` for failing checks
-
-Use these forms:
-
-```text
-✅ GitHub MCP · username
-✅ Jira MCP · you@example.com
-✅ context-mode · v1.0.162
-✅ SSH · 1 key
-⏭️ Jira MCP · not installed
-❌ SSH · run: ssh-add --apple-use-keychain
+**Blockers**
+❌ Docker-backed tests will fail until OrbStack/Docker is running.
 ```
 
-If a service fails, include the action item on the same line after `run:` or `fix:`.
+## Reporting Rules
+
+- Keep the final report short enough to scan.
+- Redact all token values, secrets, credentials, private keys, URLs with embedded credentials, and env var values.
+- Distinguish confirmed host failures from sandbox false negatives.
+- Mention unrelated dirty work only as repo status, never alter or revert it.
+- Do not report context-mode, Jira/Atlassian MCP, or GitHub MCP/app as skipped merely because tools were lazy-loaded; discover them first.
+- If a check is not applicable in the current task after discovery, report it as `⚠️ Not loaded` or omit it if the user asked for a narrower check.

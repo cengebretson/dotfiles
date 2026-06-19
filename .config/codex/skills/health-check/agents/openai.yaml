@@ -1,4 +1,7 @@
 interface:
   display_name: "Health Check"
-  short_description: "Check session integrations and SSH status"
-  default_prompt: "Use $health-check to check this Codex session before starting work."
+  short_description: "Pretty startup environment checklist"
+  default_prompt: "Use $health-check to verify this session's repository, tools, MCP connectors, GitHub auth, Docker, and SSH agent status."
+
+policy:
+  allow_implicit_invocation: true
