@@ -45,6 +45,7 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
   - `~/.config/fish/secrets.fish`
   - `~/.config/claude/.claude.json`
 - For Codex settings, keep `~/.config/codex/config.toml` untracked because it contains machine-local trust state, absolute paths, and hook hashes. Use `~/.config/codex/config.shared.toml` as the tracked reference for portable settings, and ask before copying any shared setting into the live `config.toml`.
+- The dotfiles setup script makes `~/.codex` a symlink to `~/.config/codex`; treat those paths as the same Codex home. Prefer editing the canonical `~/.config/codex/...` path, and do not make separate divergent changes under `~/.codex/...`.
 - If changing Fish config, validate changed Fish files with `fish -n` before finishing.
 - Fisher-generated files under `functions/`, `conf.d/`, or `completions/` should not be committed unless they are intentional custom dotfiles.
 

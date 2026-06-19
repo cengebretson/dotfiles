@@ -12,7 +12,3 @@ status_line_use_colors = true
 
 [plugins."context-mode@context-mode"]
 enabled = true
-
-[mcp_servers.github]
-url = "https://api.githubcopilot.com/mcp/"
-bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"
