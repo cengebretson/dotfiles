@@ -80,7 +80,16 @@
       "Bash(git rev-list*)",
       "Bash(git merge-base*)",
       "Bash(git merge-tree*)",
-      "Bash(python3 scripts/agent-sync.py*)"
+      "Bash(python3 scripts/agent-sync.py*)",
+      "Bash(npm *)",
+      "Bash(npx *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(uv *)",
+      "Bash(python3 *)",
+      "Bash(prettier *)",
+      "Bash(stylua *)",
+      "Bash(mise *)"
     ],
     "deny": [
       "Bash(git push --force *)",
