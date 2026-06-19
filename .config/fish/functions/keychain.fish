@@ -4,6 +4,9 @@ function keychain --description 'Inspect macOS Keychain entries and export secre
 
     if test (count $argv) -gt 0
         switch $argv[1]
+            case -h --help help
+                _keychain_help
+                return 0
             case list ls show
                 set command list
                 set -e argv[1]
@@ -12,6 +15,9 @@ function keychain --description 'Inspect macOS Keychain entries and export secre
                 set -e argv[1]
             case add store
                 set command add
+                set -e argv[1]
+            case delete rm remove
+                set command delete
                 set -e argv[1]
         end
     end
@@ -23,7 +29,27 @@ function keychain --description 'Inspect macOS Keychain entries and export secre
             _keychain_env $argv
         case add
             _keychain_add $argv
+        case delete
+            _keychain_delete $argv
     end
+end
+
+function _keychain_help
+    echo "Usage:"
+    echo "  keychain [list] <host> [--show-passwords]"
+    echo "  keychain setenv <env-var> <host> <account> [path]"
+    echo "  keychain add <host> <account> [path]"
+    echo "  keychain delete <host> <account> [path]"
+    echo ""
+    echo "Commands:"
+    echo "  list      List matching internet-password entries for a host"
+    echo "  setenv    Export a stored secret into the current Fish session"
+    echo "  add       Store a token in the macOS login keychain"
+    echo "  delete    Delete a matching keychain entry"
+    echo ""
+    echo "Options:"
+    echo "  -h, --help        Show this help"
+    echo "  --show-passwords  Include retrieved passwords in list output"
 end
 
 function _keychain_list
@@ -184,6 +210,39 @@ function _keychain_add
         end
     else
         echo "Failed to store credential."
+        return 1
+    end
+end
+
+function _keychain_delete
+    if test (count $argv) -lt 2
+        echo "Usage:"
+        echo "  keychain delete <host> <account> [path]"
+        return 1
+    end
+
+    set -l host $argv[1]
+    set -l acct $argv[2]
+    set -l path ""
+
+    if test (count $argv) -ge 3
+        set path $argv[3]
+    end
+
+    if test -n "$path"
+        security delete-internet-password -s $host -a "$acct" -p "$path"
+    else
+        security delete-internet-password -s $host -a "$acct"
+    end
+
+    if test $status -eq 0
+        if test -n "$path"
+            echo "Deleted: $acct @ $host / $path"
+        else
+            echo "Deleted: $acct @ $host"
+        end
+    else
+        echo "Failed to delete credential."
         return 1
     end
 end
