@@ -18,31 +18,41 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         echo "    (no flag)     Pretty terminal report — the default."
         echo
         set_color --bold white; echo "FILTER"; set_color normal
-        echo "    Any extra words are matched case-insensitively as a substring against each PR's"
-        echo "    title + branch + labels. Works in any mode and in any position."
-        echo "    Prefix with '!' to negate — list everything that does NOT match."
+        echo "    Space-separated terms, matched case-insensitively against each PR's"
+        echo "    title + branch + labels + review status (approved / review required /"
+        echo "    changes requested) + state (attention / waiting / approved)."
+        echo "    Every term must match (AND); prefix a term with '!' to exclude it."
+        echo "    Works in any mode and any position."
         echo
         set_color --bold white; echo "EXAMPLES"; set_color normal
-        echo "    pr-report                          # full report, current repo"
-        echo "    pr-report login                    # only PRs matching \"login\""
-        echo "    pr-report '!review'                # everything NOT matching \"review\""
-        echo "    pr-report --slack \"Ready for Review\"   # paste-ready list of that label"
-        echo "    pr-report --json | jq '.[].url'    # just the PR URLs"
+        echo "    pr-report                              # full report, current repo"
+        echo "    pr-report login                        # only PRs matching \"login\""
+        echo "    pr-report '!approved'                  # everything not yet approved"
+        echo "    pr-report 'ready for review !approved' # that label, but not approved"
+        echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
         set_color --bold white; echo "NOTES"; set_color normal
+        printf '    • Marker: ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (🟡/🔵/✅ in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
         return 0
     end
 
-    # Filter matches title + branch + labels. A leading '!' negates it (exclude
-    # matches), e.g. `pr-report '!review'` lists everything NOT matching "review".
+    # Filter matches title + branch + labels + GitHub review status. Split into
+    # space-separated terms: each must match (AND); a term prefixed with '!'
+    # excludes. e.g. `pr-report 'ready for review !approved'` = has those words
+    # AND is not approved. `pr-report '!wip'` = everything not matching "wip".
     set -l filter (string lower -- "$argv")
-    set -l filter_negate 0
-    if string match -q '!*' -- "$filter"
-        set filter_negate 1
-        set filter (string trim -- (string sub -s 2 -- "$filter"))
+    set -l filter_inc
+    set -l filter_exc
+    for term in (string split ' ' -- $filter)
+        test -z "$term"; and continue
+        if string match -q '!*' -- "$term"
+            set -a filter_exc (string sub -s 2 -- "$term")
+        else
+            set -a filter_inc $term
+        end
     end
     set -l mode pretty
     set -q _flag_json; and set mode json
@@ -85,11 +95,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold cyan; echo "󰊤  PR Report"; set_color normal
         set_color $dim; echo "   $repo · @$me"; set_color normal
         if test -n "$filter"
-            if test $filter_negate -eq 1
-                set_color $dim; echo "   filter: not \"$filter\""; set_color normal
-            else
-                set_color $dim; echo "   filter: \"$filter\""; set_color normal
-            end
+            set_color $dim; echo "   filter: \"$filter\""; set_color normal
         end
         if test $jira_ok -eq 0
             set_color $dim; echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"; set_color normal
@@ -101,9 +107,11 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # decision, CI check rollup, labels, AND unresolved Copilot thread count. jq
     # reduces each PR to a TSV row so there are no per-PR calls. Field order:
     # 1 number  2 title  3 branch  4 reviewDecision  5 ci_pass  6 ci_fail
-    # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url
+    # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count
+    # copilot_count = unresolved threads with a Copilot comment; comment_count =
+    # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
-        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
+        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -118,14 +126,18 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
               end;
             .data.search.nodes[] | select(.number) |
             ([ (.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // [])[] | cls ]) as $c |
-            ([ .reviewThreads.nodes[] | select(.isResolved==false and any(.comments.nodes[]; .author!=null and (.author.login|ascii_downcase|contains("copilot")))) ] | length) as $cop |
+            ([ .reviewThreads.nodes[] | select(.isResolved==false) ]) as $open |
+            ([ $open[] | select(any(.comments.nodes[]; .author!=null and (.author.login|ascii_downcase|contains("copilot")))) ] | length) as $cop |
+            (($open | length) - $cop) as $hum |
             [ (.number|tostring), .title, .headRefName, (.reviewDecision // ""),
               ([$c[]|select(.=="pass")]|length|tostring),
               ([$c[]|select(.=="fail")]|length|tostring),
               ([$c[]|select(.=="pending")]|length|tostring),
               ([.labels.nodes[]?.name] | join(",")),
               ($cop|tostring),
-              .url
+              .url,
+              (((now - (.updatedAt | fromdateiso8601)) / 86400) | floor | tostring),
+              ($hum|tostring)
             ] | @tsv' 2>/dev/null)
     if test $status -ne 0
         set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
@@ -210,21 +222,56 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set -l count $parts[9]
         test -n "$count"; or set count 0
         set -l pr_url $parts[10]
+        set -l idle_days $parts[11]
+        test -n "$idle_days"; or set idle_days 0
+        set -l comments $parts[12]
+        test -n "$comments"; or set comments 0
 
-        # Apply the filter before rendering (title + branch + labels).
-        # filter_negate flips it: skip the matches instead of the non-matches.
-        if test -n "$filter"
-            set -l hit 0
-            string match -q -- "*$filter*" (string lower -- "$pr_title $pr_branch $parts[8]"); and set hit 1
-            if test $filter_negate -eq 1
-                test $hit -eq 1; and continue
-            else
-                test $hit -eq 0; and continue
-            end
+        # PR state drives the marker (computed before the filter so the filter can
+        # match it):
+        #   attention — needs YOUR action: open Copilot OR reviewer threads, failing CI, or changes requested
+        #   approved  — clean and a reviewer approved
+        #   waiting   — clean but still awaiting a reviewer (review required / no decision yet)
+        set -l pr_state waiting
+        if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
+            set pr_state attention
+        else if test "$review" = APPROVED
+            set pr_state approved
         end
 
-        # Jira key from the branch name (e.g. feature/FLYWL-1234-foo -> FLYWL-1234),
-        # looked up in the batch table built above.
+        # Review label + colour, reused by pretty/slack and searchable by the filter.
+        set -l review_text
+        set -l review_color
+        switch $review
+            case APPROVED; set review_text approved; set review_color green
+            case CHANGES_REQUESTED; set review_text "changes requested"; set review_color red
+            case '*'; set review_text "review required"; set review_color yellow
+        end
+
+        # Filter: every include term must match and no exclude term may match,
+        # against title + branch + labels + review status + state word.
+        if test -n "$filter"
+            set -l haystack (string lower -- "$pr_title $pr_branch $parts[8] $review_text $pr_state")
+            set -l skip 0
+            for term in $filter_inc
+                string match -q -- "*$term*" $haystack; or set skip 1
+            end
+            for term in $filter_exc
+                string match -q -- "*$term*" $haystack; and set skip 1
+            end
+            test $skip -eq 1; and continue
+        end
+
+        # Count toward the summary only once a PR has passed the filter.
+        set -l needs 0
+        test "$pr_state" = attention; and set needs 1
+        if test $needs -eq 1
+            set found (math $found + 1)
+        else
+            set clean (math $clean + 1)
+        end
+
+        # Jira key from the branch name, looked up in the batch table built above.
         set -l jira_key (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- $pr_branch)
         set -l jira_status ""
         if test -n "$jira_key"
@@ -236,38 +283,21 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             set jira_url "$jira_server/browse/$jira_key"
         end
 
-        # A PR needs attention if Copilot threads are open, CI is failing, or changes were requested.
-        set -l needs 0
-        if test "$count" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
-            set needs 1
-        end
-        if test $needs -eq 1
-            set found (math $found + 1)
-        else
-            set clean (math $clean + 1)
-        end
-
-        # Review label + colour, computed once and reused by pretty and slack modes.
-        set -l review_text
-        set -l review_color
-        switch $review
-            case APPROVED; set review_text approved; set review_color green
-            case CHANGES_REQUESTED; set review_text "changes requested"; set review_color red
-            case '*'; set review_text "review required"; set review_color yellow
-        end
-
         # --- non-pretty modes accumulate, then emit after the loop ---
         if test "$mode" = json
             # Tab-joined record; jq builds the object (values never contain tabs).
             set -a json_rows (string join \t $pr_num $pr_title $pr_url $pr_branch \
-                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8])
+                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments)
             continue
         else if test "$mode" = slack
             # Lean entry: status marker + title, then link + GitHub review status,
             # then labels (if any). Plain text — Slack does not render *bold* on
-            # paste. Marker mirrors pretty mode: ✅ all good, 🟡 needs attention.
-            set -l marker ✅
-            test $needs -eq 1; and set marker 🟡
+            # paste. Marker mirrors pretty: 🟡 attention, 🔵 awaiting reviewer, ✅ approved.
+            set -l marker 🔵
+            switch $pr_state
+                case attention; set marker 🟡
+                case approved; set marker ✅
+            end
             test (count $slack_lines) -gt 0; and set -a slack_lines ""
             set -a slack_lines "$marker $pr_title" "   $pr_url — $review_text"
             test -n "$parts[8]"; and set -a slack_lines "   🏷️ "(string join " · " $pr_labels)
@@ -275,13 +305,16 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         end
 
         # --- pretty (default) terminal rendering ---
-        set -l num_color
-        if test $needs -eq 1
-            set_color yellow; printf "  ●"; set_color normal
-            set num_color white
-        else
-            set_color green; printf "  ✓"; set_color normal
-            set num_color $dim
+        # Marker: ● yellow = needs action, ○ blue = awaiting reviewer, ✓ green = approved.
+        set -l num_color $dim
+        switch $pr_state
+            case attention
+                set_color yellow; printf "  ●"; set_color normal
+                set num_color white
+            case approved
+                set_color green; printf "  ✓"; set_color normal
+            case '*' # waiting on a reviewer
+                set_color blue; printf '  \U000f0349'; set_color normal # nf-md-magnify
         end
         # PR number is a click-to-open OSC 8 hyperlink to the PR on GitHub.
         set_color --bold $num_color
@@ -292,15 +325,25 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         end
         set_color normal; echo "  $pr_title"
 
-        # Detail line: copilot · ci · review · jira
+        # Detail line — only segments that carry signal, joined by a dim " · ".
+        # $pre holds the separator: empty before the first printed segment, then
+        # "  ·  " thereafter, so optional segments never leave a dangling dot.
         printf "     "
+        set -l pre ""
+
+        # Unresolved threads — shown only when present (keeps clean PRs short).
         if test "$count" -gt 0 2>/dev/null
-            set_color red; printf "copilot %s unresolved" $count; set_color normal
-        else
-            set_color $dim; printf "copilot clean"; set_color normal
+            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+            set_color red; printf "%s copilot" $count; set_color normal
+        end
+        if test "$comments" -gt 0 2>/dev/null
+            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+            set -l noun comments; test "$comments" -eq 1; and set noun comment
+            set_color red; printf "%s %s" $comments $noun; set_color normal
         end
 
-        set_color $dim; printf "  ·  "; set_color normal
+        # CI rollup (always).
+        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
         if test (math $ci_pass + $ci_fail + $ci_pend) -eq 0
             set_color $dim; printf "ci none"; set_color normal
         else
@@ -314,12 +357,14 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             end
         end
 
-        set_color $dim; printf "  ·  "; set_color normal
+        # Review decision (always).
+        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
         set_color $review_color; printf "%s" $review_text; set_color normal
 
+        # Jira (when the branch carries a key).
         if test -n "$jira_key"
-            set_color $dim; printf "  ·  "; set_color normal
-            set_color 2684FF; printf '\U000f0e6f '; set_color normal # Atlassian-blue Jira clipboard glyph (nf-md-clipboard)
+            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+            set_color 2684FF; printf '\U000f0e6f '; set_color normal # Atlassian-blue Jira clipboard glyph
             set -l jira_text
             if test -n "$jira_status"
                 switch (string lower -- $jira_status)
@@ -335,8 +380,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 set_color $dim
                 set jira_text "$jira_key ?"
             end
-            # Click-to-open via an OSC 8 hyperlink when the Jira base URL is known
-            # (Ghostty, iTerm2, etc. support it; other terminals show plain text).
+            # Click-to-open via an OSC 8 hyperlink when the Jira base URL is known.
             if test -n "$jira_url"
                 printf '\e]8;;%s\a%s\e]8;;\a' $jira_url $jira_text
             else
@@ -344,6 +388,22 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             end
             set_color normal
         end
+
+        # Idle since last activity — escalating colour when stale (always).
+        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+        if test "$idle_days" -gt 14 2>/dev/null
+            set_color red
+        else if test "$idle_days" -gt 7 2>/dev/null
+            set_color yellow
+        else
+            set_color $dim
+        end
+        if test "$idle_days" -le 0 2>/dev/null
+            printf "today"
+        else
+            printf "%sd idle" $idle_days
+        end
+        set_color normal
         echo ""
 
         # Labels on their own indented line. Attention labels stand out;
@@ -399,7 +459,9 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 } end),
                 copilotUnresolved: (.[8] | tonumber),
                 checks: { passed: (.[9] | tonumber), failed: (.[10] | tonumber), pending: (.[11] | tonumber) },
-                labels: (if .[12] == "" then [] else (.[12] | split(",")) end)
+                labels: (if .[12] == "" then [] else (.[12] | split(",")) end),
+                idleDays: (.[13] | tonumber),
+                reviewerThreads: (.[14] | tonumber)
             })'
         return 0
     else if test "$mode" = slack
