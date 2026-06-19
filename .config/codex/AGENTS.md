@@ -58,7 +58,7 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 ## Validation
 
 - Run targeted checks that match the changed files and project conventions.
-- If sandboxed commands warn that they cannot write under `~/Library/Caches` for `mise` or Go build cache, rerun with temp cache dirs such as `MISE_CACHE_DIR=/private/tmp/mise-cache GOCACHE=/private/tmp/go-build-cache` and do not treat the warning as a project failure.
+- If sandboxed commands warn that they cannot write under `~/Library/Caches` for `mise` or Go build cache, prefer adding or using a project-local ignored cache path such as `.cache/mise` and `.cache/go-build` through the repo's Makefile or test wrapper. For one-off commands, rerun with temp cache dirs such as `MISE_CACHE_DIR=/private/tmp/mise-cache GOCACHE=/private/tmp/go-build-cache`. Do not treat cache permission warnings as project failures.
 - Validate Lua changes with `luac -p <file>` when working on Neovim/Lua config.
 - Validate shell scripts with `shellcheck` when available.
 - For Fish files, run `fish -n <file>`.
