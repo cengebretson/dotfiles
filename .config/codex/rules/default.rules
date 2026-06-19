@@ -91,3 +91,5 @@ prefix_rule(pattern=["/bin/zsh", "-lc", "GH_TOKEN=\"$CLASSIC_GH_TOKEN\" gh pr vi
 prefix_rule(pattern=["ssh-add", "-l"], decision="allow")
 prefix_rule(pattern=["gh", "auth", "status"], decision="allow")
 prefix_rule(pattern=["docker", "version"], decision="allow")
+prefix_rule(pattern=["gh", "repo", "view"], decision="allow")
+prefix_rule(pattern=["env", "-u", "GH_TOKEN", "gh", "repo", "view"], decision="allow")
