@@ -1,5 +1,5 @@
 [core]
-	editor = nvim
+	editor = true
 	abbrev = 7
   pager = delta
 [include]
