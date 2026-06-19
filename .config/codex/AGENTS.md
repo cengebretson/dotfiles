@@ -95,8 +95,8 @@ Use: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)`
 ## REDIRECTED — use sandbox
 
 ### Shell (>20 lines output)
-Shell ONLY for: `git`, `mkdir`, `rm`, `mv`, `cd`, `ls`, `npm install`, `pip install`.
-Otherwise: `ctx_batch_execute(commands, queries)` or `ctx_execute(language: "shell", code: "...")`
+Shell is fine for short fixed observations and state-changing repo commands (`git`, `mkdir`, `rm`, `mv`, `cd`, `ls`, `npm install`, `pip install`).
+For commands that may exceed 20 lines, use context-mode. Prefer `ctx_batch_execute(commands, queries)` when gathering several related context sources or when the output may be useful for follow-up search; keep commands and queries narrow. Use `ctx_execute(language: "shell", code: "...")` when one command can filter or summarize to a terse answer.
 
 ### File reading (for analysis)
 Reading to **edit** → reading correct. Reading to **analyze/explore/summarize** → `ctx_execute_file(path, language, code)`.
@@ -107,11 +107,12 @@ Use `ctx_execute(language: "shell", code: "grep ...")` in sandbox.
 ## Tool selection
 
 0. **MEMORY**: `ctx_search(sort: "timeline")` — after resume, check prior context before asking user.
-1. **GATHER**: `ctx_batch_execute(commands, queries)` — runs all commands, auto-indexes, returns search. ONE call replaces 30+. Each command: `{label: "header", command: "..."}`.
-2. **FOLLOW-UP**: `ctx_search(queries: ["q1", "q2", ...])` — all questions as array, ONE call (default relevance mode).
-3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — sandbox, only stdout enters context.
-4. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — raw HTML never enters context.
-5. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
+1. **SHORT OBSERVATION**: for small fixed outputs (`git status --short`, `git log -1`, short `sed`, targeted `rg`), use normal shell tools instead of context-mode.
+2. **BATCH GATHER**: `ctx_batch_execute(commands, queries)` — preferred for several related commands, outputs that may be large, or context worth indexing/searching in one round trip. Keep batches focused; use narrow labels and queries; avoid broad readbacks.
+3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — derive a terse answer when one script can filter/count/summarize; only stdout enters context.
+4. **FOLLOW-UP**: `ctx_search(queries: ["q1", "q2", ...])` — all questions as array, ONE call (default relevance mode).
+5. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — raw HTML never enters context.
+6. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
 
 ## Quiet output
 
