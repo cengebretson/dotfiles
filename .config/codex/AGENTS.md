@@ -113,6 +113,13 @@ Use `ctx_execute(language: "shell", code: "grep ...")` in sandbox.
 4. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — raw HTML never enters context.
 5. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
 
+## Quiet output
+
+When using context-mode for tests, builds, lint, searches, or other commands that
+can produce large output, filter aggressively and print only failures, actionable
+diagnostics, or a short pass/fail summary. Do not return full passing logs unless
+the user explicitly asks for them.
+
 ## Parallel I/O batches
 
 For multi-URL fetches or multi-API calls, **always** include `concurrency: N` (1-8):
