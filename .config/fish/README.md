@@ -49,7 +49,7 @@ Current manifest:
 
 ## Aliases & Abbreviations
 
-Defined in `alias.fish` (zoxide `j`/`ji` come from `config.fish`). Highlights:
+Defined in `alias.fish`, `config.fish`, and custom functions. Highlights:
 
 | Command | Expands to |
 |---------|-----------|
@@ -61,7 +61,7 @@ Defined in `alias.fish` (zoxide `j`/`ji` come from `config.fish`). Highlights:
 | `cat` / `find` / `vi`,`vim` | `bat` / `fd` / `nvim` |
 | `o` / `oo` | `open` / `open .` |
 | `reload` | `exec fish` |
-| `updates` | brew update + upgrade + completions + cleanup |
+| `updates` | brew update + upgrade + tmux TPM plugins + Fisher plugins + completions + cleanup |
 | `gcopy` | copy short HEAD SHA to clipboard |
 | `ipl` / `ipx` | local IP (en0) / external IP |
 | `flush` | flush macOS DNS cache |

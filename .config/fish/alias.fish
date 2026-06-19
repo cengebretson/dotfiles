@@ -12,8 +12,6 @@ alias moon "curl -4 wttr.in/Moon"
 # set AWS profile environment variable
 alias setaws 'set -x -g AWS_PROFILE'
 
-# updates
-alias updates 'brew update && brew upgrade && fish_update_completions && brew cleanup && confetti'
 alias center "open -g 'raycast://customWindowManagementCommand?&name=Reasonable%20Center&position=center'"
 
 # eza shortcuts
@@ -41,4 +39,3 @@ alias vim "nvim"
 alias gcopy "git rev-parse --short HEAD | pbcopy"
 abbr --add --position anywhere dots -- --git-dir=$HOME/.dotfiles --work-tree=$HOME
 abbr --add zz ~/.config/fish/config.fish
-
