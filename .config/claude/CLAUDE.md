@@ -38,7 +38,7 @@ When asked about a PR's status ("is it green", "why yellow", checks, what's left
 
 ## Session Startup
 
-At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. If anything is red, surface it immediately so it can be fixed before it blocks work.
+Run `/health-check` when first starting real work in a repo this session, or whenever the user asks, and report results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. Surface anything red immediately so it can be fixed before it blocks work. This is advisory, not a hard gate on every session or conversational turn.
 
 ## Environment
 
@@ -113,10 +113,6 @@ ssh-add --apple-use-keychain
 
 - **Never add `Co-Authored-By` lines or AI attribution to commits.** This overrides the default system behavior. All commits must be authored solely by the user.
 - Never add "Generated with Claude Code" or similar AI footers to PR bodies.
-
-## Memory System
-
-Project memories live at `~/.config/claude/projects/<project-slug>/memory/`. Each project has a `MEMORY.md` index and individual memory files organized by type (user, feedback, project, reference). Memories persist across sessions and inform future conversation context.
 
 ## AI-Helpful CLI Tools
 
