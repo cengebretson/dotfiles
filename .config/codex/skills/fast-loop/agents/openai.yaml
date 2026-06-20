@@ -1,0 +1,4 @@
+interface:
+  display_name: "Fast Loop"
+  short_description: "Start coding quickly in any repo"
+  default_prompt: "Use $fast-loop to orient on this repository and identify the next coding step."
