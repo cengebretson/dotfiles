@@ -20,7 +20,6 @@
       "Bash(npx prettier*)",
       "Bash(pre-commit *)",
       "mcp__claude_ai_Atlassian__*",
-      "mcp__plugin_github_github__*",
       "mcp__plugin_context-mode_context-mode__*",
       "Bash(mkdir -p *)",
       "Bash(cp *)",
@@ -89,7 +88,17 @@
       "Bash(python3 *)",
       "Bash(prettier *)",
       "Bash(stylua *)",
-      "Bash(mise *)"
+      "Bash(mise *)",
+      "Bash(gh api*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh run view*)",
+      "Bash(gh run list*)",
+      "mcp__github__*",
+      "Bash(git restore*)",
+      "Bash(git reset*)"
     ],
     "deny": [
       "Bash(git push --force *)",

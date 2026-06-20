@@ -14,23 +14,31 @@ Default to acting, not asking. When the next step is clear from the request, the
 
 | Operation | Use this | Never this |
 |---|---|---|
-| GitHub (PRs, issues, files, search) | `mcp__plugin_github_github__*` | `gh`, `curl` |
+| GitHub (PRs, issues, files, search) | `mcp__github__*` | `gh`, `curl` |
 | Issue trackers / docs | available MCP tools | `curl`, REST |
 | Large output processing | `mcp__plugin_context-mode_context-mode__*` | raw pipe into context |
 
 Fall back to CLI **only** when no MCP tool covers the specific operation — and say so explicitly when you do.
 
-**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__plugin_github_github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
+**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
 
 **Any other CLI tool:** Before reaching for any CLI or REST equivalent (`curl`, `aws`, `gcloud`, etc.), run `ToolSearch` to check for an MCP alternative. Only proceed with CLI if the search confirms no MCP tool covers the operation.
+
+## Checking PR / CI Status
+
+When asked about a PR's status ("is it green", "why yellow", checks, what's left):
+
+- **Prefer the `pr-report` fish function as source of truth.** It already reads GraphQL `statusCheckRollup` + `reviewDecision` + unresolved Copilot/human thread counts correctly. Run `pr-report --json` and read the row before any ad hoc query. Trust it over hand-rolled `gh` calls.
+- **For CI, use the checks rollup, never the legacy status endpoint.** Use GraphQL `statusCheckRollup` (handle both `CheckRun.conclusion` and `StatusContext.state`) or `/commits/{sha}/check-runs?per_page=100`. NEVER judge CI from `/commits/{sha}/status` — it returns `state=pending` with `total_count=0` when a commit has only check-runs, a false yellow.
+- **Paginate before claiming green.** `/check-runs` defaults to 30; a failing check can be on a later page. Never say "all checks pass" from an unpaginated call — confirm against the rollup (`first:100`). This exact miss caused a wrong "all green" call.
+- **Report status as separate axes, do not conflate:** (1) CI checks pass/fail/pending, (2) `reviewDecision` (REVIEW_REQUIRED needs a human approval; Copilot's and my approvals do not count), (3) unresolved review threads, (4) `mergeStateStatus`. "Yellow" is usually pending CI or REVIEW_REQUIRED, not necessarily an unaddressed comment.
+- **A green run plus yellow PR usually means REVIEW_REQUIRED**, not a CI or comment problem. Say so instead of hunting for comments.
+- The `copilot-pull-request-reviewer` check goes `in_progress` and makes the rollup pending; requesting a Copilot review re-introduces that transient pending/yellow, so do not re-request on trivial/comment-only commits.
+- `gh` authenticates with the keyring `gho_` token by default; use plain `gh` (no `env -u GH_TOKEN` prefix). If `gh` ever returns 401 "Bad credentials", check whether a stale `GH_TOKEN` got set in the shell and unset it (see the project `gh-token-limitations` memory).
 
 ## Session Startup
 
 At the start of every session, run `/health-check` automatically before responding to the first user message. Report the results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. If anything is red, surface it immediately so it can be fixed before it blocks work.
-
-## Autonomy
-
-Bias strongly to action. Don't end turns asking permission for the obvious next step in work already underway — do it and report what happened. Pause only for genuinely consequential or ambiguous decisions: irreversible or destructive actions that aren't already authorized, outward/published actions taken for the first time, or forks where my answer changes the outcome. Routine commits, pushes, and follow-ups within already-greenlit work don't need a fresh prompt each time.
 
 ## Environment
 
@@ -87,13 +95,13 @@ context-mode is installed globally and active in every session. It keeps large t
 
 ## SSH
 
-Load the default SSH key with:
+Load the SSH key from the macOS keychain:
 
 ```bash
 ssh-add --apple-use-keychain
 ```
 
-If the agent has no identities at session start, the `/health-check` skill will surface it.
+`--apple-use-keychain` with no path loads only default-named keys (`id_ed25519`, `id_rsa`). If `ssh-add -l` still reports no identities, the key has a non-default name: pass its path explicitly (the `IdentityFile` from `~/.ssh/config`, e.g. `ssh-add --apple-use-keychain ~/.ssh/<key>`). A passphrase prompt cannot be answered from a non-interactive tool shell, so ask the user to run it via `! ssh-add ...`. If the agent has no identities at session start, the `/health-check` skill will surface it.
 
 ## Claude Settings Scope
 
