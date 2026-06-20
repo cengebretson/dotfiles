@@ -14,7 +14,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold white; echo "OPTIONS"; set_color normal
         echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
-        echo "        --short   One line per PR (marker + #number + title), no detail/labels."
+        echo "        --short   One line per PR: marker + #number + title (Jira key links to the issue) + [labels]."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
         echo
@@ -328,8 +328,42 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         else
             printf ' #%s' $pr_num
         end
+        # --short: stay one line per PR. Hyperlink the leading Jira key *inside*
+        # the title itself (the "FLYWL-1308" in "FLYWL-1308: …") instead of
+        # appending a duplicate [KEY] tag, then add the GitHub labels in brackets.
+        # Colours mirror the full report (Jira Atlassian-blue; labels keyed by
+        # meaning) so a glance reads the same in either mode.
+        if set -q _flag_short
+            set_color normal; printf "  "
+            if test -n "$jira_key" -a -n "$jira_url"; and string match -q -- "$jira_key*" "$pr_title"
+                # Link only the key prefix; print the rest of the title verbatim.
+                # Keep the title's normal colour — the OSC 8 link still makes it
+                # clickable without recolouring it.
+                set -l rest (string sub -s (math (string length -- $jira_key) + 1) -- "$pr_title")
+                printf '\e]8;;%s\a%s\e]8;;\a%s' $jira_url $jira_key $rest
+            else if test -n "$jira_key" -a -n "$jira_url"
+                # Title doesn't lead with the key — fall back to a trailing link.
+                printf "%s " $pr_title
+                printf '\e]8;;%s\a[%s]\e]8;;\a' $jira_url $jira_key
+            else
+                printf "%s" $pr_title
+            end
+            for label in $pr_labels
+                test -n "$label"; or continue
+                switch (string lower -- $label)
+                    case '*blocked*' '*do not merge*' '*do-not-merge*' '*hold*' '*wip*'
+                        set_color red
+                    case '*ready for review*' '*ready-for-review*'
+                        set_color green
+                    case '*'
+                        set_color magenta
+                end
+                printf " [%s]" $label; set_color normal
+            end
+            echo ""
+            continue
+        end
         set_color normal; echo "  $pr_title"
-        set -q _flag_short; and continue # --short: marker + #num + title only
 
         # Detail line — only segments that carry signal, joined by a dim " · ".
         # $pre holds the separator: empty before the first printed segment, then
