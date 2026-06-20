@@ -89,7 +89,7 @@ Analyze/count/filter/compare/search/parse/transform data: **write code** via `ct
 
 ### curl / wget — FORBIDDEN
 Do NOT use `curl`/`wget` in shell. Dumps raw HTTP into context.
-Use: `ctx_fetch_and_index(url, source)` or `ctx_execute(language: "javascript", code: "const r = await fetch(...)")`
+Use a dedicated web/search tool when available. If a context-mode web indexing tool is exposed, prefer it; otherwise use `ctx_execute(language: "javascript", code: "const r = await fetch(...)")` and print only a terse summary.
 
 ### Inline HTTP — FORBIDDEN
 No `node -e "fetch(..."`, `python -c "requests.get(..."`. Bypasses sandbox.
@@ -97,13 +97,13 @@ Use: `ctx_execute(language, code)` — only stdout enters context
 
 ### Direct web fetching — FORBIDDEN
 Raw HTML can exceed 100 KB.
-Use: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)`
+Use a dedicated web/search tool when available. If a context-mode web indexing tool is exposed, fetch/index there and query with `ctx_search(queries)`.
 
 ## REDIRECTED — use sandbox
 
 ### Shell (>20 lines output)
 Shell is fine for short fixed observations and state-changing repo commands (`git`, `mkdir`, `rm`, `mv`, `cd`, `ls`, `npm install`, `pip install`).
-For commands that may exceed 20 lines, use context-mode. Prefer `ctx_batch_execute(commands, queries)` when gathering several related context sources or when the output may be useful for follow-up search; keep commands and queries narrow. Use `ctx_execute(language: "shell", code: "...")` when one command can filter or summarize to a terse answer.
+For commands that may exceed 20 lines, use context-mode. Prefer `ctx_batch_execute(commands, queries)` when that tool is exposed and you are gathering several related context sources; otherwise use `ctx_execute(language: "shell", code: "...")` to filter or summarize to a terse answer.
 
 ### File reading (for analysis)
 Reading to **edit** → reading correct. Reading to **analyze/explore/summarize** → `ctx_execute_file(path, language, code)`.
@@ -115,10 +115,10 @@ Use `ctx_execute(language: "shell", code: "grep ...")` in sandbox.
 
 0. **MEMORY**: `ctx_search(sort: "timeline")` — after resume, check prior context before asking user.
 1. **SHORT OBSERVATION**: for small fixed outputs (`git status --short`, `git log -1`, short `sed`, targeted `rg`), use normal shell tools instead of context-mode.
-2. **BATCH GATHER**: `ctx_batch_execute(commands, queries)` — preferred for several related commands, outputs that may be large, or context worth indexing/searching in one round trip. Keep batches focused; use narrow labels and queries; avoid broad readbacks.
+2. **BATCH GATHER**: when available, `ctx_batch_execute(commands, queries)` is preferred for several related commands, outputs that may be large, or context worth indexing/searching in one round trip. Keep batches focused; use narrow labels and queries; avoid broad readbacks. If unavailable, use `ctx_execute` with an explicit summarizer.
 3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — derive a terse answer when one script can filter/count/summarize; only stdout enters context.
 4. **FOLLOW-UP**: `ctx_search(queries: ["q1", "q2", ...])` — all questions as array, ONE call (default relevance mode).
-5. **WEB**: `ctx_fetch_and_index(url, source)` then `ctx_search(queries)` — raw HTML never enters context.
+5. **WEB**: use the browser/web tool or a context-mode web indexing tool when available; raw HTML should never enter context.
 6. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
 
 ## Quiet output
@@ -130,18 +130,13 @@ the user explicitly asks for them.
 
 ## Parallel I/O batches
 
-For multi-URL fetches or multi-API calls, **always** include `concurrency: N` (1-8):
-
-- `ctx_batch_execute(commands: [3+ network commands], concurrency: 5)` — gh, curl, dig, docker inspect, multi-region cloud queries
-- `ctx_fetch_and_index(requests: [{url, source}, ...], concurrency: 5)` — multi-URL batch fetch
-
-**Use concurrency 4-8** for I/O-bound work (network calls, API queries). **Keep concurrency 1** for CPU-bound (npm test, build, lint) or commands sharing state (ports, lock files, same-repo writes).
+For multi-URL fetches or multi-API calls, use batch tools with `concurrency: N` (1-8) when those tools are exposed. Use concurrency 4-8 for I/O-bound work such as network calls and API queries. Keep concurrency 1 for CPU-bound work such as tests, builds, and lint, or commands sharing state such as ports, lock files, or same-repo writes.
 
 GitHub API rate-limit: cap at 4 for `gh` calls.
 
 ## Output
 
-Write artifacts to FILES — never inline. Return: file path + 1-line description.
+Write substantial generated artifacts to files instead of inlining them. Return: file path + 1-line description.
 Descriptive source labels for `ctx_search(source: "label")`.
 
 ## Session Continuity
@@ -159,7 +154,7 @@ Session history is persistent and searchable. On resume, search BEFORE asking th
 | What NOT to repeat? | `ctx_search(queries: ["rejected"], source: "rejected-approach")` |
 | What constraints exist? | `ctx_search(queries: ["constraint"], source: "constraint")` |
 
-Note: user-prompt history not available.
+Note: user-prompt history may be available through context-mode session memory, depending on hooks and retention.
 
 DO NOT ask "what were we working on?" — SEARCH FIRST.
 If search returns 0 results, proceed as a fresh session.
