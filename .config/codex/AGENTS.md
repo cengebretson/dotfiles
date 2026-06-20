@@ -3,6 +3,8 @@
 ## Working Style
 
 - At the start of a new session, use `$health-check` before substantive work and report the result. If the skill is unavailable, perform the same manual checks covering repository tools, issue-tracker/MCP tools, context-mode/plugin availability, and SSH agent status.
+- For a quick coding handoff or resume, use `$fast-loop` to gather only the repo status, nearest instructions, obvious local task context, and command entrypoints before choosing the next action.
+- For familiar implementation work, start from the nearest relevant instructions and task files; defer broad architecture docs, full rulebooks, and remote lookups until the touched files or user request make them relevant.
 - Bias toward action. When the next step is obvious and already within the user's request, do it and report what happened.
 - Pause for genuinely consequential or ambiguous decisions: destructive actions, broad permission changes, public publishing, or choices where the user's answer changes the outcome.
 - Keep responses direct, pragmatic, and concise. Prefer concrete file paths, commands, and verification results over general explanation.
@@ -22,6 +24,13 @@
   - `scc` for codebase line/complexity overviews.
   - `fd` for ergonomic file search.
   - `bat`, `eza`, and `glow` for human-facing display when useful.
+
+## Permission Hygiene
+
+- When requesting a persistent command approval, keep `prefix_rule` narrow and task-shaped, such as `["make", "test"]` or `["gh", "pr", "view"]`.
+- Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
+- Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
+- If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
 
 ## Environment
 

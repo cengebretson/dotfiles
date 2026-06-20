@@ -9,6 +9,11 @@ Run this at the start of a new session before substantive work, or whenever the
 user asks for a health check. Default to the fast path. The fast path still performs lightweight plugin discovery for context-mode, Jira/Atlassian, and GitHub MCP/app surfaces before reporting them unavailable. Use the deep path only
 when the user asks for "deep", "full", "debug", or when a fast check fails and the extra detail changes the next action.
 
+When the user asks for a quick coding loop, resume, or `$fast-loop` rather than
+a health check, do not run remote auth probes from this skill. Let `$fast-loop`
+orient locally first, then run the relevant GitHub, Jira, Slack, or other remote
+probe only if the next action needs that surface.
+
 ## Fast Path
 
 Run these checks, parallelizing independent shell commands when possible:
@@ -21,6 +26,20 @@ Run these checks, parallelizing independent shell commands when possible:
 - GitHub MCP/app: if no GitHub MCP/app tool is already available, call `tool_search` for GitHub tools, then run a minimal authenticated-user probe when discovered.
 - SSH agent: `ssh-add -l`.
 - Docker: `docker version --format '{{.Client.Version}} client / {{.Server.Version}} server'`.
+
+## Coding-Loop Path
+
+Use this only when a coding loop asks for health context indirectly and a full
+startup health check has already been satisfied in the session:
+
+- Repo: `git status --short --branch` and `git log -1 --format=%h%x09%D%x09%s`.
+- Core tools: `command -v rg git make`.
+- context-mode: run `ctx_doctor` only if context-mode tools are already loaded
+  or if the next step will process potentially large output.
+- Docker: check Docker only when the repo's normal commands need Docker.
+
+Do not check GitHub, Jira, Slack, SSH agent, or other remote/auth surfaces in
+the coding-loop path unless the next action needs them.
 
 ## Deep Path
 
