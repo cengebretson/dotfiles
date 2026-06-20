@@ -8,7 +8,7 @@ source ~/.config/fish/alias.fish
 
 # mise (manages node, bun, and other runtimes)
 if status is-interactive; and command -sq mise
-    mise activate fish --shims --silent | source
+    mise activate fish --silent | source
 end
 
 # environment (needed in interactive and non-interactive shells)
