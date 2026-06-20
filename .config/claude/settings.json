@@ -2,6 +2,7 @@
   "permissions": {
     "allow": [
       "Bash(make *)",
+      "Bash(~/projects/los/misc/setup-worktree.sh*)",
       "Bash(docker compose *)",
       "Bash(git fetch*)",
       "Bash(git pull*)",
@@ -86,6 +87,10 @@
       "Bash(gh pr list*)",
       "Bash(gh pr diff*)",
       "Bash(gh pr checks*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr ready*)",
+      "Bash(gh pr edit*)",
+      "Bash(gh pr comment*)",
       "Bash(gh run view*)",
       "Bash(gh run list*)",
       "mcp__github__*",
