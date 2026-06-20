@@ -63,18 +63,13 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # brblack maps to a near-invisible surface colour on this theme.
     set -l dim a6adc8
 
-    set -l gh_cmd gh
-    set -l repo ($gh_cmd repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
-    if test -z "$repo"; and set -q GH_TOKEN
-        set gh_cmd env -u GH_TOKEN gh
-        set repo ($gh_cmd repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
-    end
+    set -l repo (gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
     if test -z "$repo"
         set_color red; echo "error: not in a GitHub repository" >&2; set_color normal
         return 1
     end
 
-    set -l me ($gh_cmd api user --jq .login 2>/dev/null)
+    set -l me (gh api user --jq .login 2>/dev/null)
     if test -z "$me"
         set_color red; echo "error: gh not authenticated" >&2; set_color normal
         return 1
@@ -116,7 +111,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
-    set -l pr_lines ($gh_cmd api graphql -f q="repo:$repo is:pr is:open author:$me" \
+    set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
         -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
         --jq '
             def cls:
