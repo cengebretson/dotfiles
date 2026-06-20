@@ -33,9 +33,30 @@ goals_*
 logs_*
 memories_*
 state_*
+.codex-global-state.json*
+session_index.jsonl
+docker-local.config.toml
 
-# Installed system skills are managed by Codex, not personal dotfiles
+# Per-machine caches and import history
+claude-cowork-import-history.json
+claude-cowork-transcript-imports/
+cloud-config-bundle-cache.json
+cloud-requirements-cache.json
+vendor_imports/
+
+# Installed macOS computer-use app bundle (binary, not config)
+computer-use/
+
+# Memories live in their own nested git repo, not in dotfiles
+memories/
+
+# Local rules backups / reference snapshots
+rules/*.backup-*
+rules/*.dotfiles-reference-*
+
+# Installed/vendored skills are managed by Codex, not personal dotfiles
 skills/.system/
+skills/playwright/
 
 # Note: AGENTS.md and config.shared.toml are intentionally trackable.
 # Keep secrets out of shared config — use env vars, never hardcoded keys.
