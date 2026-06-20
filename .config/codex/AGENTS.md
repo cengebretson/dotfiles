@@ -57,6 +57,11 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 - Keep commits focused and authored solely by the user.
 - Never add AI attribution to commits, PR descriptions, or generated notes.
 
+## GitHub PR Workflow
+
+- After renaming a branch that backs an open GitHub PR, immediately verify the PR state and head branch. GitHub can close the PR instead of moving the head branch cleanly. If that happens, recreate the PR from the renamed branch and update Jira links.
+- For Copilot review requests, use GraphQL `requestReviews` with `botIds`, then verify through `requested_reviewers` or PR events. Do not rely on `gh pr edit --add-reviewer` or REST reviewer shortcuts for Copilot because they can appear successful without starting a bot review.
+
 ## Validation
 
 - Run targeted checks that match the changed files and project conventions.
