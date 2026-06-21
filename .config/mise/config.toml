@@ -5,8 +5,8 @@ prefer_offline = true
 fetch_remote_versions_cache = "1w"
 
 [tools]
-node = "24.15.0"
-bun = "1.3.13"
+node = "24.16.0"
+bun = "1.3.14"
 python = "3.14.5"
 uv = "0.11.13"
 go = "1.26.3"
