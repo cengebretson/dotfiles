@@ -95,7 +95,10 @@
       "Bash(gh run list*)",
       "mcp__github__*",
       "Bash(git restore*)",
-      "Bash(git reset*)"
+      "Bash(git reset*)",
+      "Bash(PATH=* pre-commit *)",
+      "Bash(PATH=* git commit*)",
+      "Bash(pr-report*)"
     ],
     "deny": [
       "Bash(git clean -f*)",

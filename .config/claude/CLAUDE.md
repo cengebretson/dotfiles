@@ -47,6 +47,20 @@ Run `/health-check` when first starting real work in a repo this session, or whe
 - **Terminal:** Ghostty + tmux
 - **Color scheme:** Catppuccin Mocha throughout (tmux, delta, statusline, starship)
 
+### Shell command hygiene (avoid needless permission prompts)
+
+The permission allowlist matches the **literal command prefix**. Any wrapper that changes how the
+command string *starts* defeats an otherwise-matching rule and forces a prompt, even though the
+underlying tool is allowed. The allowlist is already broad (see `settings.json`), so prompts are
+almost always a command-construction problem, not a missing rule. Construct the simplest form that
+starts with the allowlisted token:
+
+- **Never prefix a Bash call with `cd <dir>`.** The cwd persists and starts at the project root. A leading `cd` (especially `cd … && …`) makes a compound that no rule matches. Run the command directly.
+- **Never prefix with an env-var assignment** (`PATH=… cmd`, `FOO=bar cmd`) when avoidable — it makes the command start with `PATH=` instead of the tool name, bypassing rules like `Bash(pre-commit *)` / `Bash(git commit*)`. (The python3.11 pre-commit workaround is the known exception and is now allowlisted as `PATH=* pre-commit *` / `PATH=* git commit*`.)
+- **Avoid `git -C <dir>`** — it starts with `git -C`, not `git commit`/`git push`, so the `git commit*`/`git push*` rules miss. Run git from the repo-root cwd instead. Use `--prefix`/`-C`/`--config` path flags only when the target really is a different directory.
+- **Avoid multi-statement scripts** (`VAR=$(...)`, `for`/`while` loops, `;`-chains) when separate single-purpose calls work — loops and command substitution can never be allowlisted and always prompt. Reserve them for genuine one-off polling/aggregation, and expect a prompt there.
+- Prefer an MCP tool over a shell equivalent when one exists (GitHub, Atlassian, etc.) — MCP servers are allowlisted by wildcard and don't go through Bash prefix-matching at all.
+
 ## Claude Config
 
 - Canonical config directory: `~/.config/claude/` — `~/.claude` is a symlink to it
