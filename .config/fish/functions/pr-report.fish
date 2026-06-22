@@ -33,7 +33,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
         set_color --bold white; echo "NOTES"; set_color normal
-        printf '    • Marker: ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (🟡/🔵/✅ in --slack).\n'
+        printf '    • Marker: ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
@@ -295,16 +295,12 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments)
             continue
         else if test "$mode" = slack
-            # Lean entry: status marker + title, then link + GitHub review status,
-            # then labels (if any). Plain text — Slack does not render *bold* on
-            # paste. Marker mirrors pretty: 🟡 attention, 🔵 awaiting reviewer, ✅ approved.
-            set -l marker 🔵
-            switch $pr_state
-                case attention; set marker 🟡
-                case approved; set marker ✅
-            end
+            # Lean entry: bullet list item with title, then link + GitHub review status,
+            # then labels (if any). Plain text — Slack does not render *bold* on paste.
+            # Use the literal • glyph: Slack only auto-converts "- " to a bullet when
+            # typed, not when pasted, so a real bullet character shows reliably.
             test (count $slack_lines) -gt 0; and set -a slack_lines ""
-            set -a slack_lines "$marker $pr_title" "   $pr_url — $review_text"
+            set -a slack_lines "• $pr_title" "   $pr_url — $review_text"
             test -n "$parts[8]"; and set -a slack_lines "   🏷️ "(string join " · " $pr_labels)
             continue
         end
