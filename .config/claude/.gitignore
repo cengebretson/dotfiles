@@ -3,6 +3,15 @@
 .claude.json.backup
 .credentials.json
 
+# Per-machine settings overrides (absolute paths, local-only grants)
+settings.local.json
+
+# Per-machine runtime/state markers
+.last-cleanup
+.last-update-result.json
+remote-settings.json
+tasks/
+
 # Runtime and session data
 sessions/
 history.jsonl
