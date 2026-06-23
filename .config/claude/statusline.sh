@@ -26,6 +26,7 @@ model="${model#claude-}"  # strip "claude-" prefix
 # expansion — no mapfile (bash 4+) and no `wc` subprocess.
 branch=""
 changes=0
+wt_name=""
 git_out=$(git status --porcelain=v1 --branch 2>/dev/null)
 if [[ -n "$git_out" ]]; then
     first="${git_out%%$'\n'*}"  # "## branch...upstream [ahead N]"
@@ -36,6 +37,21 @@ if [[ -n "$git_out" ]]; then
     # line); strip all non-newline chars and measure what's left.
     nl="${git_out//[!$'\n']/}"
     changes=${#nl}
+
+    # One extra git pass, only when we're in a repo: git-dir tells us whether
+    # this checkout is a linked worktree (path contains .git/worktrees/<name>),
+    # and short HEAD gives a readable label for detached worktrees that would
+    # otherwise show a bare "HEAD" (the --fast setup-worktree default).
+    shortsha=""
+    { read -r gitdir; read -r shortsha; } < <(git rev-parse --git-dir --short HEAD 2>/dev/null)
+    case "$gitdir" in
+        */worktrees/*) wt_name="${gitdir#*/worktrees/}"; wt_name="${wt_name%%/*}" ;;
+    esac
+    # Detached HEAD (status reports "## HEAD (no branch)" -> branch=="HEAD"):
+    # show the short SHA instead of the uninformative literal "HEAD".
+    if [[ "$branch" == "HEAD" ]]; then
+        branch="@${shortsha:-detached}"
+    fi
 fi
 
 # Catppuccin Mocha
@@ -67,7 +83,11 @@ if [[ -n "$vimmode" ]]; then
 fi
 
 if [[ -n "$branch" ]]; then
-    seg="${bold}${green}󰘬 ${branch}${reset}"
+    seg="${bold}"
+    # Worktree badge: a peach "forked repo" glyph in front of the branch makes
+    # a linked worktree visually distinct from the primary checkout at a glance.
+    [[ -n "$wt_name" ]] && seg+="${peach} ${reset}${bold}"
+    seg+="${green}󰘬 ${branch}${reset}"
     if [[ "$changes" -gt 0 ]]; then
         seg+=" ${peach}±${changes}${reset}"
     fi
