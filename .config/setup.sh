@@ -55,6 +55,14 @@ echo "Installing packages from Brewfile..."
 brew bundle --file="$HOME/.config/Brewfile"
 echo "✓ Brew bundle complete"
 
+# ── Tmux plugins ───────────────────────────────────────────────────────────────
+echo "Installing tmux plugins..."
+if [ -x "$HOME/.config/tmux/plugins/tpm/bin/install_plugins" ]; then
+  "$HOME/.config/tmux/plugins/tpm/bin/install_plugins" || true
+else
+  echo "tmux plugin manager not found; skipping tmux plugin install"
+fi
+echo "✓ Tmux plugins"
 
 # ── Fish as default shell ──────────────────────────────────────────────────────
 FISH_PATH="$(brew --prefix)/bin/fish"
