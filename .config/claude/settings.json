@@ -184,5 +184,15 @@
   },
   "effortLevel": "high",
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": {
+      "allowWrite": [
+        "/tmp",
+        "/private/tmp"
+      ]
+    }
+  }
 }

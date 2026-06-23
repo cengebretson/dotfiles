@@ -60,6 +60,7 @@ starts with the allowlisted token:
 - **Avoid `git -C <dir>`** — it starts with `git -C`, not `git commit`/`git push`, so the `git commit*`/`git push*` rules miss. Run git from the repo-root cwd instead. Use `--prefix`/`-C`/`--config` path flags only when the target really is a different directory.
 - **Avoid multi-statement scripts** (`VAR=$(...)`, `for`/`while` loops, `;`-chains) when separate single-purpose calls work — loops and command substitution can never be allowlisted and always prompt. Reserve them for genuine one-off polling/aggregation, and expect a prompt there.
 - Prefer an MCP tool over a shell equivalent when one exists (GitHub, Atlassian, etc.) — MCP servers are allowlisted by wildcard and don't go through Bash prefix-matching at all.
+- For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
 
 ## Claude Config
 
