@@ -4,6 +4,7 @@ tap "brevity1swos/tap"
 # ── Shell & Terminal ───────────────────────────────────────────────────────────
 brew "fish"
 brew "tmux"
+brew "mosh"
 brew "starship"
 brew "zoxide"
 brew "fastfetch"
@@ -20,7 +21,6 @@ brew "yq"
 brew "sd"
 brew "scc"
 brew "unar"
-brew "tlrc"
 brew "television"
 brew "superfile"
 brew "prettyping"
@@ -61,6 +61,7 @@ brew "httpie"
 # ── AI Tools ───────────────────────────────────────────────────────────────────
 cask "codex"
 cask "copilot-cli"
+brew "rjyo/moshi/moshi-hook"
 
 # ── Fonts ──────────────────────────────────────────────────────────────────────
 cask "orbstack"

@@ -83,9 +83,6 @@ eval "$(mise activate bash --shims)"
 echo "✓ Mise runtimes"
 
 # ── Claude Code ────────────────────────────────────────────────────────────────
-if ! command -v claude &>/dev/null; then
-  npm install -g @anthropic-ai/claude-code
-fi
 mkdir -p "$HOME/.config/claude"
 if [ ! -e "$HOME/.claude" ]; then
   ln -s "$HOME/.config/claude" "$HOME/.claude"
