@@ -3,6 +3,7 @@
     "allow": [
       "Bash(make *)",
       "Bash(~/projects/los/misc/setup-worktree.sh*)",
+      "Bash(/Users/cengebretson/workspace/scripts/setup-worktree.sh*)",
       "Bash(fish -n *)",
       "Bash(docker compose *)",
       "Bash(git fetch*)",
@@ -109,6 +110,9 @@
       "Bash(git reset --hard*)",
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
+    ],
+    "additionalDirectories": [
+      "/Users/cengebretson/workspace/worktrees"
     ]
   },
   "model": "opus",
