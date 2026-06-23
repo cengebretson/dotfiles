@@ -31,6 +31,7 @@
 - Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
 - Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
 - If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
+- For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
 
 ## Environment
 
