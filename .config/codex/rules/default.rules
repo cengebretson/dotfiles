@@ -128,3 +128,6 @@ prefix_rule(pattern=["/bin/zsh", "-lc", "for i in {1..24}; do status=$(docker in
 prefix_rule(pattern=["/bin/zsh", "-lc", "for i in {1..24}; do st=$(docker inspect -f '{{.State.Health.Status}}' los_django 2>/dev/null || true); echo \"$st\"; [ \"$st\" = healthy ] && exit 0; sleep 5; done; exit 1"], decision="allow")
 prefix_rule(pattern=["/bin/zsh", "-lc", "SKIP_INIT_LOCAL=1 SKIP_MIGRATIONS=1 docker compose -f local.yml up -d --no-deps django npm_build_ui npm_build_ui_vue3"], decision="allow")
 prefix_rule(pattern=["docker", "exec", "-i", "los_postgres"], decision="allow")
+prefix_rule(pattern=["docker", "exec"], decision="allow")
+prefix_rule(pattern=["awk", "/setup\\.0535|requests\\.0500|requests\\.0566|requests\\.0676|requests\\.0689|requests\\.069/ {print}"], decision="allow")
+prefix_rule(pattern=["rg", "postgres|los_postgres|django"], decision="allow")
