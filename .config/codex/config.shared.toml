@@ -2,6 +2,13 @@
 # Do not use this file directly as the live config. Copy selected settings into
 # ~/.config/codex/config.toml only after confirming the target machine should use them.
 
+sandbox_mode = "workspace-write"
+approval_policy = "on-request"
+approvals_reviewer = "auto_review"
+
+[sandbox_workspace_write]
+writable_roots = ["/tmp", "/private/tmp"]
+
 [features]
 plugin_hooks = true
 hooks = true
