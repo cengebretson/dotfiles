@@ -16,6 +16,8 @@ tasks/
 sessions/
 history.jsonl
 cache/
+hooks/logs/
+hooks/*.log
 telemetry/
 stats-cache.json
 paste-cache/
