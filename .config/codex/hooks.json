@@ -2,19 +2,15 @@
   "hooks": {
     "PermissionRequest": [
       {
+        "matcher": ".*",
         "hooks": [
           {
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:codex:permission-request",
-            "type": "command"
-          }
-        ],
-        "matcher": ".*"
-      },
-      {
-        "hooks": [
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" permission-request-notify"
+          },
           {
-            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]
       }
@@ -23,8 +19,8 @@
       {
         "hooks": [
           {
-            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]
       }
@@ -33,8 +29,8 @@
       {
         "hooks": [
           {
-            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]
       }
@@ -43,16 +39,12 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:codex:user-prompt-submit",
-            "type": "command"
-          }
-        ]
-      },
-      {
-        "hooks": [
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" prompt-clear"
+          },
           {
-            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]
       }

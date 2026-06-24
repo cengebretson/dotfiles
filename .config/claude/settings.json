@@ -18,8 +18,8 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:claude:notification",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" notification"
           }
         ],
         "matcher": "permission_prompt|idle_prompt"
@@ -29,9 +29,9 @@
       {
         "hooks": [
           {
-            "async": false,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": false
           }
         ]
       }
@@ -40,8 +40,8 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME/.config/claude/hooks/format-on-edit.sh\"",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" format-on-edit"
           }
         ],
         "matcher": "Edit|Write|MultiEdit"
@@ -49,9 +49,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ],
         "matcher": "AskUserQuestion"
@@ -59,9 +59,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ],
         "matcher": "ExitPlanMode"
@@ -71,9 +71,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ],
         "matcher": "AskUserQuestion"
@@ -81,9 +81,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ],
         "matcher": "ExitPlanMode"
@@ -93,9 +93,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ]
       }
@@ -104,17 +104,17 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\" \u003e/dev/null 2\u003e\u00261",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" context-mode-cache-heal >/dev/null 2>&1"
           }
         ]
       },
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ]
       }
@@ -123,9 +123,9 @@
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ]
       }
@@ -134,8 +134,8 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention blocked # tmux-attention:claude:stop-failure",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" stop-failure"
           }
         ]
       }
@@ -144,17 +144,17 @@
       {
         "hooks": [
           {
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:claude:user-prompt-submit",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" prompt-clear"
           }
         ]
       },
       {
         "hooks": [
           {
-            "async": true,
-            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
-            "type": "command"
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
           }
         ]
       }
@@ -166,47 +166,14 @@
       "/Users/cengebretson/workspace/worktrees"
     ],
     "allow": [
-      "Bash(make *)",
-      "Bash(~/projects/los/misc/setup-worktree.sh*)",
-      "Bash(/Users/cengebretson/workspace/scripts/setup-worktree.sh*)",
       "Bash(fish -n *)",
-      "Bash(docker compose *)",
-      "Bash(git fetch*)",
-      "Bash(git pull*)",
-      "Bash(git checkout*)",
-      "Bash(git switch*)",
-      "Bash(git add*)",
-      "Bash(git commit*)",
-      "Bash(git rebase*)",
-      "Bash(git worktree *)",
-      "Bash(git push --force-with-lease*)",
-      "Bash(git push)",
-      "Bash(git push origin*)",
-      "Bash(pre-commit *)",
-      "mcp__atlassian__*",
-      "mcp__claude_ai_Atlassian__*",
       "mcp__plugin_context-mode_context-mode__*",
       "Bash(mkdir -p *)",
       "Bash(cp *)",
       "Bash(mv *)",
-      "Bash(git stash *)",
-      "Bash(git merge *)",
       "Bash(docker exec *)",
       "Bash(ssh-add -l)",
       "Bash(eza *)",
-      "Bash(cd * \u0026\u0026 npx eslint*)",
-      "Bash(cd * \u0026\u0026 npx prettier*)",
-      "Bash(cd * \u0026\u0026 npx vitest*)",
-      "Bash(cd * \u0026\u0026 npm run*)",
-      "Bash(git log*)",
-      "Bash(git status*)",
-      "Bash(git diff*)",
-      "Bash(git show*)",
-      "Bash(git branch*)",
-      "Bash(git remote*)",
-      "Bash(git rev-parse*)",
-      "Bash(git clean -nd*)",
-      "Bash(git ls-files*)",
       "Bash(sleep *)",
       "Bash(echo *)",
       "Bash(rg *)",
@@ -216,8 +183,6 @@
       "Bash(jq *)",
       "Bash(yq *)",
       "Bash(go *)",
-      "Bash(git mv *)",
-      "Bash(git rm *)",
       "Bash(bat *)",
       "Bash(cat *)",
       "Bash(ls *)",
@@ -236,12 +201,6 @@
       "Bash(grep *)",
       "Bash(test *)",
       "Bash(open *)",
-      "Bash(git for-each-ref*)",
-      "Bash(git rev-list*)",
-      "Bash(git merge-base*)",
-      "Bash(git merge-tree*)",
-      "Bash(npm *)",
-      "Bash(npx *)",
       "Bash(bun *)",
       "Bash(bunx *)",
       "Bash(uv *)",
@@ -261,10 +220,6 @@
       "Bash(gh run view*)",
       "Bash(gh run list*)",
       "mcp__github__*",
-      "Bash(git restore*)",
-      "Bash(git reset*)",
-      "Bash(PATH=* pre-commit *)",
-      "Bash(PATH=* git commit*)",
       "Bash(pr-report*)"
     ],
     "deny": [
