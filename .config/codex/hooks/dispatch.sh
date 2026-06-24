@@ -2,9 +2,12 @@
 # Generic Codex hook dispatcher.
 #
 # Keeps hooks.json portable by routing machine-specific hook commands here.
-# Future enhancements to consider: repo-specific local hook handoff, feature
-# flags for optional integrations, and bounded execution if a portable timeout
-# tool is available. Do not log hook payloads; they may contain prompt data.
+# Future ideas:
+# - Add repo-specific local hook handoff for trusted worktrees.
+# - Add feature flags for optional integrations during troubleshooting.
+# - Add bounded execution if a portable timeout tool becomes available.
+#
+# Do not log hook payloads; they may contain prompt data.
 set -u
 
 event="${1:-}"
