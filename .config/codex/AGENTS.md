@@ -71,6 +71,8 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 
 - After renaming a branch that backs an open GitHub PR, immediately verify the PR state and head branch. GitHub can close the PR instead of moving the head branch cleanly. If that happens, recreate the PR from the renamed branch and update Jira links.
 - For Copilot review requests, use GraphQL `requestReviews` with `botIds`, then verify through `requested_reviewers` or PR events. Do not rely on `gh pr edit --add-reviewer` or REST reviewer shortcuts for Copilot because they can appear successful without starting a bot review.
+- For PR review cleanup, a clean later review is not enough. Always query unresolved `reviewThreads`, reply to fixed threads with the commit SHA, resolve them, and re-check unresolved thread count before declaring the PR clean.
+- Keep PR label changes on the GitHub app/MCP path when available; use `gh` only when the connector does not expose the needed operation.
 
 ## Validation
 
