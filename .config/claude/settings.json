@@ -1,5 +1,170 @@
 {
+  "editorMode": "vim",
+  "effortLevel": "high",
+  "enabledPlugins": {
+    "context-mode@context-mode": true,
+    "github@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "repo": "mksglu/context-mode",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:claude:notification",
+            "type": "command"
+          }
+        ],
+        "matcher": "permission_prompt|idle_prompt"
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "async": false,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/format-on-edit.sh\"",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ],
+        "matcher": "AskUserQuestion"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ],
+        "matcher": "ExitPlanMode"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ],
+        "matcher": "AskUserQuestion"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ],
+        "matcher": "ExitPlanMode"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\" \u003e/dev/null 2\u003e\u00261",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention blocked # tmux-attention:claude:stop-failure",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:claude:user-prompt-submit",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "'/opt/homebrew/bin/moshi-hook' claude-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "opus",
   "permissions": {
+    "additionalDirectories": [
+      "/Users/cengebretson/workspace/worktrees"
+    ],
     "allow": [
       "Bash(make *)",
       "Bash(~/projects/los/misc/setup-worktree.sh*)",
@@ -29,10 +194,10 @@
       "Bash(docker exec *)",
       "Bash(ssh-add -l)",
       "Bash(eza *)",
-      "Bash(cd * && npx eslint*)",
-      "Bash(cd * && npx prettier*)",
-      "Bash(cd * && npx vitest*)",
-      "Bash(cd * && npm run*)",
+      "Bash(cd * \u0026\u0026 npx eslint*)",
+      "Bash(cd * \u0026\u0026 npx prettier*)",
+      "Bash(cd * \u0026\u0026 npx vitest*)",
+      "Bash(cd * \u0026\u0026 npm run*)",
       "Bash(git log*)",
       "Bash(git status*)",
       "Bash(git diff*)",
@@ -110,94 +275,22 @@
       "Bash(git reset --hard*)",
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
-    ],
-    "additionalDirectories": [
-      "/Users/cengebretson/workspace/worktrees"
     ]
   },
-  "model": "opus",
-  "hooks": {
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/format-on-edit.sh\""
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "permission_prompt|idle_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:claude:notification"
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention blocked # tmux-attention:claude:stop-failure"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:claude:user-prompt-submit"
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/context-mode-cache-heal.mjs\" >/dev/null 2>&1"
-          }
-        ]
-      }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.config/claude/statusline.sh",
-    "hideVimModeIndicator": true
-  },
-  "enabledPlugins": {
-    "context-mode@context-mode": true,
-    "github@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "context-mode": {
-      "source": {
-        "source": "github",
-        "repo": "mksglu/context-mode"
-      }
-    }
-  },
-  "effortLevel": "high",
-  "theme": "dark-ansi",
-  "editorMode": "vim",
   "sandbox": {
-    "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "enabled": true,
     "filesystem": {
       "allowWrite": [
         "/tmp",
         "/private/tmp"
       ]
     }
-  }
+  },
+  "statusLine": {
+    "command": "~/.config/claude/statusline.sh",
+    "hideVimModeIndicator": true,
+    "type": "command"
+  },
+  "theme": "dark-ansi"
 }
