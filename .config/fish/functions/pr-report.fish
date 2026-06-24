@@ -33,7 +33,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
         set_color --bold white; echo "NOTES"; set_color normal
-        printf '    • Marker: ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
+        printf '    • Marker: ◆ draft · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
@@ -108,11 +108,11 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # decision, CI check rollup, labels, AND unresolved Copilot thread count. jq
     # reduces each PR to a TSV row so there are no per-PR calls. Field order:
     # 1 number  2 title  3 branch  4 reviewDecision  5 ci_pass  6 ci_fail
-    # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count
+    # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count  13 is_draft
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
-        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
+        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt isDraft labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -138,7 +138,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
               ($cop|tostring),
               .url,
               (((now - (.updatedAt | fromdateiso8601)) / 86400) | floor | tostring),
-              ($hum|tostring)
+              ($hum|tostring),
+              (.isDraft | tostring)
             ] | @tsv' 2>/dev/null)
     if test $status -ne 0
         set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
@@ -159,7 +160,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
     # Group by status so like rows cluster: attention first (needs your action),
     # then awaiting reviewer, then approved. Original order kept within each group.
-    # Fields: 4 review · 6 ci_fail · 9 copilot · 12 comments.
+    # Fields: 4 review · 6 ci_fail · 9 copilot · 12 comments · 13 draft.
     set -l attn_lines
     set -l wait_lines
     set -l appr_lines
@@ -231,6 +232,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         test -n "$idle_days"; or set idle_days 0
         set -l comments $parts[12]
         test -n "$comments"; or set comments 0
+        set -l is_draft $parts[13]
+        test -n "$is_draft"; or set is_draft false
 
         # PR state drives the marker (computed before the filter so the filter can
         # match it):
@@ -242,6 +245,9 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             set pr_state attention
         else if test "$review" = APPROVED
             set pr_state approved
+        end
+        if test "$is_draft" = true
+            set pr_state draft
         end
 
         # Review label + colour, reused by pretty/slack and searchable by the filter.
@@ -292,23 +298,27 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         if test "$mode" = json
             # Tab-joined record; jq builds the object (values never contain tabs).
             set -a json_rows (string join \t $pr_num $pr_title $pr_url $pr_branch \
-                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments)
+                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments $is_draft)
             continue
         else if test "$mode" = slack
             # Lean entry: bullet list item with title, then link + GitHub review status,
             # then labels (if any). Plain text — Slack does not render *bold* on paste.
             # Use the literal • glyph: Slack only auto-converts "- " to a bullet when
             # typed, not when pasted, so a real bullet character shows reliably.
-            test (count $slack_lines) -gt 0; and set -a slack_lines ""
-            set -a slack_lines "• $pr_title" "   $pr_url — $review_text"
-            test -n "$parts[8]"; and set -a slack_lines "   🏷️ "(string join " · " $pr_labels)
+            set -l slack_review_text $review_text
+            test "$is_draft" = true; and set slack_review_text "draft · $review_text"
+            set -a slack_lines "• $pr_title" "    |  #$pr_num - $slack_review_text - $pr_url"
+            test -n "$parts[8]"; and set -a slack_lines "    |  :label: "(string join " · " $pr_labels)
             continue
         end
 
         # --- pretty (default) terminal rendering ---
-        # Marker: ● yellow = needs action, ○ blue = awaiting reviewer, ✓ green = approved.
+        # Marker: ◆ magenta = draft, ● yellow = needs action, ○ blue = awaiting reviewer, ✓ green = approved.
         set -l num_color $dim
         switch $pr_state
+            case draft
+                set_color magenta; printf "  ◆"; set_color normal
+                set num_color white
             case attention
                 set_color yellow; printf "  ●"; set_color normal
                 set num_color white
@@ -497,12 +507,11 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 checks: { passed: (.[9] | tonumber), failed: (.[10] | tonumber), pending: (.[11] | tonumber) },
                 labels: (if .[12] == "" then [] else (.[12] | split(",")) end),
                 idleDays: (.[13] | tonumber),
-                reviewerThreads: (.[14] | tonumber)
+                reviewerThreads: (.[14] | tonumber),
+                isDraft: (.[15] == "true")
             })'
         return 0
     else if test "$mode" = slack
-        echo "📋 PRs for review — $repo"
-        echo ""
         printf '%s\n' $slack_lines
         return 0
     end
