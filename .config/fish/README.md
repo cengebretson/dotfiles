@@ -82,6 +82,8 @@ These live in `functions/` and are not Fisher-managed.
 | `pr` | Open the current branch's GitHub PR in the browser |
 | `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
 | `copilot-pr-report` | List open PRs in the current repo with unresolved Copilot review threads |
+| `moshi-notify` | Toggle/inspect Moshi agent-hook notifications: `off`/`on`/`toggle`/`status` (bound to `prefix N` in tmux) |
+| `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |
 
 ## Coral
 

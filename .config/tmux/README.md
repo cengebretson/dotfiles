@@ -15,6 +15,7 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | `prefix + y` | Lazygit popup |
 | `prefix + c` | New window (with name prompt) |
 | `prefix + S` | New session (with name prompt) |
+| `prefix + N` | Toggle Moshi notifications (daemon off/on) |
 | `Option + h/l` | Previous / next window |
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
 | `C-k` | Which-key menu |
@@ -36,7 +37,9 @@ Both themes use custom status modules and window text formats.
 
 **Left:** prefix indicator, session name
 
-**Right (appearance2):** current path, CPU%, RAM%
+**Right (appearance2):** current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
+
+The Moshi `󰄛` indicator is present in both themes (see the Moshi section below).
 
 Window tabs use custom Unicode number glyphs via `custom_number.sh`. The active window uses filled square glyphs; inactive windows use double-stroke squares.
 
@@ -45,6 +48,15 @@ Window tabs use custom Unicode number glyphs via `custom_number.sh`. The active 
 When a background window receives a bell alert, a `󰂞` icon appears in red in its window tab. This is implemented via `#{?window_bell_flag,...}` directly in the window text format rather than relying on catppuccin's flag system, which doesn't apply with custom window status style.
 
 `window-status-bell-style` is set to `none` after tpm initializes (catppuccin overrides it during plugin load, so it must be set last in `tmux.conf`).
+
+## Moshi Remote / Phone Sessions
+
+Integration for driving agents from the phone over the Moshi app (mosh + tmux). Full design lives in `~/workspace/plans/moshi-remote-agent-setup.md`.
+
+- **Daemon indicator (`moshi_status.sh`):** a 3-state `󰄛` glyph in the status bar. Dim "off" means the moshi-hook daemon is stopped; amber "on" means running but unpaired (no pushes); green "on" means running and paired. Daemon state is read with `pgrep` each refresh; pairing is cached in the `@moshi_paired` user option (seeded on load in `tmux.conf`, refreshed by `moshi-notify`) because querying it touches the Keychain.
+- **`prefix + N`:** toggles the daemon off/on via the `moshi-notify` fish function, run through a login fish and backgrounded since `brew services stop` can be slow.
+- **Phone auto-view (`phone_autoview.sh`, `phone_autoview_cleanup.sh`):** a `client-attached` hook detects a narrow (phone) client by terminal width and moves it onto a grouped `phone-<session>` mirror, so the phone shares your windows at its own size without reshaping the laptop view. A `client-detached` hook reaps the mirror when the phone leaves. Both hooks append (`set-hook -ga`) and are guarded against duplicate registration on reload, preserving the tmux-attention hooks.
+- **Hiding mirrors from the picker:** `@fzf_pane_switch_exclude-sessions "phone-*"` keeps the ephemeral mirror sessions out of the fzf-jump list. The plugin filter is generic; the `phone-*` value is set here in `tmux.conf`.
 
 ## Plugins
 
