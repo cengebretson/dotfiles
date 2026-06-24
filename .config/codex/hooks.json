@@ -2,11 +2,39 @@
   "hooks": {
     "PermissionRequest": [
       {
-        "matcher": ".*",
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:codex:permission-request"
+            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention input # tmux-attention:codex:permission-request",
+            "type": "command"
+          }
+        ],
+        "matcher": ".*"
+      },
+      {
+        "hooks": [
+          {
+            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
+            "type": "command"
           }
         ]
       }
@@ -15,8 +43,16 @@
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:codex:user-prompt-submit"
+            "command": "\"$HOME\"/.config/tmux/plugins/tmux-attention/scripts/tmux-attention clear # tmux-attention:codex:user-prompt-submit",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "'/opt/homebrew/bin/moshi-hook' codex-hook",
+            "type": "command"
           }
         ]
       }
