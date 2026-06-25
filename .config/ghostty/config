@@ -61,13 +61,13 @@ macos-icon = custom
 macos-option-as-alt = true
 
 # shaders
-#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear.glsl
-#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze.glsl
-custom-shader = /Users/chris/.config/ghostty/shaders/cursor_blaze_no_trail.glsl
-#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_smear_fade.glsl
-#custom-shader = /Users/chris/.config/ghostty/shaders/cursor_frozen.glsl
-#custom-shader = /Users/chris/.config/ghostty/shaders/just-snow.glsl
-#custom-shader = /Users/chris/.config/ghostty/shaders/inside-the-matrix.glsl
+#custom-shader = shaders/cursor_smear.glsl
+#custom-shader = shaders/cursor_blaze.glsl
+custom-shader = shaders/cursor_blaze_no_trail.glsl
+#custom-shader = shaders/cursor_smear_fade.glsl
+#custom-shader = shaders/cursor_frozen.glsl
+#custom-shader = shaders/just-snow.glsl
+#custom-shader = shaders/inside-the-matrix.glsl
 
 # only set this during testing, defaults to "true" which animates only active windows
 custom-shader-animation = always
