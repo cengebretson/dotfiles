@@ -50,6 +50,22 @@ function updates --description 'Update Homebrew, tmux TPM plugins, Fisher plugin
         set --append failures 'fish_update_completions'
     end
 
+    printf '\n==> mise upgrade\n'
+    if mise upgrade
+        set --append results "$ok mise upgrade"
+    else
+        set --append results "$fail mise upgrade"
+        set --append failures 'mise upgrade'
+    end
+
+    printf '\n==> mise prune\n'
+    if mise prune
+        set --append results "$ok mise prune"
+    else
+        set --append results "$fail mise prune"
+        set --append failures 'mise prune'
+    end
+
     printf '\n==> brew cleanup\n'
     if brew cleanup
         set --append results "$ok brew cleanup"
