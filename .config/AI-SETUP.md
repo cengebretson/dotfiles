@@ -143,6 +143,32 @@ per-plugin prose (it rots against the tools' own installers).
 Then restart Claude so the plugins fetch. For a plugin from a non-official marketplace, also add the
 marketplace under `extraKnownMarketplaces` (see the existing `context-mode` entry as the template).
 
+## Audit (setup status)
+
+To answer *"what's installed, what's missing, how do I install it,"* enumerate live state and diff it
+against the [Integrations registry](#integrations-registry) desired set. All read-only 🤖.
+
+**Enumerate state:**
+
+```bash
+# Claude — enabled plugins
+jq -r '.enabledPlugins | to_entries[] | select(.value) | .key' ~/.config/claude/settings.json
+# Codex — MCP servers and marketplace plugins
+codex mcp list
+codex plugin list
+# Hook plumbing (both dispatchers; </dev/null is required — see Gotchas)
+~/.config/claude/hooks/dispatch.sh doctor </dev/null
+~/.config/codex/hooks/dispatch.sh doctor </dev/null
+```
+
+**Report:** for each registry row, mark ✅ installed / ❌ missing *per tool*; for every ❌, emit that
+row's install command (🤖) or human handoff (🧑). Skip `local/work` rows (atlassian) unless asked.
+Also confirm `claude/skills/` and `codex/skills/` hold the same skill set (parity table).
+
+**Deps:** re-run `brew bundle --file ~/.config/Brewfile` — Homebrew reports missing formulae itself,
+so it doubles as the dependency audit. The two `dispatch.sh doctor`s above cover hook *plumbing* only
+(not integrations), so they complement — not replace — the plugin/MCP enumeration.
+
 ## Claude ↔ Codex parity (the keep-in-sync check)
 
 Glance here when one tool gets a capability the other lacks.
@@ -150,6 +176,7 @@ Glance here when one tool gets a capability the other lacks.
 | Concept | Claude Code | Codex CLI |
 |---|---|---|
 | Agent-behavior instructions | `claude/CLAUDE.md` | `codex/AGENTS.md` |
+| Reusable skills | `claude/skills/<name>/SKILL.md` | `codex/skills/<name>/SKILL.md` (keep the set in sync) |
 | Command allowlist | `permissions.allow` (string globs) | `rules/default.rules` (tokenized `prefix_rule`) |
 | Compound-command approval | `hooks/approve-compound-bash.sh` (decomposes pipes/chains) | native — tokenized prefix matching, no decomposition needed |
 | LLM approval reviewer | DIY `PreToolUse` prompt hook | native `approvals_reviewer = "auto_review"` |
