@@ -120,9 +120,13 @@ ssh-add --apple-use-keychain
 
 ## Claude Settings Scope
 
-- When updating Claude settings or permissions (e.g. via `/update-config`, allowlists, hooks), always default to the **global** settings at `~/.config/claude/settings.json`.
-- Never write to a project-level `.claude/settings.json` unless the user explicitly says to update the project settings.
-- If it's ambiguous, ask before writing to a project settings file.
+Choose the settings file by *what* you're persisting, not a blanket default. There are three:
+
+- **Generic, machine-agnostic config** → global `~/.config/claude/settings.json`. This is for things that apply in every repo: tool allowlists (`rg`, `jq`, `gh pr *`, `mcp__github__*`), hooks, theme, model, effort. Keep this file portable — no absolute paths, no single-repo grants.
+- **Machine- or project-specific config** → that project's gitignored `~/<project>/.claude/settings.local.json`. This is for absolute paths, sandbox `filesystem.allowWrite` / `permissions.additionalDirectories` for a sibling repo, and command allows that only make sense in this project. Keeping them here avoids polluting the global file and avoids leaking machine-specific absolute paths.
+- **Team-shared, checked-in config** → a project's `.claude/settings.json`. Never write here unless the user explicitly says to update project/shared settings (it ships to teammates).
+
+Rules of thumb: if it contains an absolute path or names one specific repo, it belongs in `settings.local.json`, not global. When duplicating an array that may *replace* rather than *merge* across scopes (e.g. `sandbox.filesystem.allowWrite`), include the baseline entries (`/tmp`, `/private/tmp`) in the local copy so nothing is lost. If it's ambiguous which file, ask.
 
 ## Commits
 
