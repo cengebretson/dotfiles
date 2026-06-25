@@ -85,6 +85,14 @@ doctor() {
   fi
   [ -x "$HOME/.config/claude/hooks/format-on-edit.sh" ] && doctor_line ok format-on-edit present || doctor_line warn format-on-edit missing
   [ -f "$HOME/.config/claude/hooks/context-mode-cache-heal.mjs" ] && doctor_line ok context-mode-cache-heal present || doctor_line warn context-mode-cache-heal missing
+  # approve-compound-bash hook + its deps (fails closed/inert if any are missing)
+  [ -x "$HOME/.config/claude/hooks/approve-compound-bash.sh" ] && doctor_line ok approve-compound-bash present || doctor_line warn approve-compound-bash missing
+  have shfmt && doctor_line ok shfmt "$(command -v shfmt)" || doctor_line warn shfmt "missing (approve-compound-bash falls through)"
+  if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then
+    doctor_line ok modern-bash present
+  else
+    doctor_line warn modern-bash "missing (approve-compound-bash needs bash 4.3+ via Homebrew; macOS ships 3.2)"
+  fi
   check_dispatch_config "$HOME/.config/claude/settings.json"
 }
 

@@ -36,10 +36,25 @@ fi
 
 DEBUG=false
 readonly ALLOW_JSON='{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
+readonly LOG_FILE="$HOME/.config/claude/hooks/logs/approve-compound.log"
 
 debug() { if $DEBUG; then printf '[approve-compound] %s\n' "$*" >&2; fi; }
-approve() { printf '%s\n' "$ALLOW_JSON"; exit 0; }
+
+# Opt-in decision audit log (set APPROVE_COMPOUND_LOG=1 to enable).
+# WARNING: records full command strings, which may contain secrets
+# (e.g. `echo $TOKEN`). Off by default — enable only for a trust/audit
+# period, then unset. Logs to the shared hooks/logs/ dir.
+log_decision() {
+  [[ -n "${APPROVE_COMPOUND_LOG:-}" ]] || return 0
+  mkdir -p "${LOG_FILE%/*}" 2>/dev/null || return 0
+  printf '%s decision=%-20s cmd=%s\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" "${2:-}" >> "$LOG_FILE" 2>/dev/null || true
+}
+
+# Note: approve()/deny() reference main's local `command` via dynamic scope.
+approve() { log_decision approve "${command:-}"; printf '%s\n' "$ALLOW_JSON"; exit 0; }
 deny() {
+  log_decision deny "${command:-} :: $1"
   jq -n --arg msg "$1" '{
     hookSpecificOutput: {hookEventName:"PreToolUse", permissionDecision:"deny"},
     systemMessage: $msg
@@ -328,6 +343,7 @@ main() {
   for dep in jq shfmt; do
     if ! command -v "$dep" &>/dev/null; then
       debug "Missing $dep, falling through"
+      log_decision "skip-missing-dep" "$dep"
       exit 0
     fi
   done
@@ -373,12 +389,16 @@ main() {
     load_prefixes
   fi
   debug "Loaded ${#allowed_prefixes[@]} allow, ${#denied_prefixes[@]} deny prefixes"
-  [[ ${#allowed_prefixes[@]} -eq 0 ]] && exit 0
+  if [[ ${#allowed_prefixes[@]} -eq 0 ]]; then
+    log_decision "skip-empty-allowlist" "$command"
+    exit 0
+  fi
 
   # Simple command — check directly without shfmt parsing
   if ! needs_compound_parse "$command"; then
     debug "Simple command"
     is_allowed "$command" && approve
+    log_decision "fallthrough-simple" "$command"
     exit 0
   fi
 
@@ -389,13 +409,17 @@ main() {
 
   # Parse failure or empty result — fall through to prompt (don't auto-approve
   # unparseable commands that may contain dangerous sub-commands)
-  [[ ${#extracted_commands[@]} -eq 0 || -z "${extracted_commands[0]}" ]] && exit 0
+  if [[ ${#extracted_commands[@]} -eq 0 || -z "${extracted_commands[0]}" ]]; then
+    log_decision "fallthrough-parsefail" "$command"
+    exit 0
+  fi
 
   all_allowed extracted_commands && approve
 
   # Not all approved: actively deny if any segment is in the deny list,
   # otherwise fall through to Claude Code's native permission prompt.
   any_denied extracted_commands && deny "Compound command contains a denied sub-command"
+  log_decision "fallthrough-compound" "$command"
   exit 0
 }
 
