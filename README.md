@@ -21,6 +21,7 @@ A curated collection of tools and configs that power my daily workflow.
 #### 📟 Tmux
 
  * Terminal multiplexer with dual Catppuccin themes, custom status bar, and Neovim-friendly keybindings. See [tmux config](.config/tmux/README.md).
+ * Remote phone access: drive Claude/Codex from the phone over the Moshi app (mosh + Tailscale). A responsive status bar and auto-managed grouped `phone-*` sessions keep the phone from reshaping the laptop view. See the [Moshi section](.config/tmux/README.md#moshi-remote--phone-sessions).
 
 #### 📝 Neovim
 
