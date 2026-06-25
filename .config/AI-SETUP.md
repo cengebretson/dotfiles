@@ -8,6 +8,21 @@ how to bootstrap a fresh clone, how to add things, and how to keep the two in sy
 > human (or an agent explicitly asked to set up a machine). Component reference for Claude's
 > statusline/tools is in `claude/README.md`.
 
+## Who this is for (human vs agent)
+
+Two readers use this file: a **human** doing a one-time bootstrap, and an **agent** explicitly asked
+to "set up this machine" / "install the plugins I need." Steps are tagged by who can do them:
+
+- 🤖 **agent-safe** — non-interactive: edit a tracked config, run a CLI install, `brew bundle`.
+- 🧑 **human-only** — interactive auth or a secret an agent must not author: OAuth browser flows,
+  PAT/secret entry, app sign-in.
+
+**Agent runbook:** work an integration's row top-to-bottom; do the 🤖 parts; at each 🧑 step, print
+the *literal* login/secret command and pause for the human (suggest the `! <cmd>` prefix so its output
+lands in the session). After any Claude `enabledPlugins`/marketplace edit, tell the human to **restart
+Claude** — plugins fetch at session start, so the running session won't see them. Confirm each row
+with its Verify command before moving on. Never create or commit a file from the 🚫-gitignored set.
+
 ## Source-of-truth map
 
 Everything is tracked in the bare dotfiles repo unless noted gitignored. Run dotfiles git as:
@@ -49,8 +64,9 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
      or run `codex mcp login github` (OAuth path — no PAT to manage; creds stored encrypted, per machine)
 5. **Codex live config:** copy the wanted blocks from `codex/config.shared.toml` into `codex/config.toml`
    (it's a reference, not auto-loaded). At minimum: `[mcp_servers.github]` and the `[profiles.*]`.
-6. **Plugins:** enable the same plugins (Claude: `enabledPlugins` in `settings.json` is already tracked,
-   so they re-fetch on first run; Codex: marketplace plugins like `context-mode` re-install).
+6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
+   `enabledPlugins` in `settings.json` is already tracked, so they re-fetch on first run; Codex:
+   `codex plugin add …` / `codex mcp add …` as listed). 🧑 OAuth logins there are per-machine.
 7. **Verify:** `/health-check` (Claude) · `codex doctor` · `~/.config/claude/hooks/dispatch.sh doctor </dev/null`
    (the `</dev/null` matters — the dispatcher reads stdin before its subcommand switch).
 
@@ -90,24 +106,42 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 
 ## Integrations registry
 
-Install/update is **generic per tool** — don't write per-plugin prose (it rots against the tools'
-own installers). Use the mechanics below + the table:
+Install/update is **generic per tool** — these mechanics + the table cover every row; don't write
+per-plugin prose (it rots against the tools' own installers).
 
-- **Claude:** `/plugin` to browse / install / enable (writes `enabledPlugins` in `settings.json`,
-  fetches into the gitignored `plugins/` cache). Update via `/plugin`.
-- **Codex:** `codex plugin marketplace add <owner/repo>` then install; or for a bare server
-  `codex mcp add <name> --transport http <url>` (+ `codex mcp login <name>` if it does OAuth).
-  Mirror shareable bits into `config.shared.toml`. Remote servers update server-side.
+**Mechanics**
+- **Claude — agent path (no TUI):** edit `settings.json` directly — add `"<plugin>@<marketplace>": true`
+  to `enabledPlugins`; if the marketplace isn't `claude-plugins-official`, also add it to
+  `extraKnownMarketplaces`. Plugins fetch on the **next session start** (restart required). The
+  `claude-plugins-official` and `context-mode` (`mksglu/context-mode`) marketplaces are already known.
+- **Claude — human path:** `/plugin` to browse/install/enable (writes the same `enabledPlugins`).
+- **Codex — marketplace plugin:** `codex plugin add <plugin>@<marketplace>` (run `codex plugin list`
+  to see names; `openai-curated` ships with the CLI). Add a 3rd-party marketplace first with
+  `codex plugin marketplace add <owner/repo|url>`.
+- **Codex — bare MCP server:** HTTP → `codex mcp add <name> --url <url> [--bearer-token-env-var <VAR>]`;
+  stdio → `codex mcp add <name> [--env K=V] -- <cmd>…`. Mirror shareable bits into `config.shared.toml`.
+  OAuth servers also need `codex mcp login <name>` (🧑).
 - **Deps** (browsers, CLIs) come from `brew bundle`.
 
-| Integration | Tools | Scope | Auth | Enable |
+| Integration | Scope | Claude (`enabledPlugins` id / how) | Codex (command) | Verify |
 |---|---|---|---|---|
-| context-mode | both | shared | none | already enabled (plugin) |
-| github | both | shared | OAuth | Claude plugin · Codex `codex mcp login github` |
-| Google Drive | Claude | shared | OAuth | connector (already on) |
-| context7 (live docs) | both | shared | none (free tier) | `/plugin` · `codex mcp add` |
-| atlassian (Jira+Confluence) | both | **local / work** | OAuth | `/plugin` + login · `codex mcp add` + `codex mcp login` |
-| playwright (browser) | both | shared | none (local browser) | `/plugin` · `codex mcp add` |
+| context-mode | shared | `context-mode@context-mode` 🤖 | `codex plugin add context-mode@context-mode` 🤖 | `/health-check` · `codex plugin list` |
+| github | shared | `github@claude-plugins-official` 🤖, then OAuth 🧑 | `[mcp_servers.github]` + PAT in `secrets.fish` 🤖, **or** `codex mcp login github` 🧑 | `codex mcp list` · `mcp__github__*` resolves |
+| context7 (live docs) | shared | `context7@claude-plugins-official` 🤖 | `codex mcp add context7 --url https://mcp.context7.com/mcp` 🤖 | tool list shows context7 |
+| playwright (browser) | shared | `playwright@claude-plugins-official` 🤖 | `codex mcp add playwright -- npx @playwright/mcp@latest` 🤖 (needs node) | tool list shows playwright |
+| atlassian (Jira+Confluence) | **local/work** | `atlassian@claude-plugins-official` 🤖, then login 🧑 | `codex plugin add atlassian-rovo@openai-curated` 🤖, then `codex mcp login atlassian-rovo` 🧑 | server reachable after login |
+| Google Drive | shared | Claude.ai **connector**, not a plugin — enable in app 🧑 | — | connector shows connected |
+
+**Claude `enabledPlugins` edit shape** (the 🤖 agent path; example adding context7 + playwright):
+
+```jsonc
+// settings.json → "enabledPlugins" (official marketplace already known — no extraKnownMarketplaces needed)
+"context7@claude-plugins-official": true,
+"playwright@claude-plugins-official": true
+```
+
+Then restart Claude so the plugins fetch. For a plugin from a non-official marketplace, also add the
+marketplace under `extraKnownMarketplaces` (see the existing `context-mode` entry as the template).
 
 ## Claude ↔ Codex parity (the keep-in-sync check)
 
