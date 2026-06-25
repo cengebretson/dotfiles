@@ -1,28 +1,86 @@
 {
-  "editorMode": "vim",
-  "effortLevel": "high",
-  "enabledPlugins": {
-    "context-mode@context-mode": true,
-    "github@claude-plugins-official": true
+  "permissions": {
+    "allow": [
+      "Bash(fish -n *)",
+      "mcp__plugin_context-mode_context-mode__*",
+      "Bash(mkdir -p *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(docker exec *)",
+      "Bash(ssh-add -l)",
+      "Bash(eza *)",
+      "Bash(sleep *)",
+      "Bash(echo *)",
+      "Bash(rg *)",
+      "Bash(fd *)",
+      "Bash(ast-grep *)",
+      "Bash(shellcheck *)",
+      "Bash(jq *)",
+      "Bash(yq *)",
+      "Bash(go *)",
+      "Bash(bat *)",
+      "Bash(cat *)",
+      "Bash(ls *)",
+      "Bash(sed -n *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(luac -p *)",
+      "Bash(glow *)",
+      "Bash(scc *)",
+      "Bash(delta *)",
+      "Bash(difft *)",
+      "Bash(wc *)",
+      "Bash(sort *)",
+      "Bash(comm *)",
+      "Bash(nvim --headless *)",
+      "Bash(grep *)",
+      "Bash(test *)",
+      "Bash(open *)",
+      "Bash(bun *)",
+      "Bash(bunx *)",
+      "Bash(uv *)",
+      "Bash(python3 *)",
+      "Bash(prettier *)",
+      "Bash(stylua *)",
+      "Bash(mise *)",
+      "Bash(gh api*)",
+      "Bash(gh pr view*)",
+      "Bash(gh pr list*)",
+      "Bash(gh pr diff*)",
+      "Bash(gh pr checks*)",
+      "Bash(gh pr create*)",
+      "Bash(gh pr ready*)",
+      "Bash(gh pr edit*)",
+      "Bash(gh pr comment*)",
+      "Bash(gh run view*)",
+      "Bash(gh run list*)",
+      "mcp__github__*",
+      "Bash(pr-report*)"
+    ],
+    "deny": [
+      "Bash(git clean -f*)",
+      "Bash(git push --force *)",
+      "Bash(git push --force)",
+      "Bash(git push -f*)",
+      "Bash(git reset --hard*)",
+      "Bash(rm -rf *)",
+      "Bash(docker compose * down -v*)"
+    ],
+    "additionalDirectories": [
+      "/Users/cengebretson/workspace/worktrees"
+    ]
   },
-  "extraKnownMarketplaces": {
-    "context-mode": {
-      "source": {
-        "repo": "mksglu/context-mode",
-        "source": "github"
-      }
-    }
-  },
+  "model": "opus",
   "hooks": {
     "Notification": [
       {
+        "matcher": "permission_prompt|idle_prompt",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" notification"
           }
-        ],
-        "matcher": "permission_prompt|idle_prompt"
+        ]
       }
     ],
     "PermissionRequest": [
@@ -38,55 +96,55 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" format-on-edit"
           }
-        ],
-        "matcher": "Edit|Write|MultiEdit"
+        ]
       },
       {
+        "matcher": "AskUserQuestion",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": true
           }
-        ],
-        "matcher": "AskUserQuestion"
+        ]
       },
       {
+        "matcher": "ExitPlanMode",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": true
           }
-        ],
-        "matcher": "ExitPlanMode"
+        ]
       }
     ],
     "PreToolUse": [
       {
+        "matcher": "AskUserQuestion",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": true
           }
-        ],
-        "matcher": "AskUserQuestion"
+        ]
       },
       {
+        "matcher": "ExitPlanMode",
         "hooks": [
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": true
           }
-        ],
-        "matcher": "ExitPlanMode"
+        ]
       }
     ],
     "SessionEnd": [
@@ -160,81 +218,26 @@
       }
     ]
   },
-  "model": "opus",
-  "permissions": {
-    "additionalDirectories": [
-      "/Users/cengebretson/workspace/worktrees"
-    ],
-    "allow": [
-      "Bash(fish -n *)",
-      "mcp__plugin_context-mode_context-mode__*",
-      "Bash(mkdir -p *)",
-      "Bash(cp *)",
-      "Bash(mv *)",
-      "Bash(docker exec *)",
-      "Bash(ssh-add -l)",
-      "Bash(eza *)",
-      "Bash(sleep *)",
-      "Bash(echo *)",
-      "Bash(rg *)",
-      "Bash(fd *)",
-      "Bash(ast-grep *)",
-      "Bash(shellcheck *)",
-      "Bash(jq *)",
-      "Bash(yq *)",
-      "Bash(go *)",
-      "Bash(bat *)",
-      "Bash(cat *)",
-      "Bash(ls *)",
-      "Bash(sed -n *)",
-      "Bash(head *)",
-      "Bash(tail *)",
-      "Bash(luac -p *)",
-      "Bash(glow *)",
-      "Bash(scc *)",
-      "Bash(delta *)",
-      "Bash(difft *)",
-      "Bash(wc *)",
-      "Bash(sort *)",
-      "Bash(comm *)",
-      "Bash(nvim --headless *)",
-      "Bash(grep *)",
-      "Bash(test *)",
-      "Bash(open *)",
-      "Bash(bun *)",
-      "Bash(bunx *)",
-      "Bash(uv *)",
-      "Bash(python3 *)",
-      "Bash(prettier *)",
-      "Bash(stylua *)",
-      "Bash(mise *)",
-      "Bash(gh api*)",
-      "Bash(gh pr view*)",
-      "Bash(gh pr list*)",
-      "Bash(gh pr diff*)",
-      "Bash(gh pr checks*)",
-      "Bash(gh pr create*)",
-      "Bash(gh pr ready*)",
-      "Bash(gh pr edit*)",
-      "Bash(gh pr comment*)",
-      "Bash(gh run view*)",
-      "Bash(gh run list*)",
-      "mcp__github__*",
-      "Bash(pr-report*)"
-    ],
-    "deny": [
-      "Bash(git clean -f*)",
-      "Bash(git push --force *)",
-      "Bash(git push --force)",
-      "Bash(git push -f*)",
-      "Bash(git reset --hard*)",
-      "Bash(rm -rf *)",
-      "Bash(docker compose * down -v*)"
-    ]
+  "statusLine": {
+    "type": "command",
+    "command": "~/.config/claude/statusline.sh",
+    "hideVimModeIndicator": true
+  },
+  "enabledPlugins": {
+    "context-mode@context-mode": true,
+    "github@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "source": "github",
+        "repo": "mksglu/context-mode"
+      }
+    }
   },
   "sandbox": {
-    "autoAllowBashIfSandboxed": true,
     "enabled": true,
+    "autoAllowBashIfSandboxed": true,
     "filesystem": {
       "allowWrite": [
         "/tmp",
@@ -242,10 +245,8 @@
       ]
     }
   },
-  "statusLine": {
-    "command": "~/.config/claude/statusline.sh",
-    "hideVimModeIndicator": true,
-    "type": "command"
-  },
-  "theme": "dark-ansi"
+  "effortLevel": "high",
+  "theme": "dark-ansi",
+  "editorMode": "vim",
+  "tui": "fullscreen"
 }
