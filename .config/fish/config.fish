@@ -6,11 +6,6 @@ fish_add_path "$HOME/.local/bin"
 # load aliases
 source ~/.config/fish/alias.fish
 
-# mise (manages node, bun, and other runtimes)
-if status is-interactive; and command -sq mise
-    mise activate fish --silent | source
-end
-
 # environment (needed in interactive and non-interactive shells)
 set -gx EDITOR nvim
 set -gx TERMINAL ghostty
@@ -41,3 +36,7 @@ if test -f ~/.orbstack/shell/init2.fish
     source ~/.orbstack/shell/init2.fish
 end
 set -gx GIT_OPTIONAL_LOCKS 0
+
+# mise (manages node, bun, and other runtimes)
+set -e MISE_SHELL
+set -gx PATH "$HOME/.local/share/mise/shims" $PATH
