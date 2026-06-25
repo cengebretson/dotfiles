@@ -20,6 +20,14 @@ status_line_use_colors = true
 [plugins."context-mode@context-mode"]
 enabled = true
 
+# MCP servers: safe to share when they hold no secret — the token is referenced
+# by env-var name (value stays machine-local in secrets), and the URL is generic.
+# Keep machine-specific or work-only servers (or any with an inline token / local
+# path) in config.toml only.
+[mcp_servers.github]
+url = "https://api.githubcopilot.com/mcp/"
+bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"
+
 # Optional local hooks: keep repo or machine-specific commands out of shared config.
 # Use ~/.config/codex/hooks.json to call ~/.config/codex/hooks/dispatch.sh,
 # then let that dispatcher decide what applies on the current machine/repo.
