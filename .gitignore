@@ -6,3 +6,4 @@
 .config/fish/secrets.fish
 .config/claude/.claude.json
 .config/codex/config.toml
+.ssh/config.local
