@@ -23,3 +23,26 @@ enabled = true
 # Optional local hooks: keep repo or machine-specific commands out of shared config.
 # Use ~/.config/codex/hooks.json to call ~/.config/codex/hooks/dispatch.sh,
 # then let that dispatcher decide what applies on the current machine/repo.
+
+# ── Profiles ─────────────────────────────────────────────────────────────────
+# Select at launch: codex -p <name> "task"   (CLI flags override profile values;
+# profiles override only the keys they set, the rest falls back to the config above.)
+
+[profiles.strict]            # recon / untrusted code: look, don't touch
+approval_policy = "on-request"
+sandbox_mode = "read-only"
+approvals_reviewer = "auto_review"
+
+[profiles.plan]              # deeper reasoning, still sandboxed to the workspace
+model_reasoning_effort = "high"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+approvals_reviewer = "auto_review"
+
+[profiles.auto]              # hands-off but contained: no prompts, sandbox stays on
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+# Full-access escape hatch (no sandbox) — uncomment only for trusted, supervised runs:
+#   [profiles.yolo]
+#   approval_policy = "never"
+#   sandbox_mode = "danger-full-access"
