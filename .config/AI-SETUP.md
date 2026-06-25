@@ -78,6 +78,27 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 - Codex: a `prefix_rule(...)` lands in `rules/default.rules` automatically via `auto_review`
   (gitignored — machine-local on purpose; don't hand-curate the work machine's entries onto this one).
 
+## Integrations registry
+
+Install/update is **generic per tool** — don't write per-plugin prose (it rots against the tools'
+own installers). Use the mechanics below + the table:
+
+- **Claude:** `/plugin` to browse / install / enable (writes `enabledPlugins` in `settings.json`,
+  fetches into the gitignored `plugins/` cache). Update via `/plugin`.
+- **Codex:** `codex plugin marketplace add <owner/repo>` then install; or for a bare server
+  `codex mcp add <name> --transport http <url>` (+ `codex mcp login <name>` if it does OAuth).
+  Mirror shareable bits into `config.shared.toml`. Remote servers update server-side.
+- **Deps** (browsers, CLIs) come from `brew bundle`.
+
+| Integration | Tools | Scope | Auth | Enable |
+|---|---|---|---|---|
+| context-mode | both | shared | none | already enabled (plugin) |
+| github | both | shared | OAuth | Claude plugin · Codex `codex mcp login github` |
+| Google Drive | Claude | shared | OAuth | connector (already on) |
+| context7 (live docs) | both | shared | none (free tier) | `/plugin` · `codex mcp add` |
+| atlassian (Jira+Confluence) | both | **local / work** | OAuth | `/plugin` + login · `codex mcp add` + `codex mcp login` |
+| playwright (browser) | both | shared | none (local browser) | `/plugin` · `codex mcp add` |
+
 ## Claude ↔ Codex parity (the keep-in-sync check)
 
 Glance here when one tool gets a capability the other lacks.
@@ -92,7 +113,7 @@ Glance here when one tool gets a capability the other lacks.
 | Coarse trust dial | sandbox + bypass mode | `approval_policy` + `sandbox_mode` |
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
-| GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` (PAT or `codex mcp login`) |
+| GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + `codex mcp login` (OAuth) |
 
 ## Gotchas worth remembering
 
@@ -103,5 +124,5 @@ Glance here when one tool gets a capability the other lacks.
   copied into `config.toml`. (Claude's `settings.json` *is* live, so it propagates on pull.)
 - **`rules/default.rules` is gitignored** so machine/repo-specific learned rules don't bleed across
   machines; share a curated baseline as a `rules/*.dotfiles-reference-*` snapshot instead.
-- **PAT vs OAuth for Codex GitHub MCP** — OAuth (`codex mcp login github`) avoids a long-lived PAT in
-  your env; the PAT path is simpler. Either is machine-local, so neither changes the sharing story.
+- **Codex GitHub MCP uses OAuth** (`codex mcp login github`) — no PAT in config or env; creds are
+  stored encrypted and machine-local, so they aren't shared (run the login once per machine).
