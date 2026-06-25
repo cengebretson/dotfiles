@@ -1,7 +1,8 @@
-function updates --description 'Update Homebrew, tmux TPM plugins, Fisher plugins, and Fish completions'
+function updates --description 'Update Homebrew (+ install missing Brewfile entries), tmux TPM plugins, Fisher plugins, and Fish completions'
     set -l failures
     set -l results
     set -l tpm_update "$HOME/.config/tmux/plugins/tpm/bin/update_plugins"
+    set -l brewfile "$HOME/.config/Brewfile"
     set -l ok (set_color green)'✓'(set_color normal)
     set -l fail (set_color red)'✗'(set_color normal)
 
@@ -19,6 +20,19 @@ function updates --description 'Update Homebrew, tmux TPM plugins, Fisher plugin
     else
         set --append results "$fail brew upgrade"
         set --append failures 'brew upgrade'
+    end
+
+    printf '\n==> brew bundle install (missing from Brewfile)\n'
+    if test -f "$brewfile"
+        if brew bundle install --file="$brewfile" --no-upgrade
+            set --append results "$ok brew bundle install"
+        else
+            set --append results "$fail brew bundle install"
+            set --append failures 'brew bundle install'
+        end
+    else
+        echo "updates: skipping brew bundle; $brewfile not found" >&2
+        set --append results '- brew bundle skipped'
     end
 
     printf '\n==> tmux TPM plugins\n'
