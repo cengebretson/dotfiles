@@ -50,6 +50,9 @@ computer-use/
 # Memories live in their own nested git repo, not in dotfiles
 memories/
 
+# Live execpolicy rules auto-grow per machine/repo (auto_review learns them) —
+# keep machine-local; share curated rules via a *.dotfiles-reference-* snapshot instead.
+rules/default.rules
 # Local rules backups / reference snapshots
 rules/*.backup-*
 rules/*.dotfiles-reference-*
