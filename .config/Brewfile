@@ -3,6 +3,7 @@ tap "brevity1swos/tap"
 
 # ── Shell & Terminal ───────────────────────────────────────────────────────────
 brew "fish"
+brew "bash" # modern bash 5.x (macOS ships 3.2); required by Claude hooks/scripts
 brew "tmux"
 brew "mosh"
 brew "starship"
@@ -39,6 +40,7 @@ brew "ripgrep"
 brew "ast-grep"
 brew "difftastic"
 brew "shellcheck"
+brew "shfmt"
 brew "brevity1swos/tap/rgx"
 
 # ── Editors & Runtimes ─────────────────────────────────────────────────────────
