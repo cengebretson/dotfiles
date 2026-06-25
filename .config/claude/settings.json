@@ -90,9 +90,7 @@
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
     ],
-    "additionalDirectories": [
-      "/Users/cengebretson/workspace/worktrees"
-    ]
+    "additionalDirectories": []
   },
   "model": "opus",
   "hooks": {
