@@ -73,8 +73,18 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 **Codex profile** — add `[profiles.<name>]` to `config.shared.toml` + `config.toml`. Select with
 `codex -p <name>`. CLI flags override the profile; the profile overrides the top-level default.
 
-**Allowlist / execpolicy entry**
-- Claude: add a `Bash(cmd:*)` prefix to `permissions.allow` in `settings.json`.
+**Allowlist / execpolicy entry** — *keep Claude's list minimal.*
+- Claude: **only add commands that escape the sandbox** — network (`gh`, `git push/fetch`, package
+  managers) or writes *outside* the repo. Do **not** add read-only commands (`rg`/`cat`/`ls`/`grep`)
+  or in-repo writes (`git commit`/`git add`) — the sandbox auto-allows those, so listing them is dead
+  weight. This relies on the `sandbox` block in `settings.json` (tracked, so it propagates on clone):
+  ```json
+  "sandbox": {
+    "enabled": true,
+    "autoAllowBashIfSandboxed": true,
+    "filesystem": { "allowWrite": ["/tmp", "/private/tmp"] }
+  }
+  ```
 - Codex: a `prefix_rule(...)` lands in `rules/default.rules` automatically via `auto_review`
   (gitignored — machine-local on purpose; don't hand-curate the work machine's entries onto this one).
 
@@ -126,3 +136,7 @@ Glance here when one tool gets a capability the other lacks.
   machines; share a curated baseline as a `rules/*.dotfiles-reference-*` snapshot instead.
 - **Codex GitHub MCP uses OAuth** (`codex mcp login github`) — no PAT in config or env; creds are
   stored encrypted and machine-local, so they aren't shared (run the login once per machine).
+- **The minimal Claude allowlist is load-bearing on the sandbox.** `sandbox.enabled` +
+  `autoAllowBashIfSandboxed` (tracked in `settings.json`) are what auto-approve read-only + in-repo-write
+  commands — which is why ~half the allowlist could be deleted. Disable the sandbox and those start
+  prompting again. Don't remove that block, and don't re-add `rg`/`cat`/`git commit`/etc. "to be safe."
