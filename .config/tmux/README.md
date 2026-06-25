@@ -39,7 +39,7 @@ Both themes use custom status modules and window text formats.
 
 **Right (appearance2):** current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
 
-The Moshi `󰄛` indicator is present in both themes. On narrow clients (under 100 cols, e.g. the phone) the bar collapses to a compact form: see the Moshi section.
+The Moshi `󰄛` indicator is present in both themes. On narrow clients (under `@phone_max_cols`, e.g. the phone) the bar collapses to a compact form: see the Moshi section.
 
 Window tabs use custom Unicode number glyphs via `scripts/custom_number.sh`. The active window uses filled square glyphs; inactive windows use double-stroke squares.
 
@@ -62,7 +62,9 @@ Integration for driving agents (Claude, Codex) from the phone over the Moshi app
 
 Two clients on one tmux session share the current window and shrink to the smaller screen. To stop the phone reshaping the laptop, a narrow client is moved onto its own grouped mirror:
 
-- **`scripts/phone_autoview.sh`** runs on both `client-attached` and `client-session-changed`. When a narrow client (terminal width under 80 cols) lands on a real session, it is switched onto a grouped `phone-<session>` mirror that shares the windows but keeps its own size. The window the client landed on is preserved in the mirror.
+> **Single threshold:** "narrow = phone" is defined once in `tmux.conf` as the `@phone_max_cols` option (currently `80`). Both this mirror logic (`phone_autoview.sh` reads the option, falling back to 80) and the responsive status bar (appearance2) read the same value, so there is no width band that gets phone chrome while still clobbering the laptop's view.
+
+- **`scripts/phone_autoview.sh`** runs on both `client-attached` and `client-session-changed`. When a narrow client (terminal width under `@phone_max_cols`) lands on a real session, it is switched onto a grouped `phone-<session>` mirror that shares the windows but keeps its own size. The window the client landed on is preserved in the mirror.
 - **`client-session-changed`** is what makes jumping safe: picking a session from fzf-jump fires it, so the phone is bounced onto the mirror instead of sitting directly on the real session (which would clobber the laptop).
 - **`scripts/phone_autoview_cleanup.sh`** runs on `client-detached` and reaps any `phone-*` mirror with no clients, so the mirrors are ephemeral.
 - Hooks append (`set-hook -ga`) and a `@phone_autoview_installed` guard prevents duplicate registration on reload, while preserving the tmux-attention hooks. Wide clients (the laptop) are never touched.
@@ -74,13 +76,13 @@ Two clients on one tmux session share the current window and shrink to the small
 
 ### Responsive status bar (appearance2)
 
-The status line is drawn per client, so it adapts to width via `#{e|>=:#{client_width},100}`. On clients under 100 cols (the phone):
+The status line is drawn per client, so it adapts to width via `#{e|>=:#{client_width},#{@phone_max_cols}}`. On clients under `@phone_max_cols` (the phone):
 
 - status-right (path, CPU, RAM, the Moshi indicator) is hidden.
 - the session name (`#S`) is dropped from status-left, since Moshi's picker already shows it; the prefix icon stays.
 - window tabs show only their number glyph, not the name, so multiple windows fit.
 
-The laptop (>= 100 cols) keeps the full bar. Mouse mode is on, so on the phone you can tap panes and windows to focus, and swipe to scroll.
+The laptop (>= `@phone_max_cols`) keeps the full bar. Mouse mode is on, so on the phone you can tap panes and windows to focus, and swipe to scroll.
 
 ## Scripts
 

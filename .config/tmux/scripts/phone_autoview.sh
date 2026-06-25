@@ -10,7 +10,12 @@
 # Width is the phone heuristic: anything under PHONE_MAX_COLS is treated as the
 # phone. A laptop in a tiny split could trip this; that is the accepted tradeoff
 # for hands-off behavior (see moshi-remote-agent-setup spec, section 4).
-PHONE_MAX_COLS=80
+#
+# The threshold is the shared @phone_max_cols tmux option (set in tmux.conf) so
+# the status-bar collapse and this mirror logic can never drift apart. Fallback
+# to 80 if the option is unset (e.g. script run outside the normal tmux config).
+PHONE_MAX_COLS=$(tmux show-option -gqv @phone_max_cols)
+[ -n "$PHONE_MAX_COLS" ] || PHONE_MAX_COLS=80
 
 client="$1"
 width="$2"
