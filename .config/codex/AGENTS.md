@@ -1,5 +1,9 @@
 # Global Codex Instructions
 
+> Machine setup, bootstrap, and how to add MCP servers / hooks / profiles live in
+> `../AI-SETUP.md` (the cross-tool runbook for Claude + Codex) — not here. This file is
+> behavior only.
+
 ## Working Style
 
 - At the start of a new session, use `$health-check` before substantive work and report the result. If the skill is unavailable, perform the same manual checks covering repository tools, issue-tracker/MCP tools, context-mode/plugin availability, and SSH agent status.

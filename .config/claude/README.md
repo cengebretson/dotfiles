@@ -2,6 +2,9 @@
 
 Personal Claude Code setup with a custom statusline and vim mode integration.
 
+> **Machine setup / bootstrap / how to add MCP servers, hooks, profiles:** see
+> [`../AI-SETUP.md`](../AI-SETUP.md) — the cross-tool runbook for Claude + Codex.
+
 ## Statusline
 
 `statusline.sh` is a custom status bar script driven by JSON piped from Claude Code. All colors use the Catppuccin Mocha palette.
