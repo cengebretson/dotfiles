@@ -1,0 +1,125 @@
+#!/usr/bin/env bash
+# ai-doctor — one health/audit report for the AI coding agents (Claude Code + Codex CLI).
+#
+# Read-only. This owns all "doctoring": hook-plumbing checks (moved out of each dispatch.sh,
+# which now only dispatches), dependency presence, integration/plugin state, and skills parity.
+# To see what's MISSING and how to install it, diff the Integrations sections below against the
+# registry in ~/.config/AI-SETUP.md. Exit non-zero if any hard check fails (warns don't fail).
+set -u
+
+CLAUDE_DIR="$HOME/.config/claude"
+CODEX_DIR="$HOME/.config/codex"
+TMUX_ATTENTION="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
+
+fails=0
+warns=0
+
+line() { # status label [detail]
+  local status="$1" label="$2" detail="${3:-}"
+  case "$status" in
+    fail) fails=$((fails + 1)) ;;
+    warn) warns=$((warns + 1)) ;;
+  esac
+  if [ -n "$detail" ]; then
+    printf '  %-5s %s: %s\n' "$status" "$label" "$detail"
+  else
+    printf '  %-5s %s\n' "$status" "$label"
+  fi
+}
+
+section() { printf '\n== %s ==\n' "$1"; }
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+moshi_path() {
+  command -v moshi-hook 2>/dev/null && return 0
+  [ -x /opt/homebrew/bin/moshi-hook ] && echo /opt/homebrew/bin/moshi-hook
+}
+
+check_routes() { # config_file
+  local f="$1"
+  if [ -f "$f" ] && grep -q 'dispatch.sh' "$f"; then
+    line ok config "$(basename "$f") routes through dispatch.sh"
+  else
+    line warn config "$(basename "$f") does not mention dispatch.sh"
+  fi
+}
+
+list_skills() { # dir -> one skill name per line
+  local d="$1" p
+  [ -d "$d" ] || return 0
+  for p in "$d"/*/; do [ -d "$p" ] && basename "$p"; done
+}
+skill_has() { list_skills "$1" | grep -qx "$2"; }
+
+# --- Dependencies (from Brewfile) ---
+section "Dependencies"
+for t in bash shfmt jq node npx fish gh rg fd bat eza delta codex; do
+  if have "$t"; then
+    line ok "$t" "$(command -v "$t")"
+  else
+    line warn "$t" "missing — brew bundle --file ~/.config/Brewfile"
+  fi
+done
+
+# --- Claude hook plumbing ---
+section "Claude hooks"
+if [ -x "$CLAUDE_DIR/hooks/dispatch.sh" ]; then line ok dispatcher executable; else line fail dispatcher "not executable"; fi
+if [ -x "$TMUX_ATTENTION" ]; then line ok tmux-attention present; else line warn tmux-attention missing; fi
+mp="$(moshi_path)"; if [ -n "$mp" ]; then line ok moshi-hook "$mp"; else line warn moshi-hook missing; fi
+if [ -x "$CLAUDE_DIR/hooks/format-on-edit.sh" ]; then line ok format-on-edit present; else line warn format-on-edit missing; fi
+if [ -f "$CLAUDE_DIR/hooks/context-mode-cache-heal.mjs" ]; then line ok context-mode-cache-heal present; else line warn context-mode-cache-heal missing; fi
+if [ -x "$CLAUDE_DIR/hooks/approve-compound-bash.sh" ]; then line ok approve-compound-bash present; else line warn approve-compound-bash missing; fi
+if have shfmt; then line ok shfmt present; else line warn shfmt "missing (approve-compound-bash falls through)"; fi
+if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then line ok modern-bash present; else line warn modern-bash "missing (needs bash 4.3+ via Homebrew; macOS ships 3.2)"; fi
+check_routes "$CLAUDE_DIR/settings.json"
+
+# --- Codex hook plumbing ---
+section "Codex hooks"
+if [ -x "$CODEX_DIR/hooks/dispatch.sh" ]; then line ok dispatcher executable; else line fail dispatcher "not executable"; fi
+if [ -x "$TMUX_ATTENTION" ]; then line ok tmux-attention present; else line warn tmux-attention missing; fi
+mp="$(moshi_path)"; if [ -n "$mp" ]; then line ok moshi-hook "$mp"; else line warn moshi-hook missing; fi
+check_routes "$CODEX_DIR/hooks.json"
+
+# --- Integrations (state; diff against the AI-SETUP.md registry for missing/how-to) ---
+section "Integrations — Claude enabled plugins"
+if have jq; then
+  jq -r '.enabledPlugins // {} | to_entries[] | select(.value) | "  ok    " + .key' "$CLAUDE_DIR/settings.json" 2>/dev/null \
+    || line warn settings.json unreadable
+else
+  line warn jq "missing — cannot read enabledPlugins"
+fi
+
+section "Integrations — Codex MCP servers"
+if have codex; then
+  codex mcp list 2>/dev/null | sed 's/^/  /' || line warn codex "mcp list failed"
+else
+  line warn codex "CLI missing"
+fi
+
+section "Integrations — Codex plugins (installed)"
+if have codex; then
+  codex plugin list 2>/dev/null | grep 'installed' | grep -v 'not installed' | sed 's/^/  ok    /' || true
+  avail="$(codex plugin list 2>/dev/null | grep -c 'not installed')"
+  line ok available "${avail:-0} marketplace plugins not installed (codex plugin list to browse)"
+else
+  line warn codex "CLI missing"
+fi
+
+# --- Skills parity ---
+section "Skills parity (Claude vs Codex)"
+before=$warns
+while IFS= read -r s; do
+  [ -n "$s" ] && { skill_has "$CODEX_DIR/skills" "$s" || line warn skills "Claude-only: $s"; }
+done < <(list_skills "$CLAUDE_DIR/skills")
+while IFS= read -r s; do
+  [ -n "$s" ] && { skill_has "$CLAUDE_DIR/skills" "$s" || line warn skills "Codex-only: $s"; }
+done < <(list_skills "$CODEX_DIR/skills")
+[ "$warns" -eq "$before" ] && line ok skills "in sync"
+
+# --- Summary ---
+section "Summary"
+printf '  %d fail, %d warn\n' "$fails" "$warns"
+printf '  Diff the Integrations sections against the registry in ~/.config/AI-SETUP.md to install any missing.\n'
+[ "$fails" -gt 0 ] && exit 1
+exit 0

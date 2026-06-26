@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Generic Codex hook dispatcher.
 #
+# Health/readiness checks live in ~/.local/bin/ai-doctor — this script only dispatches.
 # Keeps hooks.json portable by routing machine-specific hook commands here.
 # Future ideas:
 # - Add repo-specific local hook handoff for trusted worktrees.
@@ -46,50 +47,7 @@ have() {
   command -v "$1" >/dev/null 2>&1
 }
 
-doctor_line() {
-  status="$1"
-  label="$2"
-  detail="${3:-}"
-  if [ -n "$detail" ]; then
-    printf '%s %s: %s\n' "$status" "$label" "$detail"
-  else
-    printf '%s %s\n' "$status" "$label"
-  fi
-}
-
-check_dispatch_config() {
-  config_file="$1"
-  if [ -f "$config_file" ] && grep -q 'dispatch.sh' "$config_file"; then
-    doctor_line "ok" "config" "$config_file routes through dispatch.sh"
-  else
-    doctor_line "warn" "config" "$config_file does not mention dispatch.sh"
-  fi
-}
-
-doctor() {
-  doctor_line "Codex Hook Dispatcher Doctor" ""
-  [ -x "$HOME/.config/codex/hooks/dispatch.sh" ] && doctor_line ok dispatcher executable || doctor_line fail dispatcher not-executable
-  if mkdir -p "$log_dir" >/dev/null 2>&1 && : >> "$log_file" 2>/dev/null; then
-    doctor_line ok logging "$log_file writable"
-  else
-    doctor_line warn logging "$log_file not writable"
-  fi
-  script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-  [ -x "$script" ] && doctor_line ok tmux-attention "$script" || doctor_line warn tmux-attention missing
-  if have moshi-hook; then
-    doctor_line ok moshi-hook "$(command -v moshi-hook)"
-  elif [ -x /opt/homebrew/bin/moshi-hook ]; then
-    doctor_line ok moshi-hook /opt/homebrew/bin/moshi-hook
-  else
-    doctor_line warn moshi-hook missing
-  fi
-  check_dispatch_config "$HOME/.config/codex/hooks.json"
-}
-
 case "$event" in
-  doctor)
-    doctor
-    ;;
   permission-request-notify)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
     [ -x "$script" ] && run_command tmux-attention-input "$script" input || log_hook skipped tmux-attention-missing

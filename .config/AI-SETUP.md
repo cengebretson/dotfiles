@@ -44,6 +44,7 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <cmd>
 | `codex/auth.json` | account/auth | 🚫 gitignored |
 | `fish/secrets.fish` | secret env vars (`GH_TOKEN`, `GITHUB_PERSONAL_ACCESS_TOKEN`, …) | 🚫 gitignored |
 | `git/config.local` | git `user.name`/`user.email` for this machine | 🚫 gitignored |
+| `.local/bin/ai-doctor` | one-command health/audit report (hooks, integrations, deps, skills) | ✅ |
 
 Rule of thumb for *every* config: **share the reference, never the secret or the machine-specific bit.**
 
@@ -67,8 +68,8 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
    `enabledPlugins` in `settings.json` is already tracked, so they re-fetch on first run; Codex:
    `codex plugin add …` / `codex mcp add …` as listed). 🧑 OAuth logins there are per-machine.
-7. **Verify:** `/health-check` (Claude) · `codex doctor` · `~/.config/claude/hooks/dispatch.sh doctor </dev/null`
-   (the `</dev/null` matters — the dispatcher reads stdin before its subcommand switch).
+7. **Verify:** `ai-doctor` (one report: hooks, integrations, deps, skills parity) · `/health-check`
+   (Claude) · `codex doctor`.
 
 ## How to add things (with the share-vs-local rule)
 
@@ -145,29 +146,23 @@ marketplace under `extraKnownMarketplaces` (see the existing `context-mode` entr
 
 ## Audit (setup status)
 
-To answer *"what's installed, what's missing, how do I install it,"* enumerate live state and diff it
-against the [Integrations registry](#integrations-registry) desired set. All read-only 🤖.
+Run **`ai-doctor`** (`~/.local/bin/ai-doctor`, tracked) — one read-only report 🤖 covering deps, hook
+plumbing for both tools, integration/plugin state, and skills parity. It owns all health checks; the
+`dispatch.sh` scripts only dispatch now. To get *"what's missing + how to install it,"* diff its
+Integrations sections against the [registry](#integrations-registry): mark each row ✅/❌ per tool and
+emit the ❌ row's install command (🤖) or human handoff (🧑). Skip `local/work` rows (atlassian)
+unless asked.
 
-**Enumerate state:**
+Under the hood `ai-doctor` enumerates state with these — use them directly for a single facet:
 
 ```bash
-# Claude — enabled plugins
 jq -r '.enabledPlugins | to_entries[] | select(.value) | .key' ~/.config/claude/settings.json
-# Codex — MCP servers and marketplace plugins
 codex mcp list
 codex plugin list
-# Hook plumbing (both dispatchers; </dev/null is required — see Gotchas)
-~/.config/claude/hooks/dispatch.sh doctor </dev/null
-~/.config/codex/hooks/dispatch.sh doctor </dev/null
 ```
 
-**Report:** for each registry row, mark ✅ installed / ❌ missing *per tool*; for every ❌, emit that
-row's install command (🤖) or human handoff (🧑). Skip `local/work` rows (atlassian) unless asked.
-Also confirm `claude/skills/` and `codex/skills/` hold the same skill set (parity table).
-
-**Deps:** re-run `brew bundle --file ~/.config/Brewfile` — Homebrew reports missing formulae itself,
-so it doubles as the dependency audit. The two `dispatch.sh doctor`s above cover hook *plumbing* only
-(not integrations), so they complement — not replace — the plugin/MCP enumeration.
+**Deps:** `ai-doctor` checks presence; `brew bundle --file ~/.config/Brewfile` installs/repairs any
+missing formulae.
 
 ## Claude ↔ Codex parity (the keep-in-sync check)
 
@@ -190,7 +185,6 @@ Glance here when one tool gets a capability the other lacks.
 
 - **macOS bash is 3.2.** Anything needing bash 4.3+ (e.g. `approve-compound-bash.sh`) relies on the
   Homebrew bash re-exec — so Homebrew `bash` must be installed, or the hook silently no-ops (fail-closed).
-- **`dispatch.sh doctor` blocks without stdin** — always `</dev/null`.
 - **Codex `config.shared.toml` is a reference, not loaded** — changes there don't take effect until
   copied into `config.toml`. (Claude's `settings.json` *is* live, so it propagates on pull.)
 - **`rules/default.rules` is gitignored** so machine/repo-specific learned rules don't bleed across
