@@ -75,8 +75,8 @@ if moshi_present; then line ok moshi-hook; else line warn moshi-hook missing; fi
 if [ -x "$CLAUDE_DIR/hooks/format-on-edit.sh" ]; then line ok format-on-edit; else line warn format-on-edit missing; fi
 if [ -f "$CLAUDE_DIR/hooks/context-mode-cache-heal.mjs" ]; then line ok context-mode-cache-heal; else line warn context-mode-cache-heal missing; fi
 if [ -x "$CLAUDE_DIR/hooks/approve-compound-bash.sh" ]; then line ok approve-compound-bash; else line warn approve-compound-bash missing; fi
-if have shfmt; then line ok shfmt; else line warn shfmt "missing (approve-compound-bash falls through)"; fi
-if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then line ok modern-bash; else line warn modern-bash "missing (needs bash 4.3+ via Homebrew; macOS ships 3.2)"; fi
+if have shfmt; then line ok shfmt "approve-compound-bash dep"; else line warn shfmt "missing — approve-compound-bash falls through"; fi
+if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then line ok modern-bash "approve-compound-bash dep"; else line warn modern-bash "missing — needs bash 4.3+ via Homebrew; macOS ships 3.2"; fi
 check_routes "$CLAUDE_DIR/settings.json"
 
 # --- Codex hook plumbing ---
