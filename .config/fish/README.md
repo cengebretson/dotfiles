@@ -74,6 +74,7 @@ These live in `functions/` and are not Fisher-managed.
 | Command | Purpose |
 |---------|---------|
 | `claude` | Run Claude Code and rename the tmux window to `claude` while active |
+| `codex` | Run Codex and rename the tmux window to `codex` while active |
 | `confetti` | Trigger the Raycast confetti extension |
 | `fish_greeting` | Show a custom shell greeting with random image/system info |
 | `keychain` | List macOS Keychain entries or set an environment variable from a Keychain value |
