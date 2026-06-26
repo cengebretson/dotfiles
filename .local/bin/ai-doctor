@@ -97,19 +97,30 @@ fi
 
 section "Integrations — Codex MCP + plugins"
 if have codex; then
+  # Installed plugin base-names (strip @marketplace). A plugin may also register an MCP
+  # server (e.g. context-mode), so dedupe by name and note how each is installed.
+  plugins_installed="$(codex plugin list 2>/dev/null | grep 'installed' | grep -v 'not installed' \
+    | awk '{n=$1; sub(/@.*/, "", n); print n}')"
+  is_plugin() { printf '%s\n' "$plugins_installed" | grep -qx "$1"; }
+
+  mcp_seen=""
   while IFS= read -r row; do
     [ -n "$row" ] || continue
+    name="${row%% *}"
+    mcp_seen="$(printf '%s\n%s' "$mcp_seen" "$name")"
+    src="mcp"; is_plugin "$name" && src="plugin + mcp"
     if printf '%s' "$row" | grep -q 'Not logged in'; then
-      line warn "${row%% *}" "mcp · not logged in"
+      line warn "$name" "$src · not logged in"
     else
-      line ok "${row%% *}" "mcp"
+      line ok "$name" "$src"
     fi
   done < <(codex mcp list 2>/dev/null | awk 'NF && $1 != "Name" {print}')
-  while IFS= read -r row; do
-    [ -n "$row" ] && line ok "${row%% *}" "plugin · installed"
-  done < <(codex plugin list 2>/dev/null | grep 'installed' | grep -v 'not installed')
-  avail="$(codex plugin list 2>/dev/null | grep -c 'not installed')"
-  line ok "(catalog)" "${avail:-0} more available — codex plugin list"
+
+  # Installed plugins that don't also register an MCP server.
+  while IFS= read -r p; do
+    [ -n "$p" ] || continue
+    printf '%s\n' "$mcp_seen" | grep -qx "$p" || line ok "$p" "plugin"
+  done < <(printf '%s\n' "$plugins_installed")
 else
   line warn codex "CLI missing"
 fi
