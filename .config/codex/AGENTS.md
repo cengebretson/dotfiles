@@ -91,107 +91,15 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 - `rg`: `-h` means `--help`, not "no filename". Use `--no-filename` or `-I` for no-filename output.
 - If a command unexpectedly prints a tool's help text, assume a bad flag and fix the command before trusting the output.
 
----
+## context-mode
 
-# context-mode — MANDATORY routing rules
+The context-mode plugin **auto-injects** its full routing guidance (Think-in-Code, the
+tool-selection hierarchy, `ctx` commands, session-memory rules) into context at session start via
+its hooks — a single source of truth the plugin keeps current and platform-correct, so it is **not**
+duplicated here. This relies on `plugin_hooks = true` / `[features].hooks = true` in `config.toml`
+(see `../AI-SETUP.md`).
 
-context-mode MCP tools available. Rules protect context window from flooding. One unrouted command dumps 56 KB into context. Codex CLI hooks provide runtime enforcement when `[features].hooks = true`; these instructions remain mandatory model-side enforcement. Follow strictly.
-
-## Think in Code — MANDATORY
-
-Analyze/count/filter/compare/search/parse/transform data: **write code** via `ctx_execute(language, code)`, `console.log()` only the answer. Do NOT read raw data into context. PROGRAM the analysis, not COMPUTE it. Pure JavaScript — Node.js built-ins only (`fs`, `path`, `child_process`). `try/catch`, handle `null`/`undefined`. One script replaces ten tool calls.
-
-## BLOCKED — do NOT use
-
-### curl / wget — FORBIDDEN
-Do NOT use `curl`/`wget` in shell. Dumps raw HTTP into context.
-Use a dedicated web/search tool when available. If a context-mode web indexing tool is exposed, prefer it; otherwise use `ctx_execute(language: "javascript", code: "const r = await fetch(...)")` and print only a terse summary.
-
-### Inline HTTP — FORBIDDEN
-No `node -e "fetch(..."`, `python -c "requests.get(..."`. Bypasses sandbox.
-Use: `ctx_execute(language, code)` — only stdout enters context
-
-### Direct web fetching — FORBIDDEN
-Raw HTML can exceed 100 KB.
-Use a dedicated web/search tool when available. If a context-mode web indexing tool is exposed, fetch/index there and query with `ctx_search(queries)`.
-
-## REDIRECTED — use sandbox
-
-### Shell (>20 lines output)
-Shell is fine for short fixed observations and state-changing repo commands (`git`, `mkdir`, `rm`, `mv`, `cd`, `ls`, `npm install`, `pip install`).
-For commands that may exceed 20 lines, use context-mode. Prefer `ctx_batch_execute(commands, queries)` when that tool is exposed and you are gathering several related context sources; otherwise use `ctx_execute(language: "shell", code: "...")` to filter or summarize to a terse answer.
-
-### File reading (for analysis)
-Reading to **edit** → reading correct. Reading to **analyze/explore/summarize** → `ctx_execute_file(path, language, code)`.
-
-### grep / search (large results)
-Use `ctx_execute(language: "shell", code: "grep ...")` in sandbox.
-
-## Tool selection
-
-0. **MEMORY**: `ctx_search(sort: "timeline")` — after resume, check prior context before asking user.
-1. **SHORT OBSERVATION**: for small fixed outputs (`git status --short`, `git log -1`, short `sed`, targeted `rg`), use normal shell tools instead of context-mode.
-2. **BATCH GATHER**: when available, `ctx_batch_execute(commands, queries)` is preferred for several related commands, outputs that may be large, or context worth indexing/searching in one round trip. Keep batches focused; use narrow labels and queries; avoid broad readbacks. If unavailable, use `ctx_execute` with an explicit summarizer.
-3. **PROCESSING**: `ctx_execute(language, code)` | `ctx_execute_file(path, language, code)` — derive a terse answer when one script can filter/count/summarize; only stdout enters context.
-4. **FOLLOW-UP**: `ctx_search(queries: ["q1", "q2", ...])` — all questions as array, ONE call (default relevance mode).
-5. **WEB**: use the browser/web tool or a context-mode web indexing tool when available; raw HTML should never enter context.
-6. **INDEX**: `ctx_index(content, source)` — store in FTS5 for later search.
-
-## Quiet output
-
-When using context-mode for tests, builds, lint, searches, or other commands that
-can produce large output, filter aggressively and print only failures, actionable
-diagnostics, or a short pass/fail summary. Do not return full passing logs unless
-the user explicitly asks for them.
-
-## Parallel I/O batches
-
-For multi-URL fetches or multi-API calls, use batch tools with `concurrency: N` (1-8) when those tools are exposed. Use concurrency 4-8 for I/O-bound work such as network calls and API queries. Keep concurrency 1 for CPU-bound work such as tests, builds, and lint, or commands sharing state such as ports, lock files, or same-repo writes.
-
-GitHub API rate-limit: cap at 4 for `gh` calls.
-
-## Output
-
-Write substantial generated artifacts to files instead of inlining them. Return: file path + 1-line description.
-Descriptive source labels for `ctx_search(source: "label")`.
-
-## Session Continuity
-
-Skills, roles, and decisions persist for the entire session. Do not abandon them as the conversation grows.
-
-## Memory
-
-Session history is persistent and searchable. On resume, search BEFORE asking the user:
-
-| Need | Command |
-|------|---------|
-| What were we working on? | `ctx_search(queries: ["summary"], source: "compaction", sort: "timeline")` |
-| What did we decide? | `ctx_search(queries: ["decision"], source: "decision", sort: "timeline")` |
-| What NOT to repeat? | `ctx_search(queries: ["rejected"], source: "rejected-approach")` |
-| What constraints exist? | `ctx_search(queries: ["constraint"], source: "constraint")` |
-
-Note: user-prompt history may be available through context-mode session memory, depending on hooks and retention.
-
-DO NOT ask "what were we working on?" — SEARCH FIRST.
-If search returns 0 results, proceed as a fresh session.
-
-## ctx commands
-
-| Command | Action |
-|---------|--------|
-| `ctx stats` | Call `stats` MCP tool, display full output verbatim |
-| `ctx doctor` | Call `doctor` MCP tool, run returned shell command, display as checklist |
-| `ctx upgrade` | Call `upgrade` MCP tool, run returned shell command, display as checklist |
-| `ctx purge` | Call `purge` MCP tool with confirm: true. Warns before wiping knowledge base. |
-
-After /clear or /compact: knowledge base and session stats preserved. Use `ctx purge` to start fresh.
-
-## Windows notes
-
-**PowerShell cmdlets** — Sandbox uses bash. PowerShell cmdlets (`Format-List`, `Get-Culture`, etc.) fail with `command not found`. Wrap with `pwsh -NoProfile -Command "..."`.
-
-**Relative paths** — Sandbox CWD is temp dir, not project root. Convert to absolute paths. Ask user to confirm if unknown.
-
-**Windows drive letters** — Sandbox runs Git Bash / MSYS2. `X:\path` → `/x/path` (lowercase, no `/mnt/`). Never emit `/mnt/<letter>/`.
-
-**Quote paths** — Spaces in paths cause splits. Always double-quote: `rg "symbol" "$REPO_ROOT/some dir/Source"`.
+Durable intent if that injected guidance is ever absent: prefer context-mode tools to keep raw bytes
+out of context — program the analysis with `ctx_execute`, gather/search with `ctx_batch_execute` and
+`ctx_search` instead of reading large raw output into the conversation, and on resume search session
+memory before asking the user what you were doing.

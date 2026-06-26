@@ -1,5 +1,9 @@
 # Global Claude Instructions
 
+> Machine setup, bootstrap, and how to add plugins / MCP servers / hooks live in
+> `~/.config/AI-SETUP.md` (the cross-tool runbook for Claude + Codex). This file is behavior plus the
+> few environment facts needed in any repo — keep deep setup steps in AI-SETUP.md, not here.
+
 ## Autonomy and Confirmation
 
 Default to acting, not asking. When the next step is clear from the request, the code, or sensible defaults, do it and report what you did afterward, instead of asking "want me to...?" first. This applies across all projects.
@@ -89,10 +93,8 @@ The dotfiles are shared across machines (e.g. personal + work). Per-machine iden
 
 ## Fish Config
 
-- `~/.config/fish/fish_plugins` is the source of truth for Fisher plugins; do not commit Fisher-generated files from `functions/`, `conf.d/`, or `completions/` unless they are custom dotfiles.
-- Custom Fish commands live in `~/.config/fish/functions/` and should be documented in `~/.config/fish/README.md`.
-- `~/.config/fish/secrets.fish` is machine-local and must not be committed. It is sourced by `~/.config/fish/conf.d/local-secrets.fish`.
-- Use `fish -n` on changed Fish files before finishing Fish config work.
+- Validate changed Fish files with `fish -n` before finishing.
+- Don't commit Fisher-generated files under `functions/`, `conf.d/`, `completions/` unless they're custom dotfiles (`fish_plugins` is the plugin source of truth). Custom functions live in `~/.config/fish/functions/`, documented in `~/.config/fish/README.md`. (`secrets.fish` machine-local rule is in *Machine-Local Files* above.)
 
 ## Tmux
 
@@ -101,7 +103,7 @@ The dotfiles are shared across machines (e.g. personal + work). Per-machine iden
 
 ## context-mode
 
-context-mode is installed globally and active in every session. It keeps large tool outputs out of the context window and captures session state for resumption.
+context-mode is installed globally and active in every session. It keeps large tool outputs out of the context window and captures session state for resumption. The plugin auto-injects its routing guidance (Think-in-Code, tool-selection hierarchy, session memory) into context each session via hooks — so that guidance is not restated here.
 
 - `/ctx-stats` — show how much context was saved this session
 - `/ctx-upgrade` — update to the latest version (check after `/health-check` flags an update)
