@@ -180,6 +180,7 @@ Glance here when one tool gets a capability the other lacks.
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
 | GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + `codex mcp login` (OAuth) |
+| Desktop app vs config | `Claude.app` keeps a **separate** store (`~/Library/Application Support/Claude/`, own MCP/connectors) — CLI config does **not** carry in | `Codex.app` **shares** `~/.codex/` (config, profiles, MCP, hooks, rules, auth) — only Electron state is app-local |
 
 ## Gotchas worth remembering
 
@@ -195,3 +196,14 @@ Glance here when one tool gets a capability the other lacks.
   `autoAllowBashIfSandboxed` (tracked in `settings.json`) are what auto-approve read-only + in-repo-write
   commands — which is why ~half the allowlist could be deleted. Disable the sandbox and those start
   prompting again. Don't remove that block, and don't re-add `rg`/`cat`/`git commit`/etc. "to be safe."
+- **The desktop apps are not symmetric.** `Codex.app` (Electron) **shares** `~/.codex/` with the CLI —
+  it reads `config.toml`, profiles, MCP, `hooks.json`, `rules/`, `auth.json`; only Chromium/Electron
+  state lives in `~/Library/Application Support/Codex`. `Claude.app` is the opposite: it keeps its own
+  config (`~/Library/Application Support/Claude/claude_desktop_config.json`, connectors), and Claude
+  Code's `settings.json`/hooks/plugins do **not** carry into it. Only Claude *Code* surfaces (terminal,
+  IDE extension) share `~/.config/claude`. To run app-free, the sole thing you lose is Claude's Google
+  Drive connector (app-only); everything else works headless from the CLI.
+- **`Codex.app` bundles its own `codex` engine — it can drift from the brew CLI.** Config is shared,
+  but the app's binary (`/Applications/Codex.app/Contents/Resources/codex`) and the plugin versions it
+  resolves may differ from `/opt/homebrew/bin/codex` (seen: app on context-mode 1.0.162 vs CLI 1.0.166).
+  If the app and terminal behave differently, compare versions first.
