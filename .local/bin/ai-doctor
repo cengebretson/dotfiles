@@ -86,6 +86,26 @@ if [ -x "$TMUX_ATTENTION" ]; then line ok tmux-attention; else line warn tmux-at
 if moshi_present; then line ok moshi-hook; else line warn moshi-hook missing; fi
 check_routes "$CODEX_DIR/hooks.json"
 
+# --- moshi service (remote approvals/notifications; routed via dispatch.sh, not moshi-hook install) ---
+section "moshi service"
+if have moshi-hook; then
+  st="$(moshi-hook status 2>/dev/null)"
+  if printf '%s' "$st" | grep -q 'status:.*unpaired'; then
+    line warn pairing "unpaired — moshi-hook pair --token <token>"
+  elif printf '%s' "$st" | grep -q 'status:.*paired'; then
+    line ok pairing "paired"
+  else
+    line warn pairing "status unknown"
+  fi
+  if pgrep -f 'moshi-hook serve' >/dev/null 2>&1; then
+    line ok daemon "serve running"
+  else
+    line warn daemon "not running — brew services start moshi-hook"
+  fi
+else
+  line warn moshi-hook "missing — brew bundle --file ~/.config/Brewfile"
+fi
+
 # --- Integrations (state; diff against the AI-SETUP.md registry for missing/how-to) ---
 section "Integrations — Claude plugins"
 if have jq; then
