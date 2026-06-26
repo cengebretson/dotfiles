@@ -13,3 +13,9 @@ tmux list-sessions -F '#{session_name} #{session_attached}' 2>/dev/null | while 
             ;;
     esac
 done
+
+# Best-effort reaper: always succeed. Without this the script inherits the exit
+# status of the loop's last `[ "$attached" = "0" ]` test, which is 1 whenever the
+# final session processed is still attached, so run-shell prints a spurious
+# "returned 1" to the screen even though cleanup worked.
+exit 0
