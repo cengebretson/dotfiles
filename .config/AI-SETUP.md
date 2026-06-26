@@ -63,6 +63,11 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
    - Claude Code: sign in (determines which subscription bills)
    - Codex GitHub MCP: either set `GITHUB_PERSONAL_ACCESS_TOKEN` in `secrets.fish` (PAT path),
      or run `codex mcp login github` (OAuth path — no PAT to manage; creds stored encrypted, per machine)
+   - moshi (remote approvals/notifications, optional): `moshi-hook pair --token <token>` (token from
+     the Moshi app; secret stored in the macOS keychain, per machine), then run the `moshi-hook serve`
+     daemon (it maintains the socket + WebSocket bridge). Verify with `moshi-hook status` → `paired`.
+     Do **not** run `moshi-hook install` — see Gotchas. Until paired, the `dispatch.sh moshi` routes
+     no-op harmlessly.
 5. **Codex live config:** copy the wanted blocks from `codex/config.shared.toml` into `codex/config.toml`
    (it's a reference, not auto-loaded). At minimum: `[mcp_servers.github]` and the `[profiles.*]`.
 6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
@@ -181,6 +186,7 @@ Glance here when one tool gets a capability the other lacks.
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
 | GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + `codex mcp login` (OAuth) |
 | Desktop app vs config | `Claude.app` keeps a **separate** store (`~/Library/Application Support/Claude/`, own MCP/connectors) — CLI config does **not** carry in | `Codex.app` **shares** `~/.codex/` (config, profiles, MCP, hooks, rules, auth) — only Electron state is app-local |
+| Remote approvals/notify (moshi) | `dispatch.sh moshi` → `moshi-hook claude-hook` (9 hook events) | `dispatch.sh moshi` → `moshi-hook codex-hook` (4 hook events) |
 
 ## Gotchas worth remembering
 
@@ -207,3 +213,10 @@ Glance here when one tool gets a capability the other lacks.
   but the app's binary (`/Applications/Codex.app/Contents/Resources/codex`) and the plugin versions it
   resolves may differ from `/opt/homebrew/bin/codex` (seen: app on context-mode 1.0.162 vs CLI 1.0.166).
   If the app and terminal behave differently, compare versions first.
+- **moshi is wired through `dispatch.sh moshi`, NOT `moshi-hook install` — ignore the "stale" nag.**
+  The hook events route to `moshi-hook claude-hook`/`codex-hook` via the dispatcher (keeps
+  `settings.json`/`hooks.json` portable). So `moshi-hook status` always reports hooks `stale / missing`
+  and says "rerun `moshi-hook install`" — **don't.** `moshi-hook install` writes its own
+  machine-specific hook entries that duplicate/conflict with the dispatcher routing. `moshi-hook`
+  comes from `brew bundle` (`rjyo/moshi/moshi-hook`); the pairing secret lives in the macOS keychain
+  (machine-local, never committed); `ai-doctor` checks the binary is present, not that it's paired.
