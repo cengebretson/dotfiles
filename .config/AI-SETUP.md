@@ -61,8 +61,9 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 4. **Logins:**
    - `gh auth` (or set `GH_TOKEN` in `secrets.fish`)
    - Claude Code: sign in (determines which subscription bills)
-   - Codex GitHub MCP: either set `GITHUB_PERSONAL_ACCESS_TOKEN` in `secrets.fish` (PAT path),
-     or run `codex mcp login github` (OAuth path — no PAT to manage; creds stored encrypted, per machine)
+   - Codex GitHub MCP (PAT path): set `GITHUB_PERSONAL_ACCESS_TOKEN` in `secrets.fish` **and** ensure
+     `[mcp_servers.github]` in `config.toml` has `bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"`
+     (it's in `config.shared.toml`). `codex mcp login github` does **not** work — see Gotchas.
    - moshi (remote approvals/notifications, optional): `moshi-hook pair --token <token>` (token from
      the Moshi app; secret stored in the macOS keychain, per machine), then `brew services start
      moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maintains the socket +
@@ -132,11 +133,15 @@ per-plugin prose (it rots against the tools' own installers).
 | Integration | Scope | Claude (`enabledPlugins` id / how) | Codex (command) | Verify |
 |---|---|---|---|---|
 | context-mode | shared | `context-mode@context-mode` 🤖 | `codex plugin add context-mode@context-mode` 🤖 | `/health-check` · `codex plugin list` |
-| github | shared | `github@claude-plugins-official` 🤖, then OAuth 🧑 | `[mcp_servers.github]` + PAT in `secrets.fish` 🤖, **or** `codex mcp login github` 🧑 | `codex mcp list` · `mcp__github__*` resolves |
+| github | shared | `github@claude-plugins-official` 🤖, then OAuth 🧑 | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_PERSONAL_ACCESS_TOKEN`, PAT in `secrets.fish` 🤖 — `codex mcp login github` **fails** (no OAuth DCR, see Gotchas) | `codex mcp get github` · `mcp__github__*` resolves |
 | context7 (live docs) | shared | `context7@claude-plugins-official` 🤖 | `codex mcp add context7 --url https://mcp.context7.com/mcp` 🤖 | tool list shows context7 |
 | playwright (browser) | shared | `playwright@claude-plugins-official` 🤖 | `codex mcp add playwright -- npx @playwright/mcp@latest` 🤖 (needs node) | tool list shows playwright |
 | atlassian (Jira+Confluence) | **local/work** | `atlassian@claude-plugins-official` 🤖, then login 🧑 | `codex plugin add atlassian-rovo@openai-curated` 🤖, then `codex mcp login atlassian-rovo` 🧑 | server reachable after login |
 | Google Drive | shared | Claude.ai **connector**, not a plugin — enable in app 🧑 | — | connector shows connected |
+
+> `Codex.app` injects its own cowork plugins into shared `~/.codex` (`node_repl`, `documents`, `pdf`,
+> `spreadsheets`, `presentations`, `template-creator`, `browser`) — they appear in `ai-doctor` /
+> `codex plugin list` but are **app-provided**, not part of this registry; nothing to install.
 
 **Claude `enabledPlugins` edit shape** (the 🤖 agent path; example adding context7 + playwright):
 
@@ -184,7 +189,7 @@ Glance here when one tool gets a capability the other lacks.
 | Coarse trust dial | sandbox + bypass mode | `approval_policy` + `sandbox_mode` |
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
-| GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + `codex mcp login` (OAuth) |
+| GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + PAT via `bearer_token_env_var` (no OAuth DCR) |
 | Desktop app vs config | `Claude.app` keeps a **separate** store (`~/Library/Application Support/Claude/`, own MCP/connectors) — CLI config does **not** carry in | `Codex.app` **shares** `~/.codex/` (config, profiles, MCP, hooks, rules, auth) — only Electron state is app-local |
 | Remote approvals/notify (moshi) | `dispatch.sh moshi` → `moshi-hook claude-hook` (9 hook events) | `dispatch.sh moshi` → `moshi-hook codex-hook` (4 hook events) |
 
@@ -196,8 +201,11 @@ Glance here when one tool gets a capability the other lacks.
   copied into `config.toml`. (Claude's `settings.json` *is* live, so it propagates on pull.)
 - **`rules/default.rules` is gitignored** so machine/repo-specific learned rules don't bleed across
   machines; share a curated baseline as a `rules/*.dotfiles-reference-*` snapshot instead.
-- **Codex GitHub MCP uses OAuth** (`codex mcp login github`) — no PAT in config or env; creds are
-  stored encrypted and machine-local, so they aren't shared (run the login once per machine).
+- **Codex GitHub MCP uses a PAT, not OAuth.** `codex mcp login github` fails with *"Dynamic client
+  registration not supported"* — the Copilot MCP endpoint (`api.githubcopilot.com/mcp`) doesn't offer
+  OAuth DCR. Authenticate with a PAT: `bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"` in the
+  `[mcp_servers.github]` block of the live `config.toml`, token set in `secrets.fish` (machine-local).
+  Restart Codex after adding it; verify with `codex mcp get github`.
 - **The minimal Claude allowlist is load-bearing on the sandbox.** `sandbox.enabled` +
   `autoAllowBashIfSandboxed` (tracked in `settings.json`) are what auto-approve read-only + in-repo-write
   commands — which is why ~half the allowlist could be deleted. Disable the sandbox and those start
