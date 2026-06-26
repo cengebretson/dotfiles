@@ -50,23 +50,23 @@ have() {
 case "$event" in
   notification)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    [ -x "$script" ] && run_command tmux-attention-input "$script" input || log_hook skipped tmux-attention-missing
+    if [ -x "$script" ]; then run_command tmux-attention-input "$script" input; else log_hook skipped tmux-attention-missing; fi
     ;;
   prompt-clear)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    [ -x "$script" ] && run_command tmux-attention-clear "$script" clear || log_hook skipped tmux-attention-missing
+    if [ -x "$script" ]; then run_command tmux-attention-clear "$script" clear; else log_hook skipped tmux-attention-missing; fi
     ;;
   stop-failure)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    [ -x "$script" ] && run_command tmux-attention-blocked "$script" blocked || log_hook skipped tmux-attention-missing
+    if [ -x "$script" ]; then run_command tmux-attention-blocked "$script" blocked; else log_hook skipped tmux-attention-missing; fi
     ;;
   format-on-edit)
     script="$HOME/.config/claude/hooks/format-on-edit.sh"
-    [ -x "$script" ] && run_with_payload format-on-edit "$script" || log_hook skipped format-on-edit-missing
+    if [ -x "$script" ]; then run_with_payload format-on-edit "$script"; else log_hook skipped format-on-edit-missing; fi
     ;;
   context-mode-cache-heal)
     script="$HOME/.config/claude/hooks/context-mode-cache-heal.mjs"
-    [ -f "$script" ] && run_with_payload context-mode-cache-heal "$script" || log_hook skipped context-mode-cache-heal-missing
+    if [ -f "$script" ]; then run_with_payload context-mode-cache-heal "$script"; else log_hook skipped context-mode-cache-heal-missing; fi
     ;;
   moshi)
     if have moshi-hook; then

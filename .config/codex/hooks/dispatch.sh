@@ -50,11 +50,11 @@ have() {
 case "$event" in
   permission-request-notify)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    [ -x "$script" ] && run_command tmux-attention-input "$script" input || log_hook skipped tmux-attention-missing
+    if [ -x "$script" ]; then run_command tmux-attention-input "$script" input; else log_hook skipped tmux-attention-missing; fi
     ;;
   prompt-clear)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    [ -x "$script" ] && run_command tmux-attention-clear "$script" clear || log_hook skipped tmux-attention-missing
+    if [ -x "$script" ]; then run_command tmux-attention-clear "$script" clear; else log_hook skipped tmux-attention-missing; fi
     ;;
   moshi)
     if have moshi-hook; then
