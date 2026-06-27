@@ -55,8 +55,8 @@ Integration for driving agents (Claude, Codex) from the phone over the Moshi app
 
 ### Notifications
 
-- **Daemon indicator (`scripts/moshi_status.sh`):** a 3-state `󰄛` glyph in the status bar. Dim "off" means the moshi-hook daemon is stopped, amber "on" means running but unpaired (no pushes), green "on" means running and paired. Daemon state is read with `pgrep` each refresh; pairing is cached in the `@moshi_paired` user option (seeded on load in `tmux.conf`, refreshed by `moshi-notify`) because querying it touches the Keychain.
-- **`prefix + N`:** toggles the daemon off/on via the `moshi-notify` fish function, run through a login fish and backgrounded since `brew services stop` can be slow. The indicator flips when it lands.
+- **Daemon indicator + toggle ([`cengebretson/tmux-moshi`](https://github.com/cengebretson/tmux-moshi) plugin):** a 3-state `󰄛` glyph in the status bar — dim "off" (daemon stopped), amber "on" (running but unpaired), green "on" (running and paired). Spliced into the bar as `#{E:@moshi_status}` in `appearance1/2.conf`. Daemon state is read with `pgrep` each refresh; pairing is cached in `@moshi_paired` (seeded by the plugin, refreshed by `moshi-notify`) because querying it touches the Keychain.
+- **`prefix + N`** (also left-click the glyph, or right-click for a menu): toggles the daemon off/on via the `moshi-notify` fish function (the plugin's `@moshi_toggle_command`), backgrounded since `brew services stop` can be slow. The indicator flips when it lands.
 
 ### Phone auto-view (no clobbering)
 
@@ -92,7 +92,6 @@ Helper scripts live in `scripts/`:
 |---|---|
 | `custom_number.sh` | Render window-index glyphs (filled / double-stroke squares) for the window tabs |
 | `toggle_theme.sh` | Swap the `appearance.conf` symlink between themes and reload (`prefix + T`) |
-| `moshi_status.sh` | 3-state Moshi daemon indicator for the status bar |
 | `phone_autoview.sh` | Redirect a narrow phone client onto a grouped `phone-<session>` mirror |
 | `phone_autoview_cleanup.sh` | Reap unattached `phone-*` mirror sessions |
 
