@@ -143,6 +143,7 @@ These tools are installed and available. Prefer them over naive alternatives whe
 |------|---------------|-------------|
 | `ast-grep` | `grep` / regex | Searching or rewriting code by structure — find all function calls, rename a pattern across files, match syntax not strings |
 | `difftastic` | `git diff` | Reviewing structural diffs where line-based diffs are noisy — refactors, formatting changes |
+| `git release` | manual VERSION/CHANGELOG/tag edits | Cutting a release in any repo (`~/.local/bin/git-release`) — bumps `VERSION`, promotes the `CHANGELOG` `[Unreleased]` section, runs the repo's tests, commits, tags `v<x.y.z>`; add `--push` to publish (triggers a tag release workflow), `--dry-run` to preview |
 | `shellcheck` | manual review | Validating any shell script before finishing — catches bugs, bad practices, portability issues |
 | `sd` | `sed` | Find-and-replace in files — cleaner syntax, supports regex and literal strings |
 | `scc` | `wc -l` | Getting a codebase overview — lines, blanks, comments, complexity per language |
