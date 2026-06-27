@@ -49,7 +49,7 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             printf '    %s-h%s, %s--help%s     show this help\n'     (set_color $txt) (set_color normal) (set_color $txt) (set_color normal)
             echo ''
         case status '' '*'
-            # Catppuccin Mocha palette (matches scripts/moshi_status.sh).
+            # Catppuccin Mocha palette (matches the tmux-moshi plugin's moshi-status).
             set -l grn a6e3a1
             set -l amb f9e2af
             set -l dim 6c7086
