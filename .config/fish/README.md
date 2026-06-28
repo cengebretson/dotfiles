@@ -93,7 +93,7 @@ Tracked completions under `completions/` (most others are Fisher-managed and not
 
 | File | Purpose |
 |------|---------|
-| `tailscale.fish` | Sources tailscale's generated subcommand/flag completion, plus live Taildrop host completion for `tailscale file cp <file> <host>:` (own devices only, magicDNS short name + trailing colon) |
+| `tailscale.fish` | Sources tailscale's generated subcommand/flag completion, plus dynamic value completion it lacks: Taildrop targets for `file cp` (own devices + trailing colon), host arg for `ping`/`ip`, and `--exit-node=` values for `set`/`up` (exit nodes labelled by country/city) |
 
 ## Coral
 
