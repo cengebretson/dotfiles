@@ -70,81 +70,143 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     end
 end
 
+# --- doctor presentation helpers (Catppuccin Mocha) ----------------------------
+# Defined alongside rtmux so they load together; private, prefixed _rtmux_*.
+
+function _rtmux_section --argument-names title
+    printf '\n'
+    set_color -o cba6f7 # mauve
+    printf '%s\n' $title
+    set_color normal
+end
+
+function _rtmux_ok --argument-names message
+    set_color a6e3a1 # green
+    printf '  ✓ '
+    set_color normal
+    printf '%s\n' $message
+end
+
+function _rtmux_warn --argument-names message
+    set_color f9e2af # yellow
+    printf '  ⚠ '
+    set_color normal
+    printf '%s\n' $message
+end
+
+function _rtmux_fail --argument-names message
+    set_color f38ba8 # red
+    printf '  ✗ '
+    set_color normal
+    printf '%s\n' $message
+end
+
+function _rtmux_hint --argument-names message
+    set_color 6c7086 # overlay0 (dim)
+    printf '      %s\n' $message
+    set_color normal
+end
+
 function _rtmux_doctor --argument-names ssh_user
-    # Walks every failure point of rtmux in order, printing [ok]/[warn]/[fail].
+    # Walks every failure point of rtmux in order with colored status glyphs.
     # Returns nonzero if any hard check failed.
     set -l failures 0
 
-    printf '\nDependencies\n'
+    set_color -o 89b4fa # blue
+    printf '\n\U1f489 rtmux doctor\n' # syringe
+    set_color normal
+
+    _rtmux_section 'Dependencies'
     for tool in tailscale fzf jq ssh
         if command -q $tool
-            printf '[ok] %s found\n' $tool
+            _rtmux_ok "$tool found"
         else
-            printf '[fail] %s not in PATH\n' $tool
+            _rtmux_fail "$tool not in PATH"
             set failures (math $failures + 1)
         end
     end
 
-    printf '\nTailscale daemon\n'
+    _rtmux_section 'Tailscale daemon'
     if not command -q tailscale
-        printf '[fail] tailscale CLI missing; cannot check daemon\n'
+        _rtmux_fail 'tailscale CLI missing; cannot check daemon'
+        printf '\n'
+        set_color -o f38ba8
+        printf '1 hard failure\n'
+        set_color normal
         return 1
     end
     set -l ts_status (tailscale status 2>&1)
     if test $status -ne 0
-        printf '[fail] `tailscale status` failed: %s\n' "$ts_status"
-        printf '       Is Tailscale running and logged in? Try the menu-bar app or `tailscale up`.\n'
+        _rtmux_fail "\`tailscale status\` failed: $ts_status"
+        _rtmux_hint 'Is Tailscale running and logged in? Try the menu-bar app or `tailscale up`.'
         set failures (math $failures + 1)
     else
-        printf '[ok] tailnet reachable\n'
+        _rtmux_ok 'tailnet reachable'
     end
 
-    printf '\nSSH agent\n'
+    _rtmux_section 'SSH agent'
     set -l ids (ssh-add -l 2>/dev/null)
     if test $status -eq 0; and test -n "$ids"
-        printf '[ok] %d identity(ies) loaded in agent\n' (count $ids)
+        _rtmux_ok (printf '%d identity(ies) loaded in agent' (count $ids))
     else
-        printf '[warn] no identities in ssh-agent; key auth will fail unless you use\n'
-        printf '       Tailscale SSH (`tailscale up --ssh` on the target) or load a key\n'
-        printf '       (`ssh-add --apple-use-keychain`).\n'
+        _rtmux_warn 'no identities in ssh-agent; key auth will fail unless you use'
+        _rtmux_hint 'Tailscale SSH (`tailscale up --ssh` on the target) or load a key'
+        _rtmux_hint '(`ssh-add --apple-use-keychain`).'
     end
 
-    printf '\nPeers\n'
+    _rtmux_section 'Peers'
     set -l peers (_rtmux_peers)
     if test -z "$peers"
-        printf '[fail] no online macOS/Linux peers found\n'
-        printf '       `tailscale status` shows them as offline, or they run a non-tmux OS.\n'
-        printf '\n%d hard failure(s)\n' (math $failures + 1)
+        _rtmux_fail 'no online macOS/Linux peers found'
+        _rtmux_hint '`tailscale status` shows them as offline, or they run a non-tmux OS.'
+        printf '\n'
+        set_color -o f38ba8
+        printf '%d hard failure(s)\n' (math $failures + 1)
+        set_color normal
         return 1
     end
-    printf '[ok] %d candidate peer(s) (ssh user: %s)\n' (count $peers) $ssh_user
+    _rtmux_ok (printf '%d candidate peer(s) (ssh user: %s)' (count $peers) $ssh_user)
 
-    printf '\nPer-peer reachability\n'
+    _rtmux_section 'Per-peer reachability'
     for peer in $peers
         set -l target (string split -f1 \t -- $peer)
         set -l label (string split -f2 \t -- $peer)
-        printf '  %s (%s)\n' $label $target
+        set_color -o 94e2d5 # teal
+        printf '  %s' $label
+        set_color normal
+        set_color 6c7086
+        printf ' (%s)\n' $target
+        set_color normal
 
         # Non-interactive SSH: this is exactly how session listing authenticates.
         ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target true 2>/dev/null
         if test $status -ne 0
-            printf '  [warn] non-interactive SSH failed; sessions will not be listed.\n'
-            printf '         Enable Tailscale SSH or add key auth for %s@%s.\n' $ssh_user $target
-            printf '         (The "[+ new session]" entry still works interactively.)\n'
+            _rtmux_warn 'non-interactive SSH failed; sessions will not be listed.'
+            _rtmux_hint "Enable Tailscale SSH or add key auth for $ssh_user@$target."
+            _rtmux_hint 'The "[+ new session]" entry still works interactively.'
             continue
         end
-        printf '  [ok] SSH ok\n'
+        _rtmux_ok 'SSH ok'
 
         if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target \
                 "command -v tmux >/dev/null 2>&1"
-            printf '  [warn] tmux not found on remote PATH\n'
+            _rtmux_warn 'tmux not found on remote PATH'
             continue
         end
         set -l n (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target \
             "tmux list-sessions 2>/dev/null | wc -l | tr -d ' '")
-        printf '  [ok] tmux present, %s running session(s)\n' $n
+        _rtmux_ok "tmux present, $n running session(s)"
     end
 
-    printf '\n%d hard failure(s)\n' $failures
+    printf '\n'
+    if test $failures -eq 0
+        set_color -o a6e3a1
+        printf '✓ all clear\n'
+        set_color normal
+    else
+        set_color -o f38ba8
+        printf '✗ %d hard failure(s)\n' $failures
+        set_color normal
+    end
     test $failures -eq 0
 end
