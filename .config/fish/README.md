@@ -85,6 +85,7 @@ These live in `functions/` and are not Fisher-managed.
 | `copilot-pr-report` | List open PRs in the current repo with unresolved Copilot review threads |
 | `moshi-notify` | Toggle/inspect Moshi agent-hook notifications: `off`/`on`/`toggle`/`status` (bound to `prefix N` in tmux) |
 | `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |
+| `rtmux` | Pick and attach to a tmux session on an online Tailscale peer via fzf; `-u <user>` to override SSH user, `--doctor` to diagnose connectivity (peer helper: `_rtmux_peers`) |
 
 ## Coral
 
