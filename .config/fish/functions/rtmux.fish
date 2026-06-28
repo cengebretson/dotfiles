@@ -2,8 +2,10 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # Lists tmux sessions across online macOS/Linux machines on the tailnet and
     # attaches to the one you pick. The local machine and non-tmux peers (iOS,
     # Mullvad exit nodes) are skipped. Each host also gets a "[+ new session]"
-    # entry so you can start a fresh session anywhere. SSH user defaults to
-    # $USER; override with `rtmux -u <user>` or per-host in ~/.ssh/config.
+    # entry so you can start a fresh session anywhere. The SSH username is
+    # resolved per host by your ssh config (so a `User` directive — e.g.
+    # work-buddy=cengebretson in ~/.ssh/config.local — is honored); `rtmux -u
+    # <user>` forces one user for every host.
     #
     # Run `rtmux --doctor` to diagnose why it is not working.
 
@@ -16,11 +18,13 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
         return 0
     end
 
-    set -l ssh_user $USER
-    set -q _flag_user; and set ssh_user $_flag_user
+    # Leave the username to ssh / ssh_config per host (so a `User` directive is
+    # honored); `-u` forces one user for every host. ssh_pre is "" or "user@".
+    set -l ssh_pre ""
+    set -q _flag_user; and set ssh_pre "$_flag_user@"
 
     if set -q _flag_doctor
-        _rtmux_doctor $ssh_user
+        _rtmux_doctor "$ssh_pre"
         return $status
     end
 
@@ -44,7 +48,7 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     for peer in $peers
         set -l target (string split -f1 \t -- $peer)
         set -l label (string split -f2 \t -- $peer)
-        for line in (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target \
+        for line in (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
                 "tmux list-sessions -F '#{session_name}\t#{session_windows}w#{?session_attached,\t(attached),}'" 2>/dev/null)
             set -l name (string split -f1 \t -- $line)
             set -l meta (string split -m1 -f2 \t -- $line)
@@ -64,9 +68,9 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
 
     if test "$sess" = __new__
         # Attach-or-create a default session so repeated "new" picks reuse it.
-        ssh -t $ssh_user@$host "tmux new-session -A -s main"
+        ssh -t $ssh_pre$host "tmux new-session -A -s main"
     else
-        ssh -t $ssh_user@$host "tmux attach-session -t '$sess'"
+        ssh -t $ssh_pre$host "tmux attach-session -t '$sess'"
     end
 end
 
@@ -107,8 +111,9 @@ function _rtmux_hint --argument-names message
     set_color normal
 end
 
-function _rtmux_doctor --argument-names ssh_user
+function _rtmux_doctor --argument-names ssh_pre
     # Walks every failure point of rtmux in order with colored status glyphs.
+    # ssh_pre is "" (let ssh config resolve the user) or "user@" (forced).
     # Returns nonzero if any hard check failed.
     set -l failures 0
 
@@ -149,9 +154,8 @@ function _rtmux_doctor --argument-names ssh_user
     if test $status -eq 0; and test -n "$ids"
         _rtmux_ok (printf '%d identity(ies) loaded in agent' (count $ids))
     else
-        _rtmux_warn 'no identities in ssh-agent; key auth will fail unless you use'
-        _rtmux_hint 'Tailscale SSH (`tailscale up --ssh` on the target) or load a key'
-        _rtmux_hint '(`ssh-add --apple-use-keychain`).'
+        _rtmux_warn 'no identities in ssh-agent; key auth will fail unless you'
+        _rtmux_hint 'load a key (`ssh-add --apple-use-keychain`).'
     end
 
     _rtmux_section 'Peers'
@@ -165,7 +169,9 @@ function _rtmux_doctor --argument-names ssh_user
         set_color normal
         return 1
     end
-    _rtmux_ok (printf '%d candidate peer(s) (ssh user: %s)' (count $peers) $ssh_user)
+    set -l user_note 'per ssh config'
+    test -n "$ssh_pre"; and set user_note (string replace -- '@' '' "$ssh_pre")" (forced)"
+    _rtmux_ok (printf '%d candidate peer(s) (ssh user: %s)' (count $peers) $user_note)
 
     _rtmux_section 'Per-peer reachability'
     for peer in $peers
@@ -179,21 +185,21 @@ function _rtmux_doctor --argument-names ssh_user
         set_color normal
 
         # Non-interactive SSH: this is exactly how session listing authenticates.
-        ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target true 2>/dev/null
+        ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target true 2>/dev/null
         if test $status -ne 0
             _rtmux_warn 'non-interactive SSH failed; sessions will not be listed.'
-            _rtmux_hint "Enable Tailscale SSH or add key auth for $ssh_user@$target."
+            _rtmux_hint "Check key auth and the username for $target — e.g. a Host block with the right User in ~/.ssh/config.local."
             _rtmux_hint 'The "[+ new session]" entry still works interactively.'
             continue
         end
         _rtmux_ok 'SSH ok'
 
-        if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target \
+        if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
                 "command -v tmux >/dev/null 2>&1"
             _rtmux_warn 'tmux not found on remote PATH'
             continue
         end
-        set -l n (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_user@$target \
+        set -l n (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
             "tmux list-sessions 2>/dev/null | wc -l | tr -d ' '")
         _rtmux_ok "tmux present, $n running session(s)"
     end
