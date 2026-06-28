@@ -87,6 +87,14 @@ These live in `functions/` and are not Fisher-managed.
 | `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |
 | `rtmux` | Pick and attach to a tmux session on an online Tailscale peer via fzf; `-u <user>` to override SSH user, `--doctor` to diagnose connectivity (peer helper: `_rtmux_peers`) |
 
+## Custom Completions
+
+Tracked completions under `completions/` (most others are Fisher-managed and not tracked).
+
+| File | Purpose |
+|------|---------|
+| `tailscale.fish` | Sources tailscale's generated subcommand/flag completion, plus live Taildrop host completion for `tailscale file cp <file> <host>:` (own devices only, magicDNS short name + trailing colon) |
+
 ## Coral
 
 `coral` is now published as a Fisher plugin — [`cengebretson/coral`](https://github.com/cengebretson/coral). Its functions, completions, and `conf.d` setup are Fisher-managed (installed under `functions/`, `completions/`, `conf.d/`), so they are **not tracked** in these dotfiles.
