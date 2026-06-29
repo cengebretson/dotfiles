@@ -57,6 +57,8 @@ Defined in `alias.fish`, `config.fish`, and custom functions. Highlights:
 | `l` / `ll` / `la` | eza listings (compact / long+git / long by mtime) |
 | `lt` / `ltd` | eza tree view (all files / directories only) |
 | `dots` | `git --git-dir=$HOME/.dotfiles --work-tree=$HOME` (abbr, expands anywhere) |
+| `dots-status` | dotfiles status with untracked files forced visible |
+| `dots-untracked` | list untracked files visible to the bare dotfiles repo |
 | `zz` | open `config.fish` in `$EDITOR` (abbr) |
 | `cat` / `find` / `vi`,`vim` | `bat` / `fd` / `nvim` |
 | `o` / `oo` | `open` / `open .` |

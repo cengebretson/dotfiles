@@ -6,7 +6,7 @@
 
 ## Working Style
 
-- At the start of a new session, use `$health-check` before substantive work and report the result. If the skill is unavailable, perform the same manual checks covering repository tools, issue-tracker/MCP tools, context-mode/plugin availability, and SSH agent status.
+- At the start of a new session, use `$health-check` before substantive repo, GitHub, Jira, Docker, or MCP work and report the result. For tiny local-machine questions, use a local-only check instead and say what was skipped.
 - For a quick coding handoff or resume, use `$fast-loop` to gather only the repo status, nearest instructions, obvious local task context, and command entrypoints before choosing the next action.
 - For familiar implementation work, start from the nearest relevant instructions and task files; defer broad architecture docs, full rulebooks, and remote lookups until the touched files or user request make them relevant.
 - Bias toward action. When the next step is obvious and already within the user's request, do it and report what happened.
@@ -19,6 +19,7 @@
 - Prefer MCP/app/plugin tools over raw CLI or REST when an available tool covers the operation.
 - For GitHub work, check for a GitHub MCP/app tool before using `gh` or `curl`. If no suitable tool is available or the tool fails, say that you are falling back to CLI before using it.
 - Use `rg` for text search and `rg --files` for file search before slower alternatives.
+- When searching local Codex, tmux, or Fish config, exclude generated caches and sessions such as `~/.config/codex/plugins/cache`, `~/.config/codex/sessions`, `~/.config/codex/context-mode`, and `~/.config/codex/.tmp` unless the task is specifically about those files.
 - Prefer structured tools/parsers for structured data. Use `jq` for JSON and `yq` for YAML/TOML/JSON when appropriate.
 - Prefer installed higher-signal CLI tools when they fit:
   - `ast-grep` for syntax-aware code search or rewrites.
@@ -35,6 +36,8 @@
 - Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
 - Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
 - If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
+- Read-only tmux probes such as `tmux show-options`, `tmux show-window-options`, and `tmux display-message` are safe candidates for narrow persistent approval when debugging terminal behavior.
+- On macOS, browser or GUI automation can fail inside the Codex `workspace-write` sandbox because the app process needs OS services outside the file sandbox. Do not switch the whole session to `danger-full-access` for this. Keep normal work sandboxed, then rerun only the browser or GUI command with explicit approval using a narrow, task-shaped `prefix_rule`, such as `["npx", "playwright", "test"]`, `["npm", "test"]`, `["npm", "run", "test:all"]`, or `["npm", "run", "test:ticket"]`.
 - For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
 
 ## Environment
@@ -54,6 +57,7 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 ```
 
 - `dots` is a Fish abbreviation, not a real command. Do not use it in scripts, tool calls, or non-interactive commands.
+- The dotfiles repo uses `status.showUntrackedFiles=no`; use `dots-status`, `dots-untracked`, or `git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" status --short --untracked-files=all` before assuming a new file is tracked.
 - Machine-local files must not be committed or hardcoded:
   - `~/.config/git/config.local`
   - `~/.config/fish/secrets.fish`
