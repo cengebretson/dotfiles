@@ -44,14 +44,17 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # Build fzf rows. Each row is three tab-separated fields:
     #   ssh-target <TAB> session-name (or __new__) <TAB> display text
     # fzf shows only the display column; we recover target + session afterward.
+    # A real tab ($tab) is used as the tmux -F delimiter — tmux does not expand
+    # the "\t" escape, so it must be a literal tab character.
+    set -l tab (printf '\t')
     set -l rows
     for peer in $peers
         set -l target (string split -f1 \t -- $peer)
         set -l label (string split -f2 \t -- $peer)
         for line in (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
-                "tmux list-sessions -F '#{session_name}\t#{session_windows}w#{?session_attached,\t(attached),}'" 2>/dev/null)
-            set -l name (string split -f1 \t -- $line)
-            set -l meta (string split -m1 -f2 \t -- $line)
+                "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" 2>/dev/null)
+            set -l name (string split -f1 "$tab" -- $line)
+            set -l meta (string split -m1 -f2 "$tab" -- $line)
             set -a rows (printf '%s\t%s\t%-12s %-20s %s' $target $name $label $name $meta)
         end
         set -a rows (printf '%s\t%s\t%-12s %s' $target __new__ $label '[+ new session]')
@@ -66,11 +69,20 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     set -l host (string split -f1 \t -- $pick)
     set -l sess (string split -f2 \t -- $pick)
 
+    # Keep the local TERM if the remote knows it, else fall back to a
+    # universally-present terminfo so tmux can start on any host (e.g. one
+    # without the ghostty terminfo). `env` is used so this works regardless of
+    # the remote login shell (sh/bash/zsh/fish).
+    set -l term_pre ''
+    if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$host "infocmp $TERM" >/dev/null 2>&1
+        set term_pre 'env TERM=xterm-256color '
+    end
+
     if test "$sess" = __new__
         # Attach-or-create a default session so repeated "new" picks reuse it.
-        ssh -t $ssh_pre$host "tmux new-session -A -s main"
+        ssh -t $ssh_pre$host $term_pre"tmux new-session -A -s main"
     else
-        ssh -t $ssh_pre$host "tmux attach-session -t '$sess'"
+        ssh -t $ssh_pre$host $term_pre"tmux attach-session -t '$sess'"
     end
 end
 
