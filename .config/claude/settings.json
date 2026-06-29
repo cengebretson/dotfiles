@@ -50,8 +50,8 @@
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
     ],
-    "additionalDirectories": [],
-    "defaultMode": "auto"
+    "defaultMode": "auto",
+    "additionalDirectories": []
   },
   "model": "opus",
   "hooks": {
@@ -217,8 +217,7 @@
     "hideVimModeIndicator": true
   },
   "enabledPlugins": {
-    "context-mode@context-mode": true,
-    "github@claude-plugins-official": true
+    "context-mode@context-mode": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {
@@ -239,7 +238,7 @@
     }
   },
   "effortLevel": "high",
+  "tui": "fullscreen",
   "theme": "dark-ansi",
-  "editorMode": "vim",
-  "tui": "fullscreen"
+  "editorMode": "vim"
 }
