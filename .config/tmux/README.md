@@ -37,9 +37,11 @@ Both themes use custom status modules and window text formats.
 
 **Left:** prefix indicator, session name
 
-**Right (appearance2):** current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
+**Right (appearance2):** remote-connection indicator (`󰚥`, when applicable), current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
 
 The Moshi `󰄛` indicator is present in both themes. On narrow clients (under `@phone_max_cols`, e.g. the phone) the bar collapses to a compact form: see the Moshi section.
+
+A peach `󰚥 <host>` shows only when the attached client came in over SSH (i.e. the session is *remote*), and only on full-width clients. Detection is true SSH detection, not hostname: `scripts/conn_type.sh` reads `SSH_CONNECTION` (propagated via `update-environment`) on the `client-attached` / `client-session-changed` hooks and records it in the `@conn_type` option that the status bar reads. Nothing renders for local sessions.
 
 Window tabs use custom Unicode number glyphs via `scripts/custom_number.sh`. The active window uses filled square glyphs; inactive windows use double-stroke squares.
 
@@ -94,6 +96,7 @@ Helper scripts live in `scripts/`:
 | `toggle_theme.sh` | Swap the `appearance.conf` symlink between themes and reload (`prefix + T`) |
 | `phone_autoview.sh` | Redirect a narrow phone client onto a grouped `phone-<session>` mirror |
 | `phone_autoview_cleanup.sh` | Reap unattached `phone-*` mirror sessions |
+| `conn_type.sh` | Set `@conn_type` (`remote`/`local`) from the client's `SSH_CONNECTION` so the status bar can show a remote-connection indicator |
 
 ## Plugins
 
