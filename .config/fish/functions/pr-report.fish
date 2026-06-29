@@ -158,23 +158,39 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         return 0
     end
 
-    # Group by status so like rows cluster: attention first (needs your action),
-    # then awaiting reviewer, then approved. Original order kept within each group.
-    # Fields: 4 review · 6 ci_fail · 9 copilot · 12 comments · 13 draft.
-    set -l attn_lines
-    set -l wait_lines
-    set -l appr_lines
+    # Universal sort for every output mode:
+    #   1. draft before open
+    #   2. needs-attention before waiting before approved
+    #   3. Jira key when present, then title
+    # Fields: 2 title · 3 branch · 4 review · 6 ci_fail · 9 copilot ·
+    # 12 comments · 13 draft.
+    set -l sortable_lines
     for line in $pr_lines
         set -l p (string split \t $line)
+        set -l draft_rank 1
+        test "$p[13]" = true; and set draft_rank 0
+
+        set -l status_rank 1
         if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
-            set -a attn_lines $line
+            set status_rank 0
         else if test "$p[4]" = APPROVED
-            set -a appr_lines $line
-        else
-            set -a wait_lines $line
+            set status_rank 2
         end
+
+        set -l ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[3]")
+        test -n "$ticket"; or set ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[2]")
+        test -n "$ticket"; or set ticket "ZZZZ-999999"
+
+        set -l ticket_prefix (string replace -r -- '-[0-9]+$' '' "$ticket")
+        set -l ticket_number (string match -rg -- '-([0-9]+)$' "$ticket")
+        set -l ticket_sort "$ticket_prefix-999999"
+        if test -n "$ticket_number"
+            set ticket_sort (printf '%s-%06d' "$ticket_prefix" "$ticket_number")
+        end
+
+        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$ticket_sort") (string lower -- "$p[2]") $line)
     end
-    set pr_lines $attn_lines $wait_lines $appr_lines
+    set pr_lines (printf '%s\n' $sortable_lines | sort -t \t -k1,1n -k2,2n -k3,3 -k4,4 | cut -f5-)
 
     # Batch every branch's Jira key into ONE search query, then look statuses up in
     # the render loop — instead of one acli view per PR. Parallel arrays
