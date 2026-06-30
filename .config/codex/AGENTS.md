@@ -37,6 +37,7 @@
 - Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
 - If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
 - Read-only tmux probes such as `tmux show-options`, `tmux show-window-options`, and `tmux display-message` are safe candidates for narrow persistent approval when debugging terminal behavior.
+- On this macOS setup, Docker may use the OrbStack socket at `~/.orbstack/run/docker.sock`, which can fail inside the Codex sandbox with a socket permission error. Treat that as sandbox friction, not an app failure. For container inspection or Django shell work, rerun the needed command with explicit approval and the narrow persistent prefix `["docker", "exec"]`.
 - On macOS, browser or GUI automation can fail inside the Codex `workspace-write` sandbox because the app process needs OS services outside the file sandbox. Do not switch the whole session to `danger-full-access` for this. Keep normal work sandboxed, then rerun only the browser or GUI command with explicit approval using a narrow, task-shaped `prefix_rule`, such as `["npx", "playwright", "test"]`, `["npm", "test"]`, `["npm", "run", "test:all"]`, or `["npm", "run", "test:ticket"]`.
 - For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
 
