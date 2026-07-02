@@ -8,6 +8,13 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # <user>` forces one user for every host.
     #
     # Run `rtmux --doctor` to diagnose why it is not working.
+    #
+    # Why plain `ssh` and not `tailscale ssh`: Tailscale is used only for peer
+    # discovery (`tailscale status`) and MagicDNS addressing over the tailnet —
+    # the connection itself is ordinary OpenSSH to each peer's macOS `sshd`
+    # (Remote Login). The Mac App Store build of Tailscale is sandboxed and
+    # cannot run the Tailscale SSH *server*, so `tailscale ssh` can't reach
+    # those Macs; plain ssh over the tailnet works uniformly across every peer.
 
     argparse h/help d/doctor 'u/user=' -- $argv
     or return 1
@@ -47,18 +54,37 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # A real tab ($tab) is used as the tmux -F delimiter — tmux does not expand
     # the "\t" escape, so it must be a literal tab character.
     set -l tab (printf '\t')
-    set -l rows
+    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes
+
+    # Query every peer in parallel: each background job writes its session list
+    # to a per-peer temp file, so one slow or unreachable peer can no longer
+    # stall the whole menu (this was previously a serial loop that paid up to
+    # ConnectTimeout seconds per peer). Rows are then assembled in peer order.
+    set -l tmpdir (mktemp -d)
+    set -l i 0
     for peer in $peers
+        set i (math $i + 1)
+        set -l target (string split -f1 \t -- $peer)
+        ssh $ssh_opts $ssh_pre$target \
+            "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" \
+            >$tmpdir/$i 2>/dev/null &
+    end
+    wait
+
+    set -l rows
+    set i 0
+    for peer in $peers
+        set i (math $i + 1)
         set -l target (string split -f1 \t -- $peer)
         set -l label (string split -f2 \t -- $peer)
-        for line in (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
-                "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" 2>/dev/null)
-            set -l name (string split -f1 "$tab" -- $line)
-            set -l meta (string split -m1 -f2 "$tab" -- $line)
+        for line in (cat $tmpdir/$i 2>/dev/null)
+            set -l name (string split -f1 \t -- $line)
+            set -l meta (string split -m1 -f2 \t -- $line)
             set -a rows (printf '%s\t%s\t%-12s %-20s %s' $target $name $label $name $meta)
         end
         set -a rows (printf '%s\t%s\t%-12s %s' $target __new__ $label '[+ new session]')
     end
+    rm -rf $tmpdir
 
     set -l pick (printf '%s\n' $rows \
         | fzf --delimiter \t --with-nth 3 \
@@ -74,7 +100,7 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # without the ghostty terminfo). `env` is used so this works regardless of
     # the remote login shell (sh/bash/zsh/fish).
     set -l term_pre ''
-    if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$host "infocmp $TERM" >/dev/null 2>&1
+    if not ssh $ssh_opts $ssh_pre$host "infocmp $TERM" >/dev/null 2>&1
         set term_pre 'env TERM=xterm-256color '
     end
 
@@ -82,7 +108,10 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
         # Attach-or-create a default session so repeated "new" picks reuse it.
         ssh -t $ssh_pre$host $term_pre"tmux new-session -A -s main"
     else
-        ssh -t $ssh_pre$host $term_pre"tmux attach-session -t '$sess'"
+        # POSIX single-quote-escape the session name so names containing a quote
+        # or space survive the remote shell: each ' becomes '\''.
+        set -l sess_esc (string replace -a "'" "'\''" -- $sess)
+        ssh -t $ssh_pre$host $term_pre"tmux attach-session -t '$sess_esc'"
     end
 end
 
@@ -128,6 +157,7 @@ function _rtmux_doctor --argument-names ssh_pre
     # ssh_pre is "" (let ssh config resolve the user) or "user@" (forced).
     # Returns nonzero if any hard check failed.
     set -l failures 0
+    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes
 
     set_color -o 89b4fa # blue
     printf '\n\U1f489 rtmux doctor\n' # syringe
@@ -197,7 +227,7 @@ function _rtmux_doctor --argument-names ssh_pre
         set_color normal
 
         # Non-interactive SSH: this is exactly how session listing authenticates.
-        ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target true 2>/dev/null
+        ssh $ssh_opts $ssh_pre$target true 2>/dev/null
         if test $status -ne 0
             _rtmux_warn 'non-interactive SSH failed; sessions will not be listed.'
             _rtmux_hint "Check key auth and the username for $target — e.g. a Host block with the right User in ~/.ssh/config.local."
@@ -206,12 +236,12 @@ function _rtmux_doctor --argument-names ssh_pre
         end
         _rtmux_ok 'SSH ok'
 
-        if not ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
+        if not ssh $ssh_opts $ssh_pre$target \
                 "command -v tmux >/dev/null 2>&1"
             _rtmux_warn 'tmux not found on remote PATH'
             continue
         end
-        set -l n (ssh -o ConnectTimeout=5 -o BatchMode=yes $ssh_pre$target \
+        set -l n (ssh $ssh_opts $ssh_pre$target \
             "tmux list-sessions 2>/dev/null | wc -l | tr -d ' '")
         _rtmux_ok "tmux present, $n running session(s)"
     end
