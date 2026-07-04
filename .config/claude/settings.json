@@ -217,7 +217,8 @@
     "hideVimModeIndicator": true
   },
   "enabledPlugins": {
-    "context-mode@context-mode": true
+    "context-mode@context-mode": true,
+    "playwright@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {
