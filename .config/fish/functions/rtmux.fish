@@ -95,23 +95,34 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     set -l host (string split -f1 \t -- $pick)
     set -l sess (string split -f2 \t -- $pick)
 
-    # Keep the local TERM if the remote knows it, else fall back to a
-    # universally-present terminfo so tmux can start on any host (e.g. one
-    # without the ghostty terminfo). `env` is used so this works regardless of
-    # the remote login shell (sh/bash/zsh/fish).
-    set -l term_pre ''
+    # Build a remote `env` prefix so tmux starts correctly regardless of the
+    # remote login shell (sh/bash/zsh/fish) or its profile:
+    #  - LANG/LC_ALL: force a UTF-8 locale. ssh does not forward LANG/LC_*, so the
+    #    remote often defaults to C/POSIX, which makes tmux (and anything run in
+    #    it) draw pane borders and box-drawing glyphs as blanks, e.g. the
+    #    pane-border-status rule under the top status bar. en_US.UTF-8 is present
+    #    on macOS and virtually all Linux, so it is the safe cross-peer default.
+    #  - TERM: keep the local TERM if the remote knows it, else fall back to a
+    #    universally-present terminfo (e.g. a host without the ghostty terminfo).
+    set -l env_pre 'env LANG=en_US.UTF-8 LC_ALL=en_US.UTF-8 '
     if not ssh $ssh_opts $ssh_pre$host "infocmp $TERM" >/dev/null 2>&1
-        set term_pre 'env TERM=xterm-256color '
+        set env_pre $env_pre'TERM=xterm-256color '
     end
 
+    # `-u` forces the tmux client into UTF-8 mode. Over ssh the remote login
+    # shell's locale is often C/POSIX (ssh does not forward LANG/LC_*), so tmux
+    # flags the client non-UTF-8 and renders pane borders / box-drawing glyphs
+    # (e.g. the pane-border-status rule under the top status bar) as blanks. Drop
+    # -u and the remote view silently loses those lines while the local client
+    # keeps them.
     if test "$sess" = __new__
         # Attach-or-create a default session so repeated "new" picks reuse it.
-        ssh -t $ssh_pre$host $term_pre"tmux new-session -A -s main"
+        ssh -t $ssh_pre$host $env_pre"tmux -u new-session -A -s main"
     else
         # POSIX single-quote-escape the session name so names containing a quote
         # or space survive the remote shell: each ' becomes '\''.
         set -l sess_esc (string replace -a "'" "'\''" -- $sess)
-        ssh -t $ssh_pre$host $term_pre"tmux attach-session -t '$sess_esc'"
+        ssh -t $ssh_pre$host $env_pre"tmux -u attach-session -t '$sess_esc'"
     end
 end
 
