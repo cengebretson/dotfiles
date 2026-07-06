@@ -2,12 +2,12 @@
 #
 # git-release — cut a release for the current git repository.
 #
-#   git release <version|major|minor|patch> [--dry-run]
+#   git release <version|major|minor|patch> [--dry-run] [--push]
 #   git release --current
 #
 # Bumps the VERSION file, promotes the CHANGELOG "[Unreleased]" section to the
 # new version, runs the repo's tests, commits, and creates an annotated tag.
-# Pushing is left to you so you can review the commit and tag first.
+# Pass --push to publish the branch and tag after the local release is created.
 #
 # Repo-agnostic:
 #   * the project web URL is derived from the "origin" remote
@@ -19,6 +19,32 @@
 set -euo pipefail
 
 die() { echo "git-release: $*" >&2; exit 1; }
+
+is_transient_network_error() {
+    local log="$1"
+    grep -Eiq \
+        'could not resolve hostname|temporary failure|operation timed out|connection timed out|connection reset|network is unreachable|failed to connect' \
+        "${log}"
+}
+
+push_with_retry() {
+    local branch="$1" log
+    log="$(mktemp "${TMPDIR:-/tmp}/git-release-push.XXXXXX")"
+    if git push origin "${branch}" --follow-tags 2> >(tee "${log}" >&2); then
+        rm -f "${log}"
+        return 0
+    fi
+    if is_transient_network_error "${log}"; then
+        echo "git-release: push failed with a possible transient network/DNS error; retrying once..." >&2
+        sleep 2
+        if git push origin "${branch}" --follow-tags 2> >(tee "${log}" >&2); then
+            rm -f "${log}"
+            return 0
+        fi
+    fi
+    rm -f "${log}"
+    return 1
+}
 
 # The current version: the VERSION file if present, else the latest git tag
 # (without its leading "v"), else 0.0.0 for a repo that has never released.
@@ -355,7 +381,7 @@ echo "Tagged ${tag}."
 
 if [[ "${push}" == true ]]; then
     echo "Pushing ${branch} and ${tag} to origin..."
-    git push origin "${branch}" --follow-tags
+    push_with_retry "${branch}"
     echo "Pushed ${tag}; the release workflow will publish it."
     echo "  Actions: ${web}/actions"
     echo "  Release: ${web}/releases/tag/${tag}"
