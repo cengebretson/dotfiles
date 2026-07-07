@@ -147,14 +147,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     end
 
     if test -z "$pr_lines"
-        switch $mode
-            case json
-                echo "[]"
-            case slack
-                echo "No open PRs in $repo."
-            case '*'
-                set_color yellow; echo "  No open PRs found."; set_color normal
-        end
+        _pr_report_none $mode "No open PRs in $repo." "No open PRs found."
         return 0
     end
 
@@ -480,14 +473,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
     # Nothing survived the filter.
     if test (math $found + $clean) -eq 0
-        switch $mode
-            case json
-                echo "[]"
-            case slack
-                echo "No open PRs match \"$filter\" in $repo."
-            case '*'
-                set_color yellow; echo "  No open PRs match \"$filter\"."; set_color normal
-        end
+        _pr_report_none $mode "No open PRs match \"$filter\" in $repo." "No open PRs match \"$filter\"."
         return 0
     end
 
@@ -525,6 +511,20 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     else
         set_color --bold red; printf "  $found PR(s) need attention"; set_color normal
         set_color $dim; echo "  ($clean clean)"; set_color normal
+    end
+end
+
+# Emit the mode-appropriate "nothing to show" payload: an empty JSON array,
+# a plain sentence for Slack, or a yellow terminal line. Shared by the
+# no-open-PRs and nothing-survived-the-filter exits.
+function _pr_report_none --argument-names mode slack_msg pretty_msg
+    switch $mode
+        case json
+            echo "[]"
+        case slack
+            echo $slack_msg
+        case '*'
+            set_color yellow; echo "  $pretty_msg"; set_color normal
     end
 end
 
