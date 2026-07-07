@@ -3,9 +3,6 @@ fish_add_path /usr/local/bin
 fish_add_path /opt/homebrew/bin
 fish_add_path "$HOME/.local/bin"
 
-# load aliases
-source ~/.config/fish/alias.fish
-
 # environment (needed in interactive and non-interactive shells)
 set -gx EDITOR nvim
 set -gx TERMINAL ghostty
@@ -17,8 +14,12 @@ set -gx CLAUDE_CONFIG_DIR "$HOME/.config/claude"
 function fish_title
 end
 
-# interactive-only UI: key bindings, prompt, fzf, navigation
+# interactive-only UI: aliases, key bindings, prompt, fzf, navigation
+# (aliases stay out of non-interactive shells so scripts get stock tools,
+# e.g. real `find`/`cat` instead of fd/bat)
 if status is-interactive
+    source ~/.config/fish/alias.fish
+
     fish_vi_key_bindings
 
     if functions -q fzf_configure_bindings
@@ -39,4 +40,4 @@ set -gx GIT_OPTIONAL_LOCKS 0
 
 # mise (manages node, bun, and other runtimes)
 set -e MISE_SHELL
-set -gx PATH "$HOME/.local/share/mise/shims" $PATH
+fish_add_path --path "$HOME/.local/share/mise/shims"

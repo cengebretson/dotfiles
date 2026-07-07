@@ -1,5 +1,4 @@
 function keychain --description 'Inspect macOS Keychain entries and export secrets'
-    set -l show_passwords 0
     set -l command list
 
     if test (count $argv) -gt 0
@@ -60,7 +59,6 @@ function _keychain_list
         switch $arg
             case --show-passwords
                 set show_passwords 1
-
             case '*'
                 set host $arg
         end
@@ -75,93 +73,47 @@ function _keychain_list
 
     security dump-keychain ~/Library/Keychains/login.keychain-db 2>/dev/null \
         | awk -v host="$host" '
-
+        function emit() {
+            if (found && acct != "")
+                print acct "|" path "|" (path == "" ? "/" : path)
+        }
         /^keychain:/ {
-
-            if (found && acct != "") {
-
-                display_path = path
-
-                if (display_path == "") {
-                    display_path = "/"
-                }
-
-                print acct "|" path "|" display_path
-            }
-
-            found=0
-            acct=""
-            path=""
+            emit()
+            found = 0
+            acct = ""
+            path = ""
         }
-
         index($0, "0x00000007 <blob>=\"" host "\"") {
-            found=1
+            found = 1
         }
-
         found && /"acct"<blob>=/ {
-            acct=$0
+            acct = $0
             sub(/^.*"acct"<blob>="/, "", acct)
             sub(/".*$/, "", acct)
         }
-
         found && /"path"<blob>=/ {
-
             if ($0 ~ /<NULL>/) {
-                path=""
+                path = ""
             } else {
-                path=$0
+                path = $0
                 sub(/^.*"path"<blob>="/, "", path)
                 sub(/".*$/, "", path)
             }
         }
-
-        END {
-
-            if (found && acct != "") {
-
-                display_path = path
-
-                if (display_path == "") {
-                    display_path = "/"
-                }
-
-                print acct "|" path "|" display_path
-            }
-        }
+        END { emit() }
     ' | while read -l line
-
-        set parts (string split "|" $line)
-
-        set acct $parts[1]
-        set raw_path $parts[2]
-        set display_path $parts[3]
+        set -l parts (string split "|" $line)
+        set -l acct $parts[1]
+        set -l raw_path $parts[2]
+        set -l display_path $parts[3]
 
         echo "Account : $acct"
         echo "Path    : $display_path"
 
         if test $show_passwords -eq 1
-
-            if test -z "$raw_path"
-
-                set pw (
-                    security find-internet-password \
-                        -s $host \
-                        -a "$acct" \
-                        -w 2>/dev/null
-                )
-
-            else
-
-                set pw (
-                    security find-internet-password \
-                        -s $host \
-                        -a "$acct" \
-                        -p "$raw_path" \
-                        -w 2>/dev/null
-                )
-
-            end
-
+            set -l extra
+            test -n "$raw_path"; and set extra -p "$raw_path"
+            set -l pw (security find-internet-password -s $host -a "$acct" $extra -w 2>/dev/null)
             if test -n "$pw"
                 echo "Password: $pw"
             else
@@ -182,11 +134,7 @@ function _keychain_add
 
     set -l host $argv[1]
     set -l acct $argv[2]
-    set -l path ""
-
-    if test (count $argv) -ge 3
-        set path $argv[3]
-    end
+    set -l path "$argv[3]"
 
     read -s -P "Token: " token
     echo
@@ -196,18 +144,14 @@ function _keychain_add
         return 1
     end
 
-    if test -n "$path"
-        security add-internet-password -r htps -s $host -a "$acct" -p "$path" -w "$token"
-    else
-        security add-internet-password -r htps -s $host -a "$acct" -w "$token"
-    end
+    set -l extra
+    test -n "$path"; and set extra -p "$path"
 
-    if test $status -eq 0
-        if test -n "$path"
-            echo "Stored: $acct @ $host / $path"
-        else
-            echo "Stored: $acct @ $host"
-        end
+    set -l where "$acct @ $host"
+    test -n "$path"; and set where "$where / $path"
+
+    if security add-internet-password -r htps -s $host -a "$acct" $extra -w "$token"
+        echo "Stored: $where"
     else
         echo "Failed to store credential."
         return 1
@@ -223,24 +167,16 @@ function _keychain_delete
 
     set -l host $argv[1]
     set -l acct $argv[2]
-    set -l path ""
+    set -l path "$argv[3]"
 
-    if test (count $argv) -ge 3
-        set path $argv[3]
-    end
+    set -l extra
+    test -n "$path"; and set extra -p "$path"
 
-    if test -n "$path"
-        security delete-internet-password -s $host -a "$acct" -p "$path"
-    else
-        security delete-internet-password -s $host -a "$acct"
-    end
+    set -l where "$acct @ $host"
+    test -n "$path"; and set where "$where / $path"
 
-    if test $status -eq 0
-        if test -n "$path"
-            echo "Deleted: $acct @ $host / $path"
-        else
-            echo "Deleted: $acct @ $host"
-        end
+    if security delete-internet-password -s $host -a "$acct" $extra
+        echo "Deleted: $where"
     else
         echo "Failed to delete credential."
         return 1
@@ -257,27 +193,16 @@ function _keychain_env
     set -l env_name $argv[1]
     set -l host $argv[2]
     set -l acct $argv[3]
+    set -l path "$argv[4]"
 
-    set -l secret ""
-    if test (count $argv) -ge 4
-        set -l path $argv[4]
-        set secret (
-            security find-internet-password \
-                -s $host \
-                -a "$acct" \
-                -p "$path" \
-                -w 2>/dev/null
-        )
-    else
-        set secret (
-            security find-internet-password \
-                -s $host \
-                -a "$acct" \
-                -w 2>/dev/null
-        )
+    set -l extra
+    test -n "$path"; and set extra -p "$path"
+
+    set -l secret (security find-internet-password -s $host -a "$acct" $extra -w 2>/dev/null)
+    if test -z "$secret"
+        echo "keychain: no entry found for $acct @ $host" >&2
+        return 1
     end
 
-    if test -n "$secret"
-        set -gx $env_name $secret
-    end
+    set -gx $env_name $secret
 end

@@ -49,11 +49,16 @@ function updates --description 'Update Homebrew (+ install missing Brewfile entr
     end
 
     printf '\n==> fisher update\n'
-    if fisher update
-        set --append results "$ok fisher update"
+    if functions -q fisher
+        if fisher update
+            set --append results "$ok fisher update"
+        else
+            set --append results "$fail fisher update"
+            set --append failures 'fisher update'
+        end
     else
-        set --append results "$fail fisher update"
-        set --append failures 'fisher update'
+        echo "updates: skipping fisher; not installed" >&2
+        set --append results '- fisher update skipped'
     end
 
     printf '\n==> fish completions\n'
@@ -64,20 +69,26 @@ function updates --description 'Update Homebrew (+ install missing Brewfile entr
         set --append failures 'fish_update_completions'
     end
 
-    printf '\n==> mise upgrade\n'
-    if mise upgrade
-        set --append results "$ok mise upgrade"
-    else
-        set --append results "$fail mise upgrade"
-        set --append failures 'mise upgrade'
-    end
+    if command -q mise
+        printf '\n==> mise upgrade\n'
+        if mise upgrade
+            set --append results "$ok mise upgrade"
+        else
+            set --append results "$fail mise upgrade"
+            set --append failures 'mise upgrade'
+        end
 
-    printf '\n==> mise prune\n'
-    if mise prune
-        set --append results "$ok mise prune"
+        printf '\n==> mise prune\n'
+        if mise prune
+            set --append results "$ok mise prune"
+        else
+            set --append results "$fail mise prune"
+            set --append failures 'mise prune'
+        end
     else
-        set --append results "$fail mise prune"
-        set --append failures 'mise prune'
+        printf '\n==> mise\n'
+        echo "updates: skipping mise; not installed" >&2
+        set --append results '- mise skipped'
     end
 
     printf '\n==> brew cleanup\n'

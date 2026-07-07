@@ -48,7 +48,7 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             printf '    %sstatus%s         show daemon + pairing + hook health %s(default)%s\n' (set_color $txt) (set_color normal) (set_color $dim) (set_color normal)
             printf '    %s-h%s, %s--help%s     show this help\n'     (set_color $txt) (set_color normal) (set_color $txt) (set_color normal)
             echo ''
-        case status '' '*'
+        case status ''
             # Catppuccin Mocha palette (matches the tmux-moshi plugin's moshi-status).
             set -l grn a6e3a1
             set -l amb f9e2af
@@ -131,5 +131,9 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             echo ''
 
             __moshi_refresh_paired
+        case '*'
+            printf 'moshi-notify: unknown command: %s\n' "$argv[1]" >&2
+            printf "Run 'moshi-notify --help' for usage.\n" >&2
+            return 2
     end
 end

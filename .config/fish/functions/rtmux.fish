@@ -61,6 +61,9 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # stall the whole menu (this was previously a serial loop that paid up to
     # ConnectTimeout seconds per peer). Rows are then assembled in peer order.
     set -l tmpdir (mktemp -d)
+    # Ctrl-C during the parallel queries cancels the function before the
+    # rm -rf below runs; an INT trap covers that window.
+    trap "rm -rf '$tmpdir'" INT
     set -l i 0
     for peer in $peers
         set i (math $i + 1)
@@ -85,6 +88,7 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
         set -a rows (printf '%s\t%s\t%-12s %s' $target __new__ $label '[+ new session]')
     end
     rm -rf $tmpdir
+    trap - INT
 
     set -l pick (printf '%s\n' $rows \
         | fzf --delimiter \t --with-nth 3 \

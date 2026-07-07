@@ -1,4 +1,4 @@
-set -gx FZF_DEFAULT_CMD "fd --color=always --type file --follow --hidden --exclude .git"
+set -gx FZF_DEFAULT_COMMAND "fd --color=always --type file --follow --hidden --exclude .git"
 
 set -gx FZF_DEFAULT_OPTS "\
 --color=bg+:#313244,bg:-1,spinner:#F5E0DC,hl:#F38BA8 \

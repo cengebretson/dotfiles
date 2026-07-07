@@ -17,5 +17,5 @@ function _select_random_image
     set -l rand (random 1 (count $files))
     set -l selected $files[$rand]
 
-    cp -- "$selected" ~/.config/fastfetch/ascii.txt
+    cp -- "$selected" "$fastfetch_dir/ascii.txt"
 end

@@ -329,7 +329,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         end
 
         # --- pretty (default) terminal rendering ---
-        # Marker: ◆ magenta = draft, ● yellow = needs action, ○ blue = awaiting reviewer, ✓ green = approved.
+        # Marker: ◆ magenta = draft, ● yellow = needs action, 󰍉 blue = awaiting reviewer, ✓ green = approved.
         set -l num_color $dim
         switch $pr_state
             case draft
@@ -372,14 +372,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             end
             for label in $pr_labels
                 test -n "$label"; or continue
-                switch (string lower -- $label)
-                    case '*blocked*' '*do not merge*' '*do-not-merge*' '*hold*' '*wip*'
-                        set_color red
-                    case '*ready for review*' '*ready-for-review*'
-                        set_color green
-                    case '*'
-                        set_color magenta
-                end
+                _pr_report_label_color $label
                 printf " [%s]" $label; set_color normal
             end
             echo ""
@@ -478,14 +471,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 if test $i -gt 1
                     set_color $dim; printf "  ·  "; set_color normal
                 end
-                switch (string lower -- $label)
-                    case '*blocked*' '*do not merge*' '*do-not-merge*' '*hold*' '*wip*'
-                        set_color red
-                    case '*ready for review*' '*ready-for-review*'
-                        set_color green
-                    case '*'
-                        set_color magenta
-                end
+                _pr_report_label_color $label
                 printf "%s" $label; set_color normal
             end
             echo ""
@@ -539,5 +525,19 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     else
         set_color --bold red; printf "  $found PR(s) need attention"; set_color normal
         set_color $dim; echo "  ($clean clean)"; set_color normal
+    end
+end
+
+# Set the colour for a GitHub label by meaning: attention labels red,
+# ready-for-review green, everything else magenta. Shared by the --short
+# inline tags and the full report's label line so both read the same.
+function _pr_report_label_color --argument-names label
+    switch (string lower -- $label)
+        case '*blocked*' '*do not merge*' '*do-not-merge*' '*hold*' '*wip*'
+            set_color red
+        case '*ready for review*' '*ready-for-review*'
+            set_color green
+        case '*'
+            set_color magenta
     end
 end
