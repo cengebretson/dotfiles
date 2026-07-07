@@ -28,22 +28,22 @@ is_transient_network_error() {
 }
 
 push_with_retry() {
-    local branch="$1" log
+    local branch="$1" log rc
     log="$(mktemp "${TMPDIR:-/tmp}/git-release-push.XXXXXX")"
-    if git push origin "${branch}" --follow-tags 2> >(tee "${log}" >&2); then
-        rm -f "${log}"
-        return 0
-    fi
-    if is_transient_network_error "${log}"; then
+    # Capture stderr to a plain file, then replay it. A `2> >(tee ...)`
+    # process substitution runs asynchronously, so the log could still be
+    # empty when it is grepped for the transient-error pattern.
+    git push origin "${branch}" --follow-tags 2>"${log}"
+    rc=$?
+    cat "${log}" >&2
+    if [[ ${rc} -ne 0 ]] && is_transient_network_error "${log}"; then
         echo "git-release: push failed with a possible transient network/DNS error; retrying once..." >&2
         sleep 2
-        if git push origin "${branch}" --follow-tags 2> >(tee "${log}" >&2); then
-            rm -f "${log}"
-            return 0
-        fi
+        git push origin "${branch}" --follow-tags
+        rc=$?
     fi
     rm -f "${log}"
-    return 1
+    return "${rc}"
 }
 
 # The current version: the VERSION file if present, else the latest git tag
@@ -316,6 +316,13 @@ printf "%s\n" "${version}" > VERSION
 # Apply the changelog change.
 if [[ "${changelog_action}" == "promote" ]]; then
     awk -v ver="${version}" -v d="${date_str}" -v tag="${tag}" -v prev="${prev_tag}" -v web="${web}" '
+        function link_refs() {
+            print "[Unreleased]: " web "/compare/" tag "...HEAD"
+            if (prev != "")
+                print "[" ver "]: " web "/compare/" prev "..." tag
+            else
+                print "[" ver "]: " web "/releases/tag/" tag
+        }
         /^## \[Unreleased\]/ && !promoted {
             print
             print ""
@@ -324,14 +331,19 @@ if [[ "${changelog_action}" == "promote" ]]; then
             next
         }
         /^\[Unreleased\]:/ {
-            print "[Unreleased]: " web "/compare/" tag "...HEAD"
-            if (prev != "")
-                print "[" ver "]: " web "/compare/" prev "..." tag
-            else
-                print "[" ver "]: " web "/releases/tag/" tag
+            link_refs()
+            linked = 1
             next
         }
         { print }
+        END {
+            # A changelog with an [Unreleased] heading but no link-reference
+            # block still gets compare links for the new version.
+            if (!linked) {
+                print ""
+                link_refs()
+            }
+        }
     ' CHANGELOG.md > CHANGELOG.md.tmp
     mv CHANGELOG.md.tmp CHANGELOG.md
 elif [[ "${changelog_action}" == "create" ]]; then
@@ -381,7 +393,8 @@ echo "Tagged ${tag}."
 
 if [[ "${push}" == true ]]; then
     echo "Pushing ${branch} and ${tag} to origin..."
-    push_with_retry "${branch}"
+    push_with_retry "${branch}" \
+        || die "push failed; the release commit and tag ${tag} exist locally — retry with: git push origin ${branch} --follow-tags"
     echo "Pushed ${tag}; the release workflow will publish it."
     echo "  Actions: ${web}/actions"
     echo "  Release: ${web}/releases/tag/${tag}"
