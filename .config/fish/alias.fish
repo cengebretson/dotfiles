@@ -23,7 +23,7 @@ alias lt 'eza -Ta --icons --ignore-glob="node_modules|.git|.vscode|.DS_Store"'
 alias ltd 'eza -TaD --icons --ignore-glob="node_modules|.git|.vscode|.DS_Store"'
 
 # networking
-alias ipl "ipconfig getifaddr en0" 
+alias ipl "ipconfig getifaddr en0"
 alias ipx "curl https://ipinfo.io/ip"
 alias flush "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
