@@ -20,6 +20,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" local-instructions"
+          },
+          {
+            "type": "command",
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]

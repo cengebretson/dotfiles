@@ -11,6 +11,7 @@ tmp/
 .tmp/
 cache/
 context-mode/
+backups/
 plugins/cache/
 plugins/.marketplace-plugin-source-staging/
 shell_snapshots/
@@ -36,6 +37,8 @@ state_*
 .codex-global-state.json*
 session_index.jsonl
 docker-local.config.toml
+yolo.config.toml
+local.md
 
 # Per-machine caches and import history
 claude-cowork-import-history.json

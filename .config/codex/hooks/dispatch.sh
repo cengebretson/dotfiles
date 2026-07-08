@@ -48,6 +48,15 @@ have() {
 }
 
 case "$event" in
+  local-instructions)
+    file="$HOME/.config/codex/local.md"
+    if [ -r "$file" ]; then
+      cat "$file"
+      log_hook ok local-instructions
+    else
+      log_hook skipped local-instructions-missing
+    fi
+    ;;
   permission-request-notify)
     script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
     if [ -x "$script" ]; then run_command tmux-attention-input "$script" input; else log_hook skipped tmux-attention-missing; fi
