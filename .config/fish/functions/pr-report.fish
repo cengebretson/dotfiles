@@ -109,10 +109,11 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # reduces each PR to a TSV row so there are no per-PR calls. Field order:
     # 1 number  2 title  3 branch  4 reviewDecision  5 ci_pass  6 ci_fail
     # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count  13 is_draft
+    # 14 requested_reviewers(csv)
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
-        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt isDraft labels(first:20){nodes{name}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
+        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt isDraft labels(first:20){nodes{name}} reviewRequests(first:20){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -130,6 +131,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             ([ .reviewThreads.nodes[] | select(.isResolved==false) ]) as $open |
             ([ $open[] | select(any(.comments.nodes[]; .author!=null and (.author.login|ascii_downcase|contains("copilot")))) ] | length) as $cop |
             (($open | length) - $cop) as $hum |
+            ([.reviewRequests.nodes[]?.requestedReviewer | if .__typename == "Team" then .slug else .login end] | map(select(. != null)) | join(",")) as $req |
             [ (.number|tostring), .title, .headRefName, (.reviewDecision // ""),
               ([$c[]|select(.=="pass")]|length|tostring),
               ([$c[]|select(.=="fail")]|length|tostring),
@@ -139,7 +141,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
               .url,
               (((now - (.updatedAt | fromdateiso8601)) / 86400) | floor | tostring),
               ($hum|tostring),
-              (.isDraft | tostring)
+              (.isDraft | tostring),
+              $req
             ] | @tsv' 2>/dev/null)
     if test $status -ne 0
         set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
@@ -156,7 +159,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     #   2. needs-attention before waiting before approved
     #   3. Jira key when present, then title
     # Fields: 2 title · 3 branch · 4 review · 6 ci_fail · 9 copilot ·
-    # 12 comments · 13 draft.
+    # 12 comments · 13 draft · 14 requested reviewers.
     set -l sortable_lines
     for line in $pr_lines
         set -l p (string split \t $line)
@@ -166,7 +169,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set -l status_rank 1
         if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
             set status_rank 0
-        else if test "$p[4]" = APPROVED
+        else if test "$p[4]" = APPROVED; and test -z "$p[14]"
             set status_rank 2
         end
 
@@ -243,6 +246,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         test -n "$comments"; or set comments 0
         set -l is_draft $parts[13]
         test -n "$is_draft"; or set is_draft false
+        set -l requested_reviewers $parts[14]
 
         # PR state drives the marker (computed before the filter so the filter can
         # match it):
@@ -252,7 +256,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set -l pr_state waiting
         if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
             set pr_state attention
-        else if test "$review" = APPROVED
+        else if test "$review" = APPROVED; and test -z "$requested_reviewers"
             set pr_state approved
         end
         if test "$is_draft" = true
@@ -266,6 +270,10 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             case APPROVED; set review_text approved; set review_color green
             case CHANGES_REQUESTED; set review_text "changes requested"; set review_color red
             case '*'; set review_text "review required"; set review_color yellow
+        end
+        if test -n "$requested_reviewers"; and test "$is_draft" != true
+            set review_text "re-review requested"
+            set review_color yellow
         end
 
         # Filter: every include term must match and no exclude term may match,
@@ -307,7 +315,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         if test "$mode" = json
             # Tab-joined record; jq builds the object (values never contain tabs).
             set -a json_rows (string join \t $pr_num $pr_title $pr_url $pr_branch \
-                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments $is_draft)
+                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments $is_draft $requested_reviewers)
             continue
         else if test "$mode" = slack
             # Lean entry: bullet list item with title, then link + GitHub review status,
@@ -496,7 +504,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 labels: (if .[12] == "" then [] else (.[12] | split(",")) end),
                 idleDays: (.[13] | tonumber),
                 reviewerThreads: (.[14] | tonumber),
-                isDraft: (.[15] == "true")
+                isDraft: (.[15] == "true"),
+                requestedReviewers: (if .[16] == "" then [] else (.[16] | split(",")) end)
             })'
         return 0
     else if test "$mode" = slack
