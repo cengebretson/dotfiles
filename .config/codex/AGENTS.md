@@ -17,6 +17,7 @@
 ## Tool Selection
 
 - Prefer MCP/app/plugin tools over raw CLI or REST when an available tool covers the operation.
+- For Jira work, prefer Atlassian CLI `acli` over the Atlassian Rovo MCP/plugin. `acli` is authenticated through the machine OAuth profile and supports useful comment operations such as list, create, update, and delete. Use MCP only when explicitly requested or when `acli` cannot cover the operation.
 - For GitHub work, check for a GitHub MCP/app tool before using `gh` or `curl`. If no suitable tool is available or the tool fails, say that you are falling back to CLI before using it.
 - Use `rg` for text search and `rg --files` for file search before slower alternatives.
 - When searching local Codex, tmux, or Fish config, exclude generated caches and sessions such as `~/.config/codex/plugins/cache`, `~/.config/codex/sessions`, `~/.config/codex/context-mode`, and `~/.config/codex/.tmp` unless the task is specifically about those files.
@@ -33,6 +34,7 @@
 ## Permission Hygiene
 
 - When requesting a persistent command approval, keep `prefix_rule` narrow and task-shaped, such as `["make", "test"]` or `["gh", "pr", "view"]`.
+- For routine Jira CLI work, prefer narrow `acli` approval prefixes such as `["acli", "jira", "auth", "status"]`, `["acli", "jira", "workitem", "view"]`, `["acli", "jira", "workitem", "search"]`, or `["acli", "jira", "workitem", "comment", "list"]`; request mutating prefixes like `comment create/update/delete`, `workitem edit`, or `transition` only when the task needs them.
 - Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
 - Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
 - If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
