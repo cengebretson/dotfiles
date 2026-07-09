@@ -1,0 +1,911 @@
+#!/usr/bin/env bash
+# doctor — health/audit entrypoint for local developer tools.
+set -u
+
+script_name="$(basename "$0")"
+
+usage() {
+  cat <<'EOF'
+Usage:
+  doctor ai
+  doctor dotfiles
+  doctor docker [status]
+  doctor docker clean [--dry-run] [--volumes]
+  doctor docker reset-orbstack
+  doctor --ai
+  doctor --dotfiles
+  doctor --docker
+
+Subcommands:
+  ai       Audit Claude Code + Codex readiness.
+  dotfiles Audit tracked dotfiles, protected local files, and config syntax.
+  docker   Inspect or safely reclaim Docker/OrbStack disk space.
+EOF
+}
+
+run_ai_doctor() {
+  # Read-only. This owns all "doctoring": hook-plumbing checks, dependency
+  # presence, integration/plugin state, and skills parity.
+  local CLAUDE_DIR="$HOME/.config/claude"
+  local CODEX_DIR="$HOME/.config/codex"
+  local TMUX_ATTENTION="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
+  local fails=0
+  local warns=0
+  local R DIM BOLD GREEN YELLOW RED HEAD
+
+  if [ -t 1 ]; then
+    R=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
+    GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; HEAD=$'\033[1;36m'
+  else
+    R=''; DIM=''; BOLD=''; GREEN=''; YELLOW=''; RED=''; HEAD=''
+  fi
+
+  ai_line() {
+    local status="$1" label="$2" detail="${3:-}" sym col
+    case "$status" in
+      ok) sym='✓'; col=$GREEN ;;
+      warn) sym='⚠'; col=$YELLOW; warns=$((warns + 1)) ;;
+      fail) sym='✗'; col=$RED; fails=$((fails + 1)) ;;
+      *) sym='·'; col= ;;
+    esac
+    if [ -n "$detail" ]; then
+      printf '  %s%s%s %-23s %s%s%s\n' "$col" "$sym" "$R" "$label" "$DIM" "$detail" "$R"
+    else
+      printf '  %s%s%s %s\n' "$col" "$sym" "$R" "$label"
+    fi
+  }
+
+  ai_section() { printf '\n%s▸ %s%s\n' "$HEAD" "$1" "$R"; }
+  ai_have() { command -v "$1" >/dev/null 2>&1; }
+  ai_moshi_present() { ai_have moshi-hook || [ -x /opt/homebrew/bin/moshi-hook ]; }
+
+  ai_check_json() {
+    local f="$1"
+    local label="$2"
+
+    if [ ! -f "$f" ]; then
+      ai_line warn "$label" "missing"
+    elif ai_have jq && jq empty "$f" >/dev/null 2>&1; then
+      ai_line ok "$label" "valid JSON"
+    elif ai_have jq; then
+      ai_line fail "$label" "invalid JSON"
+    else
+      ai_line warn "$label" "jq missing — cannot validate"
+    fi
+  }
+
+  ai_check_toml() {
+    local f="$1"
+    local label="$2"
+
+    if [ ! -f "$f" ]; then
+      ai_line warn "$label" "missing"
+    elif ai_have python3 && python3 - "$f" >/dev/null 2>&1 <<'PY'
+import pathlib
+import sys
+import tomllib
+
+tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
+PY
+    then
+      ai_line ok "$label" "valid TOML"
+    elif ai_have python3; then
+      ai_line fail "$label" "invalid TOML"
+    else
+      ai_line warn "$label" "python3 missing — cannot validate TOML"
+    fi
+  }
+
+  ai_check_executable() {
+    local f="$1"
+    local label="$2"
+
+    if [ -x "$f" ]; then
+      ai_line ok "$label"
+    elif [ -e "$f" ]; then
+      ai_line fail "$label" "not executable"
+    else
+      ai_line warn "$label" "missing"
+    fi
+  }
+
+  ai_check_path_entry() {
+    local wanted="$1"
+    local old_ifs="$IFS"
+    local entry
+
+    IFS=:
+    for entry in $PATH; do
+      if [ "$entry" = "$wanted" ]; then
+        IFS="$old_ifs"
+        ai_line ok "\$PATH" "$wanted"
+        return 0
+      fi
+    done
+    IFS="$old_ifs"
+    ai_line warn "\$PATH" "$wanted missing"
+  }
+
+  ai_check_shadow() {
+    local cmd="$1"
+    local matches first count
+
+    if ! ai_have "$cmd"; then
+      ai_line warn "$cmd" "not found"
+      return 0
+    fi
+
+    matches="$(type -a "$cmd" 2>/dev/null | awk '{print $NF}')"
+    first="$(printf '%s\n' "$matches" | sed -n '1p')"
+    count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
+
+    if [ "$count" -gt 1 ]; then
+      ai_line warn "$cmd" "shadowed: $first (+$((count - 1)) more)"
+    else
+      ai_line ok "$cmd" "$first"
+    fi
+  }
+
+  ai_dotfile_tracked() {
+    local rel="$1"
+
+    if git -C "$HOME" --git-dir="$HOME/.dotfiles" --work-tree="$HOME" ls-files --error-unmatch "$rel" >/dev/null 2>&1; then
+      ai_line ok dotfiles "$rel"
+    else
+      ai_line warn dotfiles "$rel not tracked"
+    fi
+  }
+
+  ai_check_routes() {
+    local f="$1"
+    if [ -f "$f" ] && grep -q 'dispatch.sh' "$f"; then
+      ai_line ok config "$(basename "$f")"
+    else
+      ai_line warn config "$(basename "$f") — no dispatch.sh route"
+    fi
+  }
+
+  ai_list_skills() {
+    local d="$1" p
+    [ -d "$d" ] || return 0
+    for p in "$d"/*/; do [ -d "$p" ] && basename "$p"; done
+  }
+
+  ai_skill_has() { ai_list_skills "$1" | grep -qx "$2"; }
+
+  printf '%sdoctor ai%s  %sClaude Code + Codex readiness%s\n' "$BOLD" "$R" "$DIM" "$R"
+
+  ai_section "Dependencies"
+  for t in bash shfmt jq node npx fish gh rg fd bat eza delta codex python3; do
+    if ai_have "$t"; then ai_line ok "$t"; else ai_line warn "$t" "missing — brew bundle --file ~/.config/Brewfile"; fi
+  done
+
+  ai_section "PATH"
+  ai_check_path_entry "$HOME/.local/bin"
+
+  ai_section "Claude hooks"
+  ai_check_executable "$CLAUDE_DIR/hooks/dispatch.sh" "dispatcher"
+  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention; else ai_line warn tmux-attention missing; fi
+  if ai_moshi_present; then ai_line ok moshi-hook; else ai_line warn moshi-hook missing; fi
+  ai_check_executable "$CLAUDE_DIR/hooks/format-on-edit.sh" "format-on-edit"
+  if [ -f "$CLAUDE_DIR/hooks/context-mode-cache-heal.mjs" ]; then ai_line ok context-mode-cache-heal; else ai_line warn context-mode-cache-heal missing; fi
+  ai_check_executable "$CLAUDE_DIR/hooks/approve-compound-bash.sh" "approve-compound-bash"
+  if ai_have shfmt; then ai_line ok shfmt "approve-compound-bash dep"; else ai_line warn shfmt "missing — approve-compound-bash falls through"; fi
+  if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then ai_line ok modern-bash "approve-compound-bash dep"; else ai_line warn modern-bash "missing — needs bash 4.3+ via Homebrew; macOS ships 3.2"; fi
+  ai_check_routes "$CLAUDE_DIR/settings.json"
+
+  ai_section "Codex hooks"
+  ai_check_executable "$CODEX_DIR/hooks/dispatch.sh" "dispatcher"
+  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention; else ai_line warn tmux-attention missing; fi
+  if ai_moshi_present; then ai_line ok moshi-hook; else ai_line warn moshi-hook missing; fi
+  ai_check_routes "$CODEX_DIR/hooks.json"
+
+  ai_section "Config syntax"
+  ai_check_json "$CLAUDE_DIR/settings.json" "claude settings"
+  ai_check_json "$CODEX_DIR/hooks.json" "codex hooks"
+  ai_check_toml "$CODEX_DIR/config.shared.toml" "codex shared"
+  [ -f "$CODEX_DIR/config.toml" ] && ai_check_toml "$CODEX_DIR/config.toml" "codex local"
+
+  ai_section "Local bin"
+  ai_check_executable "$HOME/.local/bin/doctor" "doctor"
+
+  ai_section "Command resolution"
+  for cmd in codex gh claude doctor; do
+    ai_check_shadow "$cmd"
+  done
+
+  ai_section "GitHub auth"
+  if ai_have gh; then
+    if gh auth status >/dev/null 2>&1; then
+      ai_line ok gh "authenticated"
+    else
+      ai_line warn gh "auth status failed"
+    fi
+  else
+    ai_line warn gh "missing"
+  fi
+
+  ai_section "Codex CLI"
+  if ai_have codex; then
+    local codex_version
+    codex_version="$(codex --version 2>/dev/null | head -n 1)"
+    if [ -n "$codex_version" ]; then
+      ai_line ok codex "$codex_version"
+    else
+      ai_line warn codex "version unavailable"
+    fi
+    if codex mcp list >/dev/null 2>&1; then
+      ai_line ok codex-mcp "list ok"
+    else
+      ai_line warn codex-mcp "list failed"
+    fi
+  else
+    ai_line warn codex "missing"
+  fi
+
+  ai_section "moshi service"
+  if ai_have moshi-hook; then
+    local st
+    st="$(moshi-hook status 2>/dev/null)"
+    if printf '%s' "$st" | grep -q 'status:.*unpaired'; then
+      ai_line warn pairing "unpaired — moshi-hook pair --token <token>"
+    elif printf '%s' "$st" | grep -q 'status:.*paired'; then
+      ai_line ok pairing "paired"
+    else
+      ai_line warn pairing "status unknown"
+    fi
+    if pgrep -f 'moshi-hook serve' >/dev/null 2>&1; then
+      ai_line ok daemon "serve running"
+    else
+      ai_line warn daemon "not running — brew services start moshi-hook"
+    fi
+  else
+    ai_line warn moshi-hook "missing — brew bundle --file ~/.config/Brewfile"
+  fi
+
+  ai_section "Integrations — Claude plugins"
+  if ai_have jq; then
+    while IFS= read -r p; do [ -n "$p" ] && ai_line ok "$p"; done \
+      < <(jq -r '.enabledPlugins // {} | to_entries[] | select(.value) | .key' "$CLAUDE_DIR/settings.json" 2>/dev/null)
+  else
+    ai_line warn jq "missing — cannot read enabledPlugins"
+  fi
+
+  ai_section "Integrations — Codex MCP + plugins"
+  if ai_have codex; then
+    local plugins_installed mcp_seen
+    plugins_installed="$(codex plugin list 2>/dev/null | grep 'installed' | grep -v 'not installed' \
+      | awk '{n=$1; sub(/@.*/, "", n); print n}')"
+    ai_is_plugin() { printf '%s\n' "$plugins_installed" | grep -qx "$1"; }
+
+    mcp_seen=""
+    while IFS= read -r row; do
+      [ -n "$row" ] || continue
+      local name src
+      name="${row%% *}"
+      mcp_seen="$(printf '%s\n%s' "$mcp_seen" "$name")"
+      src="mcp"; ai_is_plugin "$name" && src="plugin + mcp"
+      if printf '%s' "$row" | grep -q 'Not logged in'; then
+        ai_line warn "$name" "$src · not logged in"
+      else
+        ai_line ok "$name" "$src"
+      fi
+    done < <(codex mcp list 2>/dev/null | awk 'NF && $1 != "Name" {print}')
+
+    while IFS= read -r p; do
+      [ -n "$p" ] || continue
+      printf '%s\n' "$mcp_seen" | grep -qx "$p" || ai_line ok "$p" "plugin"
+    done < <(printf '%s\n' "$plugins_installed")
+  else
+    ai_line warn codex "CLI missing"
+  fi
+
+  ai_section "Skills parity (Claude vs Codex)"
+  local before
+  before=$warns
+  while IFS= read -r s; do
+    [ -n "$s" ] && { ai_skill_has "$CODEX_DIR/skills" "$s" || ai_line warn skills "Claude-only: $s"; }
+  done < <(ai_list_skills "$CLAUDE_DIR/skills")
+  while IFS= read -r s; do
+    [ -n "$s" ] && { ai_skill_has "$CLAUDE_DIR/skills" "$s" || ai_line warn skills "Codex-only: $s"; }
+  done < <(ai_list_skills "$CODEX_DIR/skills")
+  [ "$warns" -eq "$before" ] && ai_line ok skills "in sync"
+
+  ai_section "Required skills/plugins"
+  for s in health-check fast-loop; do
+    if ai_skill_has "$CODEX_DIR/skills" "$s"; then
+      ai_line ok "skill:$s"
+    else
+      ai_line warn "skill:$s" "missing from Codex"
+    fi
+  done
+  for p in context-mode github browser; do
+    if ai_have codex && codex plugin list 2>/dev/null | awk '{n=$1; sub(/@.*/, "", n); print n}' | grep -qx "$p"; then
+      ai_line ok "plugin:$p"
+    elif ai_have codex && codex mcp list 2>/dev/null | awk 'NF && $1 != "Name" {print $1}' | grep -qx "$p"; then
+      ai_line ok "mcp:$p"
+    else
+      ai_line warn "$p" "plugin/mcp missing"
+    fi
+  done
+
+  ai_section "Dotfiles tracking"
+  ai_dotfile_tracked ".local/bin/doctor"
+  ai_dotfile_tracked ".config/codex/config.shared.toml"
+  ai_dotfile_tracked ".config/fish/config.fish"
+
+  ai_section "Summary"
+  if [ "$fails" -gt 0 ]; then
+    printf '  %s✗ %d fail%s · %s⚠ %d warn%s\n' "$RED" "$fails" "$R" "$YELLOW" "$warns" "$R"
+  elif [ "$warns" -gt 0 ]; then
+    printf '  %s⚠ %d warn%s · 0 fail\n' "$YELLOW" "$warns" "$R"
+  else
+    printf '  %s✓ all good%s\n' "$GREEN" "$R"
+  fi
+  printf '  %sNext: diff Integrations vs the registry in ~/.config/AI-SETUP.md to install any missing.%s\n' "$DIM" "$R"
+  [ "$fails" -gt 0 ] && return 1
+  return 0
+}
+
+run_docker_doctor() {
+  local action="status"
+  local dry_run=0
+  local include_volumes=0
+  local failures=()
+  local results=()
+  local reset bold green yellow red cyan ok fail dim
+
+  if [[ -t 1 ]]; then
+    reset=$'\033[0m'
+    bold=$'\033[1m'
+    dim=$'\033[2m'
+    green=$'\033[32m'
+    yellow=$'\033[33m'
+    red=$'\033[31m'
+    cyan=$'\033[36m'
+  else
+    reset=''
+    bold=''
+    dim=''
+    green=''
+    yellow=''
+    red=''
+    cyan=''
+  fi
+
+  ok="${green}✓${reset}"
+  fail="${red}✗${reset}"
+
+  docker_usage() {
+    printf '%sUsage:%s\n' "$bold" "$reset"
+    printf '  %sdoctor docker%s\n' "$cyan" "$reset"
+    printf '  %sdoctor docker status%s\n' "$cyan" "$reset"
+    printf '  %sdoctor docker clean [--dry-run] [--volumes]%s\n' "$cyan" "$reset"
+    printf '  %sdoctor docker reset-orbstack%s\n' "$cyan" "$reset"
+    printf '\n'
+    printf '%s\n' 'status checks daemon availability, disk usage, largest images/volumes, and OrbStack state.'
+    printf '%s\n' 'clean removes build cache, unused images, stopped containers, and unused networks.'
+    printf '%s\n' 'clean --volumes also removes unused Docker volumes.'
+    printf '%s\n' 'clean --dry-run shows prune targets without deleting them.'
+    printf '%s\n' 'reset-orbstack deletes all OrbStack Linux machines and Docker data after confirmation.'
+  }
+
+  docker_heading() {
+    printf '\n%s==> %s%s\n' "$cyan" "$1" "$reset"
+  }
+
+  docker_error() {
+    printf '%sdoctor docker:%s %s\n' "$red" "$reset" "$1" >&2
+  }
+
+  docker_have() {
+    command -v "$1" >/dev/null 2>&1
+  }
+
+  docker_line() {
+    local status="$1" label="$2" detail="${3:-}" sym col
+    case "$status" in
+      ok) sym='✓'; col=$green ;;
+      warn) sym='⚠'; col=$yellow ;;
+      fail) sym='✗'; col=$red ;;
+      *) sym='·'; col= ;;
+    esac
+    if [[ -n "$detail" ]]; then
+      printf '  %s%s%s %-18s %s%s%s\n' "$col" "$sym" "$reset" "$label" "$dim" "$detail" "$reset"
+    else
+      printf '  %s%s%s %s\n' "$col" "$sym" "$reset" "$label"
+    fi
+  }
+
+  docker_join_failures() {
+    local joined=''
+    local failure
+
+    for failure in "${failures[@]}"; do
+      if [[ -n "$joined" ]]; then
+        joined+=", "
+      fi
+      joined+="$failure"
+    done
+
+    printf '%s' "$joined"
+  }
+
+  docker_detect_desktop() {
+    if docker_have orbctl || [[ -S "$HOME/.orbstack/run/docker.sock" ]] || [[ -d "$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack" ]]; then
+      printf '%s' 'OrbStack'
+    elif [[ -d /Applications/Docker.app ]] || [[ -d "$HOME/Library/Group Containers/group.com.docker" ]]; then
+      printf '%s' 'Docker Desktop'
+    else
+      printf '%s' 'unknown'
+    fi
+  }
+
+  docker_show_largest_images() {
+    docker_heading 'Largest images'
+    docker image ls --format '{{.Size}}\t{{.Repository}}:{{.Tag}}\t{{.ID}}' \
+      | sort -hr \
+      | head -n 10
+  }
+
+  docker_show_largest_volumes() {
+    docker_heading 'Largest volumes'
+    docker system df -v \
+      | awk '
+          /^Local Volumes space usage:/ {flag=1; count=0; next}
+          /^Build cache usage:/ {flag=0}
+          flag && NF {
+            print
+            count++
+            if (count >= 12) exit
+          }
+        '
+  }
+
+  docker_status() {
+    if ! docker_have docker; then
+      docker_error 'docker command not found'
+      return 127
+    fi
+
+    docker_heading 'Runtime'
+    docker_line ok desktop "$(docker_detect_desktop)"
+    if docker info >/dev/null 2>&1; then
+      docker_line ok daemon "available"
+    else
+      docker_line fail daemon "docker info failed"
+      return 1
+    fi
+
+    if docker_have orbctl; then
+      if orbctl status >/dev/null 2>&1; then
+        docker_line ok orbctl "status ok"
+      else
+        docker_line warn orbctl "status failed"
+      fi
+    else
+      docker_line warn orbctl "not installed"
+    fi
+
+    docker_heading 'Disk usage'
+    docker system df
+
+    docker_show_largest_images
+    docker_show_largest_volumes
+
+    local orbstack_data="$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"
+    if [[ -d "$orbstack_data" ]]; then
+      docker_heading 'OrbStack data'
+      du -sh "$orbstack_data"
+    fi
+  }
+
+  docker_clean_dry_run() {
+    docker_heading 'Dry run'
+    printf '%s\n' 'Would run: docker builder prune -af'
+    printf '%s\n' 'Would run: docker image prune -af'
+    if [[ "$include_volumes" -eq 1 ]]; then
+      printf '%s\n' 'Would run: docker system prune -af --volumes'
+    else
+      printf '%s\n' 'Would run: docker system prune -f'
+    fi
+
+    docker_heading 'Current disk usage'
+    docker system df
+
+    docker_heading 'Currently dangling images'
+    docker image ls --filter dangling=true --format 'table {{.Repository}}\t{{.Tag}}\t{{.ID}}\t{{.Size}}'
+
+    docker_heading 'Stopped containers'
+    docker container ls -a --filter status=exited --filter status=created --format 'table {{.ID}}\t{{.Image}}\t{{.Status}}\t{{.Names}}'
+
+    docker_heading 'Unused networks'
+    docker network ls --filter type=custom --format 'table {{.ID}}\t{{.Name}}\t{{.Driver}}\t{{.Scope}}'
+
+    if [[ "$include_volumes" -eq 1 ]]; then
+      docker_heading 'Volumes'
+      docker volume ls --format 'table {{.Driver}}\t{{.Name}}'
+    fi
+  }
+
+  if [[ "$#" -gt 0 ]]; then
+    case "$1" in
+      status)
+        action="status"
+        shift
+        ;;
+      clean)
+        action="clean"
+        shift
+        ;;
+      reset-orbstack | --reset-orbstack)
+        action="reset-orbstack"
+        shift
+        ;;
+      -h | --help | help)
+        docker_usage
+        return 0
+        ;;
+      --volumes | --dry-run)
+        docker_error "cleanup options require: doctor docker clean"
+        docker_usage >&2
+        return 2
+        ;;
+      *)
+        docker_error "unknown action: $1"
+        docker_usage >&2
+        return 2
+        ;;
+    esac
+  fi
+
+  while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+      -h | --help | help)
+        docker_usage
+        return 0
+        ;;
+      --volumes)
+        include_volumes=1
+        ;;
+      --dry-run)
+        dry_run=1
+        ;;
+      *)
+        docker_error "unknown option: $1"
+        docker_usage >&2
+        return 2
+        ;;
+    esac
+    shift
+  done
+
+  if [[ "$action" = "status" ]]; then
+    if [[ "$include_volumes" -eq 1 || "$dry_run" -eq 1 ]]; then
+      docker_error 'status does not accept cleanup options'
+      return 2
+    fi
+    docker_status
+    return $?
+  fi
+
+  if [[ "$action" = "reset-orbstack" ]]; then
+    if [[ "$include_volumes" -eq 1 || "$dry_run" -eq 1 ]]; then
+      docker_error 'reset-orbstack does not accept cleanup options'
+      return 2
+    fi
+  fi
+
+  if [[ "$action" != "clean" && "$action" != "reset-orbstack" ]]; then
+    docker_usage
+    return 2
+  fi
+
+  if ! docker_have docker; then
+    docker_error 'docker command not found'
+    return 127
+  fi
+
+  if [[ "$action" = "reset-orbstack" ]]; then
+    if ! docker_have orbctl; then
+      docker_error 'orbctl command not found'
+      return 127
+    fi
+
+    docker_heading 'OrbStack reset'
+    printf '%s\n' 'This will permanently delete all OrbStack Linux machines and Docker data.'
+    printf '%sType reset-orbstack to continue: %s' "$yellow" "$reset"
+    read -r confirmation
+    if [[ "$confirmation" != reset-orbstack ]]; then
+      printf '%sdoctor docker: OrbStack reset cancelled%s\n' "$yellow" "$reset"
+      return 1
+    fi
+
+    orbctl reset -y
+    return $?
+  fi
+
+  if [[ "$dry_run" -eq 1 ]]; then
+    docker_clean_dry_run
+    return $?
+  fi
+
+  docker_heading 'Before'
+  docker system df
+  local status=$?
+  if [[ "$status" -ne 0 ]]; then
+    return "$status"
+  fi
+
+  docker_heading 'Build cache'
+  if docker builder prune -af; then
+    results+=("$ok build cache pruned")
+  else
+    results+=("$fail build cache prune failed")
+    failures+=('docker builder prune')
+  fi
+
+  docker_heading 'Unused images'
+  if docker image prune -af; then
+    results+=("$ok unused images pruned")
+  else
+    results+=("$fail image prune failed")
+    failures+=('docker image prune')
+  fi
+
+  if [[ "$include_volumes" -eq 1 ]]; then
+    docker_heading 'Stopped containers, networks, and unused volumes'
+    if docker system prune -af --volumes; then
+      results+=("$ok stopped containers, networks, and unused volumes pruned")
+    else
+      results+=("$fail system prune with volumes failed")
+      failures+=('docker system prune --volumes')
+    fi
+  else
+    docker_heading 'Stopped containers and networks'
+    if docker system prune -f; then
+      results+=("$ok stopped containers and networks pruned")
+    else
+      results+=("$fail system prune failed")
+      failures+=('docker system prune')
+    fi
+  fi
+
+  docker_heading 'After'
+  docker system df
+  status=$?
+  if [[ "$status" -ne 0 ]]; then
+    return "$status"
+  fi
+
+  local orbstack_data="$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"
+  if [[ -d "$orbstack_data" ]]; then
+    docker_heading 'OrbStack data'
+    du -sh "$orbstack_data"
+  fi
+
+  docker_heading 'Summary'
+  printf '%s\n' "${results[@]}"
+
+  if [[ "${#failures[@]}" -gt 0 ]]; then
+    docker_error "failed: $(docker_join_failures)"
+    return 1
+  fi
+}
+
+run_dotfiles_doctor() {
+  local fails=0
+  local warns=0
+  local R DIM BOLD GREEN YELLOW RED HEAD
+  local dot_git="$HOME/.dotfiles"
+  local work_tree="$HOME"
+
+  if [ -t 1 ]; then
+    R=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
+    GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; HEAD=$'\033[1;36m'
+  else
+    R=''; DIM=''; BOLD=''; GREEN=''; YELLOW=''; RED=''; HEAD=''
+  fi
+
+  dot_line() {
+    local status="$1" label="$2" detail="${3:-}" sym col
+    case "$status" in
+      ok) sym='✓'; col=$GREEN ;;
+      warn) sym='⚠'; col=$YELLOW; warns=$((warns + 1)) ;;
+      fail) sym='✗'; col=$RED; fails=$((fails + 1)) ;;
+      *) sym='·'; col= ;;
+    esac
+    if [ -n "$detail" ]; then
+      printf '  %s%s%s %-24s %s%s%s\n' "$col" "$sym" "$R" "$label" "$DIM" "$detail" "$R"
+    else
+      printf '  %s%s%s %s\n' "$col" "$sym" "$R" "$label"
+    fi
+  }
+
+  dot_section() { printf '\n%s▸ %s%s\n' "$HEAD" "$1" "$R"; }
+  dot_have() { command -v "$1" >/dev/null 2>&1; }
+  dot_git() { git -C "$work_tree" --git-dir="$dot_git" --work-tree="$work_tree" "$@"; }
+
+  dot_is_tracked() {
+    dot_git ls-files --error-unmatch "$1" >/dev/null 2>&1
+  }
+
+  dot_check_tracked() {
+    local rel="$1"
+    if dot_is_tracked "$rel"; then
+      dot_line ok tracked "$rel"
+    else
+      dot_line warn tracked "$rel missing"
+    fi
+  }
+
+  dot_check_untracked() {
+    local rel="$1"
+    if dot_is_tracked "$rel"; then
+      dot_line fail protected "$rel is tracked"
+    elif [ -e "$work_tree/$rel" ]; then
+      dot_line ok protected "$rel untracked"
+    else
+      dot_line ok protected "$rel absent"
+    fi
+  }
+
+  dot_check_fish() {
+    local rel="$1"
+    if [ ! -f "$work_tree/$rel" ]; then
+      return 0
+    elif ! dot_have fish; then
+      dot_line warn fish "$rel — fish missing"
+    elif fish -n "$work_tree/$rel" >/dev/null 2>&1; then
+      dot_line ok fish "$rel"
+    else
+      dot_line fail fish "$rel"
+    fi
+  }
+
+  dot_check_lua() {
+    local rel="$1"
+    if [ ! -f "$work_tree/$rel" ]; then
+      return 0
+    elif ! dot_have luac; then
+      dot_line warn lua "$rel — luac missing"
+    elif luac -p "$work_tree/$rel" >/dev/null 2>&1; then
+      dot_line ok lua "$rel"
+    else
+      dot_line fail lua "$rel"
+    fi
+  }
+
+  dot_count_lines() {
+    local count
+    count="$(printf '%s\n' "$1" | sed '/^$/d' | wc -l | tr -d ' ')"
+    printf '%s' "$count"
+  }
+
+  printf '%sdoctor dotfiles%s  %sBare dotfiles repo readiness%s\n' "$BOLD" "$R" "$DIM" "$R"
+
+  dot_section "Repository"
+  if [ -d "$dot_git" ]; then
+    dot_line ok gitdir "$dot_git"
+  else
+    dot_line fail gitdir "$dot_git missing"
+  fi
+  if git --git-dir="$dot_git" rev-parse --is-bare-repository >/dev/null 2>&1; then
+    if [ "$(git --git-dir="$dot_git" rev-parse --is-bare-repository)" = true ]; then
+      dot_line ok mode "bare gitdir"
+    else
+      dot_line ok mode "separate gitdir + explicit work-tree"
+    fi
+  else
+    dot_line fail bare "cannot inspect dotfiles repo"
+  fi
+
+  dot_section "Status"
+  local status
+  status="$(dot_git status --short 2>/dev/null)"
+  if [ -n "$status" ]; then
+    dot_line warn status "$(dot_count_lines "$status") changed paths"
+    printf '%s\n' "$status" | sed 's/^/    /'
+  else
+    dot_line ok status "clean"
+  fi
+
+  dot_section "Untracked"
+  local untracked
+  untracked="$(
+    dot_git status --short --untracked-files=all -- \
+      .config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git .local/bin .gitconfig .gitignore .tmux.conf 2>/dev/null \
+      | awk '$1 == "??" {print $2}' \
+      | grep -Ev '^(\.config/codex/(plugins/cache|sessions|context-mode|\.tmp|process_manager|plugins/\.plugin-appserver)/|\.config/codex/chrome-native-hosts\.json$|\.config/claude/(projects/|settings\.json\.bak)|\.config/fish/(completions|conf\.d|functions)/|\.config/fish/fish_variables$)' || true
+  )"
+  if [ -n "$untracked" ]; then
+    dot_line warn untracked "$(dot_count_lines "$untracked") paths"
+    printf '%s\n' "$untracked" | sed -n '1,40{s/^/    /;p;}'
+    if [ "$(dot_count_lines "$untracked")" -gt 40 ]; then
+      printf '    %s… truncated%s\n' "$DIM" "$R"
+    fi
+  else
+    dot_line ok untracked "none"
+  fi
+
+  dot_section "Protected local files"
+  dot_check_untracked ".config/git/config.local"
+  dot_check_untracked ".config/fish/secrets.fish"
+  dot_check_untracked ".config/claude/.claude.json"
+  dot_check_untracked ".config/codex/config.toml"
+
+  dot_section "Expected tracked files"
+  dot_check_tracked ".local/bin/doctor"
+  dot_check_tracked ".config/codex/config.shared.toml"
+  dot_check_tracked ".config/fish/config.fish"
+  dot_check_tracked ".config/AI-SETUP.md"
+
+  dot_section "Fish syntax"
+  local fish_files
+  fish_files="$(dot_git ls-files '.config/fish/*.fish' '.config/fish/**/*.fish' 2>/dev/null)"
+  if [ -n "$fish_files" ]; then
+    while IFS= read -r rel; do
+      [ -n "$rel" ] && dot_check_fish "$rel"
+    done < <(printf '%s\n' "$fish_files")
+  else
+    dot_line warn fish "no tracked Fish files"
+  fi
+
+  dot_section "Lua syntax"
+  local lua_files
+  lua_files="$(dot_git ls-files '.config/nvim/*.lua' '.config/nvim/**/*.lua' 2>/dev/null)"
+  if [ -n "$lua_files" ]; then
+    while IFS= read -r rel; do
+      [ -n "$rel" ] && dot_check_lua "$rel"
+    done < <(printf '%s\n' "$lua_files")
+  else
+    dot_line ok lua "no tracked Neovim Lua files"
+  fi
+
+  dot_section "Summary"
+  if [ "$fails" -gt 0 ]; then
+    printf '  %s✗ %d fail%s · %s⚠ %d warn%s\n' "$RED" "$fails" "$R" "$YELLOW" "$warns" "$R"
+  elif [ "$warns" -gt 0 ]; then
+    printf '  %s⚠ %d warn%s · 0 fail\n' "$YELLOW" "$warns" "$R"
+  else
+    printf '  %s✓ all good%s\n' "$GREEN" "$R"
+  fi
+  [ "$fails" -gt 0 ] && return 1
+  return 0
+}
+
+if [[ "$#" -eq 0 ]]; then
+  usage
+  exit 2
+fi
+
+case "$1" in
+  ai | --ai)
+    shift
+    if [[ "$#" -gt 0 ]]; then
+      printf '%s: doctor ai does not take options: %s\n' "$script_name" "$*" >&2
+      exit 2
+    fi
+    run_ai_doctor
+    ;;
+  dotfiles | --dotfiles)
+    shift
+    if [[ "$#" -gt 0 ]]; then
+      printf '%s: doctor dotfiles does not take options: %s\n' "$script_name" "$*" >&2
+      exit 2
+    fi
+    run_dotfiles_doctor
+    ;;
+  docker | --docker)
+    shift
+    run_docker_doctor "$@"
+    ;;
+  -h | --help | help)
+    usage
+    ;;
+  *)
+    printf '%s: unknown doctor target: %s\n' "$script_name" "$1" >&2
+    usage >&2
+    exit 2
+    ;;
+esac
