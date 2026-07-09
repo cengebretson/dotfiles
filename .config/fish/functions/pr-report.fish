@@ -119,6 +119,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
               if .__typename == "CheckRun" then
                 if .status != "COMPLETED" then "pending"
                 elif ((.conclusion // "" | ascii_upcase) | . == "SUCCESS" or . == "NEUTRAL" or . == "SKIPPED") then "pass"
+                elif ((.conclusion // "" | ascii_upcase) == "CANCELLED") then "ignored"
                 else "fail" end
               else
                 (.state // "" | ascii_upcase) as $s |
@@ -314,8 +315,8 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         # --- non-pretty modes accumulate, then emit after the loop ---
         if test "$mode" = json
             # Tab-joined record; jq builds the object (values never contain tabs).
-            set -a json_rows (string join \t $pr_num $pr_title $pr_url $pr_branch \
-                $review $jira_key $jira_status $jira_url $count $ci_pass $ci_fail $ci_pend $parts[8] $idle_days $comments $is_draft $requested_reviewers)
+            set -a json_rows (string join \t -- "$pr_num" "$pr_title" "$pr_url" "$pr_branch" \
+                "$review" "$jira_key" "$jira_status" "$jira_url" "$count" "$ci_pass" "$ci_fail" "$ci_pend" "$parts[8]" "$idle_days" "$comments" "$is_draft" "$requested_reviewers")
             continue
         else if test "$mode" = slack
             # Lean entry: bullet list item with title, then link + GitHub review status,
