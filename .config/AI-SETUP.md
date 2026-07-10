@@ -44,7 +44,9 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <cmd>
 | `codex/auth.json` | account/auth | 🚫 gitignored |
 | `fish/secrets.fish` | secret env vars (`GH_TOKEN`, `GITHUB_PERSONAL_ACCESS_TOKEN`, …) | 🚫 gitignored |
 | `git/config.local` | git `user.name`/`user.email` for this machine | 🚫 gitignored |
-| `.local/bin/ai-doctor` | one-command health/audit report (hooks, integrations, deps, skills) | ✅ |
+| `.local/bin/doctor` | health/audit entrypoint (`doctor ai` = hooks, integrations, deps, skills) | ✅ |
+| `.local/bin/ai-hook-dispatch` | shared hook dispatcher; each tool's `hooks/dispatch.sh` symlinks to it | ✅ |
+| `claude/hooks/handlers/`, `codex/hooks/handlers/` | per-tool hook handlers (shims tracked; machine-local symlinks like `domain-docs` 🚫 untracked) | ✅/🚫 |
 
 Rule of thumb for *every* config: **share the reference, never the secret or the machine-specific bit.**
 
@@ -67,14 +69,24 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
    - moshi (remote approvals/notifications, optional): `moshi-hook pair --token <token>` (token from
      the Moshi app; secret stored in the macOS keychain, per machine), then `brew services start
      moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maintains the socket +
-     WebSocket bridge). Verify with `ai-doctor` or `moshi-hook status` → `paired`. Do **not** run
+     WebSocket bridge). Verify with `doctor ai` or `moshi-hook status` → `paired`. Do **not** run
      `moshi-hook install` — see Gotchas. Until paired, the `dispatch.sh moshi` routes no-op harmlessly.
 5. **Codex live config:** copy the wanted blocks from `codex/config.shared.toml` into `codex/config.toml`
    (it's a reference, not auto-loaded). At minimum: `[mcp_servers.github]` and the `[profiles.*]`.
 6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
    `enabledPlugins` in `settings.json` is already tracked, so they re-fetch on first run; Codex:
    `codex plugin add …` / `codex mcp add …` as listed). 🧑 OAuth logins there are per-machine.
-7. **Verify:** `ai-doctor` (one report: hooks, integrations, deps, skills parity) · `/health-check`
+7. **Machine-local hook handlers (only if `~/workspace/scripts` is cloned here):** the domain-docs
+   session hook is an untracked symlink per tool 🤖:
+   ```bash
+   ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
+     ~/.config/claude/hooks/handlers/domain-docs
+   ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
+     ~/.config/codex/hooks/handlers/domain-docs
+   ```
+   Skip on machines without that repo — the `settings.json`/`hooks.json` entries degrade to logged
+   skips, and `doctor ai` shows which handlers are inert.
+8. **Verify:** `doctor ai` (one report: hooks, integrations, deps, skills parity) · `/health-check`
    (Claude) · `codex doctor`.
 
 ## How to add things (with the share-vs-local rule)
@@ -87,11 +99,20 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 - Inline/hardcoded token, local stdio path, or work-only → **`config.toml` only** (gitignored).
 
 **Hook**
-- Claude: drop the script in `claude/hooks/`. If it's a *side-effect* hook (notify/format), route it
-  through `dispatch.sh` (it swallows stdout + always exits 0). If it must return a **decision**
-  (e.g. a `PreToolUse` permission hook), register it **directly** — `dispatch.sh` would discard the
-  stdout the decision rides on. Add a matching `dispatch.sh doctor` check for its deps.
-- Codex: `hooks.json` (synchronous shell command, JSON on stdin → JSON on stdout).
+- Both tools share one dispatcher: `.local/bin/ai-hook-dispatch`, symlinked as each tool's
+  `hooks/dispatch.sh`. It runs the executable at `hooks/handlers/<name>` *next to the symlink it was
+  invoked through*, so each tool gets its own handler set with zero per-tool dispatcher config.
+- **To add a hook:** drop an executable (or symlink) at `claude/hooks/handlers/<name>` or
+  `codex/hooks/handlers/<name>`, then reference `"dispatch.sh <name>"` from `settings.json` /
+  `hooks.json`. Handler contract: payload arrives on stdin; **stdout passes through** (so
+  context-injection *and* `PreToolUse` decision hooks both work through the dispatcher);
+  side-effect handlers must self-suppress (`>/dev/null`); exit `0` = ok, exit `100` = prerequisite
+  missing on this machine (logged `skipped`), anything else = failed. Logs: `hooks/logs/hooks.log`.
+- Machine-specific handlers are **untracked symlinks** (e.g. `domain-docs` →
+  `~/workspace/scripts/analysis/automation/claude-session-hook.sh`): they dangle harmlessly on
+  machines without the target repo, and `doctor ai` reports them as such. Shared shims (tmux
+  attention, moshi, format-on-edit, local-instructions) are tracked and self-check their own deps.
+- No per-hook doctor edits needed — `doctor ai` enumerates both handler dirs automatically.
 
 **Codex profile** — add `[profiles.<name>]` to `config.shared.toml` + `config.toml`. Select with
 `codex -p <name>`. CLI flags override the profile; the profile overrides the top-level default.
@@ -140,7 +161,7 @@ per-plugin prose (it rots against the tools' own installers).
 | Google Drive | shared | Claude.ai **connector**, not a plugin — enable in app 🧑 | — | connector shows connected |
 
 > `Codex.app` injects its own cowork plugins into shared `~/.codex` (`node_repl`, `documents`, `pdf`,
-> `spreadsheets`, `presentations`, `template-creator`, `browser`) — they appear in `ai-doctor` /
+> `spreadsheets`, `presentations`, `template-creator`, `browser`) — they appear in `doctor ai` /
 > `codex plugin list` but are **app-provided**, not part of this registry; nothing to install.
 
 **Claude `enabledPlugins` edit shape** (the 🤖 agent path; example adding context7 + playwright):
@@ -156,14 +177,15 @@ marketplace under `extraKnownMarketplaces` (see the existing `context-mode` entr
 
 ## Audit (setup status)
 
-Run **`ai-doctor`** (`~/.local/bin/ai-doctor`, tracked) — one read-only report 🤖 covering deps, hook
-plumbing for both tools, integration/plugin state, and skills parity. It owns all health checks; the
-`dispatch.sh` scripts only dispatch now. To get *"what's missing + how to install it,"* diff its
+Run **`doctor ai`** (`~/.local/bin/doctor`, tracked) — one read-only report 🤖 covering deps, hook
+plumbing for both tools (it enumerates each `hooks/handlers/` dir, flagging dangling symlinks as
+"repo not on this machine"), integration/plugin state, and skills parity. It owns all health checks;
+the dispatcher only dispatches. To get *"what's missing + how to install it,"* diff its
 Integrations sections against the [registry](#integrations-registry): mark each row ✅/❌ per tool and
 emit the ❌ row's install command (🤖) or human handoff (🧑). Skip `local/work` rows (atlassian)
 unless asked.
 
-Under the hood `ai-doctor` enumerates state with these — use them directly for a single facet:
+Under the hood `doctor ai` enumerates state with these — use them directly for a single facet:
 
 ```bash
 jq -r '.enabledPlugins | to_entries[] | select(.value) | .key' ~/.config/claude/settings.json
@@ -171,7 +193,7 @@ codex mcp list
 codex plugin list
 ```
 
-**Deps:** `ai-doctor` checks presence; `brew bundle --file ~/.config/Brewfile` installs/repairs any
+**Deps:** `doctor ai` checks presence; `brew bundle --file ~/.config/Brewfile` installs/repairs any
 missing formulae.
 
 ## Claude ↔ Codex parity (the keep-in-sync check)
@@ -185,7 +207,7 @@ Glance here when one tool gets a capability the other lacks.
 | Command allowlist | `permissions.allow` (string globs) | `rules/default.rules` (tokenized `prefix_rule`) |
 | Compound-command approval | `hooks/approve-compound-bash.sh` (decomposes pipes/chains) | native — tokenized prefix matching, no decomposition needed |
 | LLM approval reviewer | DIY `PreToolUse` prompt hook | native `approvals_reviewer = "auto_review"` |
-| Hooks | `settings.json` hooks → `dispatch.sh` | `hooks.json` |
+| Hooks | `settings.json` → `dispatch.sh` (symlink) → `hooks/handlers/*` | `hooks.json` → `dispatch.sh` (symlink) → `hooks/handlers/*` — one shared `ai-hook-dispatch` behind both |
 | Coarse trust dial | sandbox + bypass mode | `approval_policy` + `sandbox_mode` |
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
@@ -227,4 +249,4 @@ Glance here when one tool gets a capability the other lacks.
   and says "rerun `moshi-hook install`" — **don't.** `moshi-hook install` writes its own
   machine-specific hook entries that duplicate/conflict with the dispatcher routing. `moshi-hook`
   comes from `brew bundle` (`rjyo/moshi/moshi-hook`); the pairing secret lives in the macOS keychain
-  (machine-local, never committed); `ai-doctor` checks the binary is present, not that it's paired.
+  (machine-local, never committed); `doctor ai` checks the binary is present, not that it's paired.
