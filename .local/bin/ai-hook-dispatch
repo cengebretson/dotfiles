@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Shared agent hook dispatcher: routes "dispatch.sh <name>" to the matching
+# executable in <hooks-dir>/handlers/<name>. One implementation serves every
+# tool: each tool's hooks dir holds a dispatch.sh symlink to this script, and
+# the dispatcher anchors handlers/ and logs/ next to the symlink it was
+# invoked through — so ~/.config/claude/hooks/dispatch.sh uses Claude's
+# handlers and ~/.config/codex/hooks/dispatch.sh uses Codex's, with zero
+# per-tool configuration.
+#
+# The dispatcher knows nothing about individual integrations, which keeps
+# settings.json/hooks.json portable across machines: a machine missing a
+# handler (or a handler whose target tool/repo is not installed there) skips
+# silently and logs it.
+#
+# Handler contract:
+#   - stdin: the hook payload JSON (may be empty for some events)
+#   - stdout: passes through to the agent — used by context-injection
+#     (SessionStart) and decision (PreToolUse) handlers; side-effect handlers
+#     must self-suppress (>/dev/null) so noise never reaches the session
+#   - exit 0 = ok, exit 100 = skipped (missing prerequisite), other = failed
+#
+# Health/readiness checks live in ~/.local/bin/doctor — this only dispatches.
+# Do not log hook payloads; they may contain prompt or file data.
+set -u
+
+event="${1:-}"
+payload="$(cat)"
+# Deliberately NOT resolving the symlink: the invocation path's directory is
+# the per-tool hooks dir that owns handlers/ and logs/.
+base_dir="$(cd "$(dirname "$0")" && pwd)"
+handlers_dir="$base_dir/handlers"
+log_dir="$base_dir/logs"
+log_file="$log_dir/hooks.log"
+
+log_hook() {
+  mkdir -p "$log_dir" >/dev/null 2>&1 || return 0
+  printf '%s event=%s status=%s detail=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$event" "${1:-unknown}" "${2:-}" >> "$log_file" 2>/dev/null || true
+}
+
+# Handler names are settings-controlled, but stay defensive: no path
+# separators, no dotfiles.
+case "$event" in
+  '' | */* | .*)
+    log_hook skipped invalid-event
+    exit 0
+    ;;
+esac
+
+script="$handlers_dir/$event"
+if [ ! -x "$script" ]; then
+  log_hook skipped "no-handler:$event"
+  exit 0
+fi
+
+printf '%s' "$payload" | "$script"
+rc=$?
+case "$rc" in
+  0) log_hook ok "$event" ;;
+  100) log_hook skipped "$event:prerequisite-missing" ;;
+  *) log_hook failed "$event:rc=$rc" ;;
+esac
+exit 0

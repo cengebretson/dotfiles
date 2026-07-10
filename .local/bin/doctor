@@ -109,6 +109,28 @@ PY
     fi
   }
 
+  # Enumerate a dispatcher's hooks/handlers/ dir. A dangling symlink means the
+  # target repo is not checked out on this machine — expected on some
+  # machines, so warn not fail.
+  ai_check_handlers() {
+    local dir="$1" handler handler_name
+    if [ ! -d "$dir" ]; then
+      ai_line warn handlers "missing directory: $dir"
+      return 0
+    fi
+    for handler in "$dir"/*; do
+      { [ -e "$handler" ] || [ -L "$handler" ]; } || continue
+      handler_name="handler:$(basename "$handler")"
+      if [ -x "$handler" ]; then
+        ai_line ok "$handler_name"
+      elif [ -L "$handler" ] && [ ! -e "$handler" ]; then
+        ai_line warn "$handler_name" "symlink target missing (repo not on this machine)"
+      else
+        ai_line fail "$handler_name" "present but not executable"
+      fi
+    done
+  }
+
   ai_check_path_entry() {
     local wanted="$1"
     local old_ifs="$IFS"
@@ -184,26 +206,9 @@ PY
   ai_check_path_entry "$HOME/.local/bin"
 
   ai_section "Claude hooks"
-  ai_check_executable "$CLAUDE_DIR/hooks/dispatch.sh" "dispatcher"
-  # Handler inventory: dispatch.sh routes "dispatch.sh <name>" to
-  # hooks/handlers/<name>. A dangling symlink means the target repo is not
-  # checked out on this machine — expected on some machines, so warn not fail.
-  local handler handler_name
-  if [ -d "$CLAUDE_DIR/hooks/handlers" ]; then
-    for handler in "$CLAUDE_DIR/hooks/handlers"/*; do
-      { [ -e "$handler" ] || [ -L "$handler" ]; } || continue
-      handler_name="handler:$(basename "$handler")"
-      if [ -x "$handler" ]; then
-        ai_line ok "$handler_name"
-      elif [ -L "$handler" ] && [ ! -e "$handler" ]; then
-        ai_line warn "$handler_name" "symlink target missing (repo not on this machine)"
-      else
-        ai_line fail "$handler_name" "present but not executable"
-      fi
-    done
-  else
-    ai_line warn handlers "missing directory: $CLAUDE_DIR/hooks/handlers"
-  fi
+  ai_check_executable "$HOME/.local/bin/ai-hook-dispatch" "shared dispatcher"
+  ai_check_executable "$CLAUDE_DIR/hooks/dispatch.sh" "dispatch symlink"
+  ai_check_handlers "$CLAUDE_DIR/hooks/handlers"
   # Handler prerequisites (handlers exit 100/skipped without these):
   if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention "handler prereq"; else ai_line warn tmux-attention "missing — attention handlers skip"; fi
   if ai_moshi_present; then ai_line ok moshi-hook "handler prereq"; else ai_line warn moshi-hook "missing — moshi handler skips"; fi
@@ -215,9 +220,12 @@ PY
   ai_check_routes "$CLAUDE_DIR/settings.json"
 
   ai_section "Codex hooks"
-  ai_check_executable "$CODEX_DIR/hooks/dispatch.sh" "dispatcher"
-  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention; else ai_line warn tmux-attention missing; fi
-  if ai_moshi_present; then ai_line ok moshi-hook; else ai_line warn moshi-hook missing; fi
+  ai_check_executable "$CODEX_DIR/hooks/dispatch.sh" "dispatch symlink"
+  ai_check_handlers "$CODEX_DIR/hooks/handlers"
+  # Handler prerequisites (handlers exit 100/skipped without these):
+  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention "handler prereq"; else ai_line warn tmux-attention "missing — attention handlers skip"; fi
+  if ai_moshi_present; then ai_line ok moshi-hook "handler prereq"; else ai_line warn moshi-hook "missing — moshi handler skips"; fi
+  if [ -r "$CODEX_DIR/local.md" ]; then ai_line ok local.md "handler prereq"; else ai_line warn local.md "missing — local-instructions handler skips"; fi
   ai_check_routes "$CODEX_DIR/hooks.json"
 
   ai_section "Config syntax"

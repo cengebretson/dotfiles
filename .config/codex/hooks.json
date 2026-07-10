@@ -25,6 +25,10 @@
           {
             "type": "command",
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" domain-docs"
           }
         ]
       }

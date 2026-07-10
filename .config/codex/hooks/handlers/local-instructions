@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Inject machine-local Codex instructions; context passes via stdout.
+set -u
+file="$HOME/.config/codex/local.md"
+[ -r "$file" ] || exit 100
+exec cat "$file"

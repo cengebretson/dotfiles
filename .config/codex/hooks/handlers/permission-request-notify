@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# tmux attention marker: flag the pane as waiting for input.
+set -u
+script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
+[ -x "$script" ] || exit 100
+exec "$script" input >/dev/null 2>&1
