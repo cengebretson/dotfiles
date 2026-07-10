@@ -81,7 +81,6 @@ These live in `functions/` and are not Fisher-managed.
 | `fish_greeting` | Show a custom shell greeting with random image/system info |
 | `keychain` | List, add, or delete macOS Keychain internet-password entries, or export one into an environment variable (`setenv`) |
 | `kp` | Kill processes selected with fzf |
-| `los-stack` | Wrapper that execs `~/workspace/scripts/los-stack.sh`, which no longer exists — stale; the current equivalent is `los-scripts stack` |
 | `ports` | List listening TCP ports, filter by port, or stop a listener |
 | `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
 | `pr-report` | List your open PRs with CI/review status, unresolved Copilot/human threads, Jira status, and labels; `--json`, `--slack`, `--short` output modes plus include/exclude term filtering |
