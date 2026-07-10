@@ -212,7 +212,7 @@ Glance here when one tool gets a capability the other lacks.
 | Concept | Claude Code | Codex CLI |
 |---|---|---|
 | Agent-behavior instructions | `claude/CLAUDE.md` | `codex/AGENTS.md` |
-| Reusable skills | `claude/skills/<name>/SKILL.md` | `codex/skills/<name>/SKILL.md` (keep the set in sync) |
+| Reusable skills | `claude/skills/<name>/SKILL.md` | `codex/skills/<name>/SKILL.md` (keep the set in sync; intentional Codex-only exemptions: `fast-loop` — Claude's loop behavior lives in CLAUDE.md — and `playwright` — Claude gets it via the official plugin; `doctor ai` skips both) |
 | Command allowlist | `permissions.allow` (string globs) | `rules/default.rules` (tokenized `prefix_rule`) |
 | Compound-command approval | `hooks/approve-compound-bash.sh` (decomposes pipes/chains) | native — tokenized prefix matching, no decomposition needed |
 | LLM approval reviewer | DIY `PreToolUse` prompt hook | native `approvals_reviewer = "auto_review"` |

@@ -329,15 +329,24 @@ PY
   fi
 
   ai_section "Skills parity (Claude vs Codex)"
+  # Documented one-sided skills (see AI-SETUP.md parity table):
+  #   fast-loop  — Codex-only by design; Claude's loop behavior lives in CLAUDE.md
+  #   playwright — Codex vendored skill; Claude gets it via the official plugin
+  ai_parity_exempt() {
+    case "$1" in
+      fast-loop | playwright) return 0 ;;
+      *) return 1 ;;
+    esac
+  }
   local before
   before=$warns
   while IFS= read -r s; do
-    [ -n "$s" ] && { ai_skill_has "$CODEX_DIR/skills" "$s" || ai_line warn skills "Claude-only: $s"; }
+    [ -n "$s" ] && ! ai_parity_exempt "$s" && { ai_skill_has "$CODEX_DIR/skills" "$s" || ai_line warn skills "Claude-only: $s"; }
   done < <(ai_list_skills "$CLAUDE_DIR/skills")
   while IFS= read -r s; do
-    [ -n "$s" ] && { ai_skill_has "$CLAUDE_DIR/skills" "$s" || ai_line warn skills "Codex-only: $s"; }
+    [ -n "$s" ] && ! ai_parity_exempt "$s" && { ai_skill_has "$CLAUDE_DIR/skills" "$s" || ai_line warn skills "Codex-only: $s"; }
   done < <(ai_list_skills "$CODEX_DIR/skills")
-  [ "$warns" -eq "$before" ] && ai_line ok skills "in sync"
+  [ "$warns" -eq "$before" ] && ai_line ok skills "in sync (exempt: fast-loop, playwright)"
 
   ai_section "Required skills/plugins"
   for s in health-check fast-loop; do
