@@ -76,13 +76,17 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
    `enabledPlugins` in `settings.json` is already tracked, so they re-fetch on first run; Codex:
    `codex plugin add …` / `codex mcp add …` as listed). 🧑 OAuth logins there are per-machine.
-7. **Machine-local hook handlers (only if `~/workspace/scripts` is cloned here):** the domain-docs
-   session hook is an untracked symlink per tool 🤖:
+7. **Machine-local symlinks (only if `~/workspace/scripts` is cloned here)** 🤖:
+   - the domain-docs session hook, an untracked symlink per tool:
    ```bash
    ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
      ~/.config/claude/hooks/handlers/domain-docs
    ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
      ~/.config/codex/hooks/handlers/domain-docs
+   ```
+   - the `los-scripts` command on `$PATH` (absolute-target symlink):
+   ```bash
+   ln -s /Users/cengebretson/workspace/scripts/bin/los-scripts ~/.local/bin/los-scripts
    ```
    Skip on machines without that repo — the `settings.json`/`hooks.json` entries degrade to logged
    skips, and `doctor ai` shows which handlers are inert.
@@ -95,7 +99,9 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 - No secret + generic URL (token via `*_env_var` reference) → **shareable**.
   - Codex: `[mcp_servers.<name>]` in `config.shared.toml` *and* `config.toml`.
   - Claude: enable an official plugin in `settings.json` (preferred when one exists — it bundles
-    managed OAuth + upkeep), or add an http server via `.mcp.json`.
+    managed OAuth + upkeep). For a bare server, `claude mcp add -s user <name> …` writes a user-scoped
+    `mcpServers.<name>` entry into gitignored `~/.config/claude/.claude.json` (the mechanism actually
+    in use for github); project-shared http servers can go in `.mcp.json`.
 - Inline/hardcoded token, local stdio path, or work-only → **`config.toml` only** (gitignored).
 
 **Hook**
@@ -110,8 +116,8 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
   missing on this machine (logged `skipped`), anything else = failed. Logs: `hooks/logs/hooks.log`.
 - Machine-specific handlers are **untracked symlinks** (e.g. `domain-docs` →
   `~/workspace/scripts/analysis/automation/claude-session-hook.sh`): they dangle harmlessly on
-  machines without the target repo, and `doctor ai` reports them as such. Shared shims (tmux
-  attention, moshi, format-on-edit, local-instructions) are tracked and self-check their own deps.
+  machines without the target repo, and `doctor ai` reports them as such. Shared shims are tracked
+  and self-check their own deps — see each tool's `hooks/handlers/` for the tracked shims.
 - No per-hook doctor edits needed — `doctor ai` enumerates both handler dirs automatically.
 
 **Codex profile** — add `[profiles.<name>]` to `config.shared.toml` + `config.toml`. Select with
@@ -154,11 +160,14 @@ per-plugin prose (it rots against the tools' own installers).
 | Integration | Scope | Claude (`enabledPlugins` id / how) | Codex (command) | Verify |
 |---|---|---|---|---|
 | context-mode | shared | `context-mode@context-mode` 🤖 | `codex plugin add context-mode@context-mode` 🤖 | `/health-check` · `codex plugin list` |
-| github | shared | `github@claude-plugins-official` 🤖, then OAuth 🧑 | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_PERSONAL_ACCESS_TOKEN`, PAT in `secrets.fish` 🤖 — `codex mcp login github` **fails** (no OAuth DCR, see Gotchas) | `codex mcp get github` · `mcp__github__*` resolves |
-| context7 (live docs) | shared | `context7@claude-plugins-official` 🤖 | `codex mcp add context7 --url https://mcp.context7.com/mcp` 🤖 | tool list shows context7 |
+| github | shared | user-scoped `mcpServers.github` in gitignored `~/.config/claude/.claude.json`, added via `claude mcp add -s user` 🤖 then OAuth 🧑 (the `github@claude-plugins-official` plugin is an alternative) | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_PERSONAL_ACCESS_TOKEN`, PAT in `secrets.fish` 🤖 — `codex mcp login github` **fails** (no OAuth DCR, see Gotchas) | `jq '.mcpServers \| keys' ~/.config/claude/.claude.json` · `codex mcp get github` · `mcp__github__*` resolves |
 | playwright (browser) | shared | `playwright@claude-plugins-official` 🤖 | `codex mcp add playwright -- npx @playwright/mcp@latest` 🤖 (needs node) | tool list shows playwright |
 | atlassian (Jira+Confluence) | **local/work** | `atlassian@claude-plugins-official` 🤖, then login 🧑 | `codex plugin add atlassian-rovo@openai-curated` 🤖, then `codex mcp login atlassian-rovo` 🧑 | server reachable after login |
 | Google Drive | shared | Claude.ai **connector**, not a plugin — enable in app 🧑 | — | connector shows connected |
+
+> **Optional (not currently installed):** context7 (live docs) — Claude: `context7@claude-plugins-official` 🤖;
+> Codex: `codex mcp add context7 --url https://mcp.context7.com/mcp` 🤖; verify: tool list shows context7.
+> Not in `enabledPlugins` and no Codex MCP entry on this machine — install only if wanted.
 
 > `Codex.app` injects its own cowork plugins into shared `~/.codex` (`node_repl`, `documents`, `pdf`,
 > `spreadsheets`, `presentations`, `template-creator`, `browser`) — they appear in `doctor ai` /
@@ -211,7 +220,7 @@ Glance here when one tool gets a capability the other lacks.
 | Coarse trust dial | sandbox + bypass mode | `approval_policy` + `sandbox_mode` |
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
-| GitHub MCP | official plugin (OAuth, managed) | `[mcp_servers.github]` + PAT via `bearer_token_env_var` (no OAuth DCR) |
+| GitHub MCP | user-scoped `mcpServers.github` in gitignored `.claude.json` (`claude mcp add -s user`); official plugin is the managed-OAuth alternative | `[mcp_servers.github]` + PAT via `bearer_token_env_var` (no OAuth DCR) |
 | Desktop app vs config | `Claude.app` keeps a **separate** store (`~/Library/Application Support/Claude/`, own MCP/connectors) — CLI config does **not** carry in | `Codex.app` **shares** `~/.codex/` (config, profiles, MCP, hooks, rules, auth) — only Electron state is app-local |
 | Remote approvals/notify (moshi) | `dispatch.sh moshi` → `moshi-hook claude-hook` (9 hook events) | `dispatch.sh moshi` → `moshi-hook codex-hook` (4 hook events) |
 

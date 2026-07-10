@@ -22,7 +22,7 @@ Current manifest:
 | Plugin | Purpose |
 |--------|---------|
 | `PatrickF1/fzf.fish` | fzf key bindings and helper functions |
-| `patrickf1/colored_man_pages.fish` | Colored man pages |
+| `patrickf1/colored_man_pages.fish` | Colored man pages — provides the `cless` and `man` functions in `functions/` |
 | `danhper/fish-ssh-agent` | SSH agent startup |
 | `jorgebucaran/autopair.fish` | Paired character insertion |
 | `jorgebucaran/fisher` | Fish plugin manager |
@@ -59,7 +59,7 @@ Defined in `alias.fish`, `config.fish`, and custom functions. Highlights:
 | `dots` | `git --git-dir=$HOME/.dotfiles --work-tree=$HOME` (abbr, expands anywhere) |
 | `dots-status` | dotfiles status with untracked files forced visible |
 | `dots-untracked` | list untracked files visible to the bare dotfiles repo |
-| `zz` | open `config.fish` in `$EDITOR` (abbr) |
+| `zz` | the `~/.config/fish/config.fish` path (abbr) |
 | `cat` / `find` / `vi`,`vim` | `bat` / `fd` / `nvim` |
 | `o` / `oo` | `open` / `open .` |
 | `reload` | `exec fish` |
@@ -76,18 +76,16 @@ These live in `functions/` and are not Fisher-managed.
 | Command | Purpose |
 |---------|---------|
 | `claude` | Run Claude Code and rename the tmux window to `claude` while active |
-| `cless` / `man` | Colorized `less`/`man` via `LESS_TERMCAP_*` variables |
 | `codex` | Run Codex and rename the tmux window to `codex` while active |
 | `confetti` | Trigger the Raycast confetti extension |
-| `docker-clean` | Reclaim Docker/OrbStack disk space (build cache, images, containers; `--volumes`, `--reset-orbstack`) |
 | `fish_greeting` | Show a custom shell greeting with random image/system info |
 | `keychain` | List, add, or delete macOS Keychain internet-password entries, or export one into an environment variable (`setenv`) |
 | `kp` | Kill processes selected with fzf |
+| `los-stack` | Wrapper that execs `~/workspace/scripts/los-stack.sh`, which no longer exists — stale; the current equivalent is `los-scripts stack` |
 | `ports` | List listening TCP ports, filter by port, or stop a listener |
-| `pr` | Open the current branch's GitHub PR in the browser |
 | `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
 | `pr-report` | List your open PRs with CI/review status, unresolved Copilot/human threads, Jira status, and labels; `--json`, `--slack`, `--short` output modes plus include/exclude term filtering |
-| `tmux-attention` | Set/clear the per-window `@agent_attention` marker in tmux (used by agent hooks; bell fallback outside tmux) |
+| `tmux-attention` | Interactive convenience wrapper to set/clear the per-window `@agent_attention` marker in tmux (bell fallback outside tmux). Agent hooks do not use this function — they call the tmux-attention plugin CLI (`~/.config/tmux/plugins/tmux-attention/scripts/tmux-attention`) via hook handlers |
 | `moshi-notify` | Toggle/inspect Moshi agent-hook notifications: `off`/`on`/`toggle`/`status` (bound to `prefix N` in tmux) |
 | `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |
 | `rtmux` | Pick and attach to a tmux session on an online Tailscale peer via fzf. Username is resolved per host from your ssh config (so a `User` directive in `~/.ssh/config.local` is honored); `-u <user>` forces one user for all hosts. `--doctor` diagnoses connectivity. Falls back to `TERM=xterm-256color` on hosts lacking the local terminfo. (peer helper: `_rtmux_peers`) |

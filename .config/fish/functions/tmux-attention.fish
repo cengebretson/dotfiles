@@ -11,8 +11,8 @@ function tmux-attention --description 'Show an attention marker in tmux'
             printf '       tmux-attention --install [claude|codex|all]\n'
             return 0
         case --install
-            printf 'tmux-attention: hook installation is specified in ~/.config/tmux/attention-marker.md but is not implemented yet.\n' >&2
-            printf 'Usage: tmux-attention --install [claude|codex|all]\n' >&2
+            printf 'tmux-attention: hooks are wired via ~/.local/bin/ai-hook-dispatch handlers (see ~/.config/tmux/attention-marker.md); use the plugin installer instead:\n' >&2
+            printf '  ~/.config/tmux/plugins/tmux-attention/scripts/install-hooks\n' >&2
             return 2
         case '*'
             printf 'tmux-attention: unknown state: %s\n' "$state" >&2

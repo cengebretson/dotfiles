@@ -32,23 +32,7 @@ Configured in `settings.json`:
 
 ## AI-Helpful CLI Tools
 
-Tools installed to give Claude better ways to read, search, and modify code.
-
-| Tool | Purpose |
-|------|---------|
-| **difftastic** | Structural diff — understands syntax trees so diffs show what logically changed, not just line deltas. |
-| **ast-grep** | AST-aware code search and rewriting — find patterns across languages without regex hacks. |
-| **shellcheck** | Static analysis for shell scripts — catches bugs, bad practices, and portability issues. |
-| **sd** | Simpler `sed` replacement for find-and-replace. Supports regex and literal strings. |
-| **scc** | Fast code counter (lines, blanks, comments, complexity) — quick codebase overview. |
-| **yq** | `jq` for YAML, JSON, TOML, and XML. Read and edit config files in pipelines. |
-| **jq** | JSON parsing and transformation in pipelines. Used by the statusline script. |
-| **fd** | Fast `find` replacement with cleaner syntax and sane defaults. |
-| **rg** | Fast recursive text search — smarter defaults than `grep`. |
-| **bat** | `cat` with syntax highlighting and line numbers. |
-| **eza** | Modern `ls` with icons, git status, and tree views. |
-| **glow** | Render markdown in the terminal with formatting and layout. |
-| **delta** | Syntax-highlighted diff renderer — wired into git config automatically. |
+The canonical tool table (what each tool replaces and when to reach for it) lives in [`CLAUDE.md`](CLAUDE.md) in this directory; the install list is the Brewfile.
 
 ## Dependencies
 
@@ -61,7 +45,9 @@ Tools installed to give Claude better ways to read, search, and modify code.
 ~/.config/claude/
 ├── settings.json                   # theme, vim mode, statusline, hooks
 ├── statusline.sh                   # custom status bar script
-├── hooks/                          # hook scripts
-├── skills/                         # skill definitions (e.g. health-check)
-└── memory/                         # persistent memory across sessions
+├── hooks/
+│   ├── dispatch.sh -> ../../../.local/bin/ai-hook-dispatch   # symlink to shared dispatcher
+│   ├── handlers/                   # per-event executables
+│   └── logs/                       # hook run logs
+└── skills/                         # skill definitions (e.g. health-check)
 ```

@@ -53,10 +53,11 @@ When a background window receives a bell alert, a `󰂞` icon appears in red in 
 
 ## Moshi Remote / Phone Sessions
 
-Integration for driving agents (Claude, Codex) from the phone over the Moshi app (mosh + tmux + Tailscale). Helper scripts live in `scripts/`. Full design is in `~/workspace/plans/moshi-remote-agent-setup.md`.
+Integration for driving agents (Claude, Codex) from the phone over the Moshi app (mosh + tmux + Tailscale). Helper scripts live in `scripts/`.
 
 ### Notifications
 
+- The `tmux-moshi` plugin is declared in `tmux.conf` but not yet installed on this machine (needs `prefix + I`), so the indicator and toggle below are inert until then.
 - **Daemon indicator + toggle ([`cengebretson/tmux-moshi`](https://github.com/cengebretson/tmux-moshi) plugin):** a 3-state `󰄛` glyph in the status bar — dim "off" (daemon stopped), amber "on" (running but unpaired), green "on" (running and paired). Spliced into the bar as `#{E:@moshi_status}` in `appearance1/2.conf`. Daemon state is read with `pgrep` each refresh; pairing is cached in `@moshi_paired` (seeded by the plugin, refreshed by `moshi-notify`) because querying it touches the Keychain.
 - **`prefix + N`** (also left-click the glyph, or right-click for a menu): toggles the daemon off/on via the `moshi-notify` fish function (the plugin's `@moshi_toggle_command`), backgrounded since `brew services stop` can be slow. The indicator flips when it lands.
 
@@ -108,7 +109,10 @@ Helper scripts live in `scripts/`:
 - `catppuccin/tmux` — theme framework
 - `christoomey/vim-tmux-navigator` — seamless pane/split navigation with Neovim
 - `cengebretson/tmux-which-key` — which-key menu
+- `cengebretson/tmux-fzf-jump` — fzf session/window/pane switcher (`prefix + j`), shows attention states and activity markers
+- `cengebretson/tmux-attention` — per-window agent attention marker (`@agent_attention` state + tab icon); see `attention-marker.md`
+- `cengebretson/tmux-moshi` — Moshi daemon indicator/toggle for the status bar (declared but not yet installed locally; see the Moshi section)
 
 ## Version Notes
 
-- tmux 3.6: `display-popup` height **percentages** (`-h 10%`) do not render correctly — use fixed line counts (`-h 3`) instead. Width percentages (`-w 40%`) work fine.
+- tmux is currently 3.7b. On 3.6, `display-popup` height **percentages** (`-h 10%`) did not render correctly; this has not been retested on 3.7b, so fixed line counts (`-h 3`) remain the safe default. Width percentages (`-w 40%`) work fine.

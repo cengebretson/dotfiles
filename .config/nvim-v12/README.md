@@ -2,6 +2,8 @@
 
 A Neovim 0.12 config built around the native **`vim.pack`** plugin manager — no lazy.nvim, no packer. The name reflects tight coupling to 0.12's new APIs.
 
+Activated via `NVIM_APPNAME=nvim-v12`, exported in the fish config (`set -gx NVIM_APPNAME nvim-v12` in `~/.config/fish/config.fish`).
+
 ## Requirements
 
 - Neovim 0.12+
@@ -207,4 +209,4 @@ Leader is `<space>`.
 
 ## Mason-managed Tools
 
-Installed on first launch: `lua_ls`, `basedpyright`, `ruff`, `ts_ls`, `vue_ls`, `cssls`, `gopls` (LSPs); `biome`, `stylua`, `prettierd`, `goimports`, `gofumpt` (formatters); `shellcheck` (linter); `debugpy`, `js-debug-adapter` (debuggers).
+Installed on first launch: `lua_ls`, `basedpyright`, `ruff`, `ts_ls`, `vue_ls`, `cssls`, `gopls`, `bashls` (LSPs); `biome`, `stylua`, `prettierd`, `goimports`, `gofumpt` (formatters); `shellcheck` (linter); `debugpy`, `js-debug-adapter` (debuggers).

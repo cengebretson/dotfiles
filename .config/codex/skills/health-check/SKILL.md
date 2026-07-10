@@ -1,6 +1,6 @@
 ---
 name: health-check
-description: Run a fast, pretty startup health check at the start of a Codex session or when the user asks for "health check", "$health-check", "startup check", "check tools", or "verify environment". Covers repository state, GitHub CLI auth, Jira `acli` auth, context-mode, GitHub MCP/app auth, SSH agent, Docker, and core local tools.
+description: Run a fast, pretty startup health check at the start of a Codex session or when the user asks for "health check", "$health-check", "startup check", "check tools", or "verify environment". Delegates the static environment audit (dependencies, gh auth, plugins, hooks, config syntax, skills parity) to `doctor ai` and live-probes session-scoped surfaces - repository state, context-mode, GitHub MCP/app auth, Jira MCP, and SSH agent.
 ---
 
 # Health Check
@@ -16,16 +16,24 @@ probe only if the next action needs that surface.
 
 ## Fast Path
 
-Run these checks, parallelizing independent shell commands when possible:
+Run these checks, parallelizing independent shell commands when possible.
 
-- Repo: `git rev-parse --show-toplevel`, `git status --short --branch`, and `git log -1 --format=%h%x09%D%x09%s`.
-- Core tools: `command -v rg git make docker gh ssh-add acli`.
-- context-mode: if `ctx_doctor` is not already available, call `tool_search` for context-mode tools, then run `ctx_doctor` when discovered.
-- Jira CLI auth: `acli jira auth status`.
-- GitHub CLI auth: `gh auth status`.
-- GitHub MCP/app: if no GitHub MCP/app tool is already available, call `tool_search` for GitHub tools, then run a minimal authenticated-user probe when discovered.
-- SSH agent: `ssh-add -l`.
-- Docker: `docker version --format '{{.Client.Version}} client / {{.Server.Version}} server'`.
+### 1. Static environment audit — `doctor ai`
+
+Run `~/.local/bin/doctor ai` (read-only). It owns the static checks — dependencies, `gh` auth, plugins, hook plumbing (dispatcher and `hooks/handlers/`), config syntax, and skills parity — so do not re-check any of those individually here (no `command -v` sweeps, no `gh auth status`, no `acli jira auth status`, no Docker daemon probe). Surface every failing or warning line it prints; if everything passes, report a single all-green row.
+
+### 2. Session probes
+
+These must be probed live from inside the running session; `doctor ai` cannot see them from outside.
+
+- **Repo**: `git rev-parse --show-toplevel`, `git status --short --branch`, and `git log -1 --format=%h%x09%D%x09%s`.
+- **GitHub MCP/app**: if no GitHub MCP/app tool is already available, call `tool_search` for GitHub tools, then run a minimal authenticated-user probe when discovered. Report the authenticated username on success.
+- **Jira / Atlassian MCP (optional)**: only applies when a Jira/Atlassian MCP tool is available (discover via `tool_search` if deferred). If none exists in this session, report it as skipped — not as a failure. If it exists, run its authenticated-user probe and report the authenticated email.
+- **context-mode**: if `ctx_doctor` is not already available, call `tool_search` for context-mode tools, then run `ctx_doctor` when discovered. Report the version. If an upgrade is available, note it with the version.
+- **SSH agent**: run `ssh-add -l`.
+  - Keys listed → PASS, show key count.
+  - "The agent has no identities" → FAIL. The user loads the key themselves interactively (a passphrase prompt cannot be answered from a tool shell): suggest `! ssh-add --apple-use-keychain`.
+  - ssh-agent not running → FAIL, suggest `eval (ssh-agent -c)`.
 
 ## Coding-Loop Path
 
@@ -47,61 +55,43 @@ For a deep/full/debug health check, also run:
 
 - Additional capability discovery for task-specific MCPs requested by the user or implied by the work, such as Slack, Datadog, or Sentry.
 - Expanded MCP diagnostics only when a fast-path probe fails or returns an ambiguous authentication/authorization error.
-- Full `docker version` only when the terse Docker probe fails or the user asks
-  for Docker detail.
+- Docker daemon detail (`docker version`) only when the upcoming work needs Docker or the user asks for it.
 
 ## Sandbox-Sensitive Checks
 
-`gh auth status`, `acli jira auth status`, `ssh-add -l`, and Docker daemon checks may fail inside the
-Codex sandbox even when the host shell is healthy. If any fail with permission,
-keychain, socket, or token-looking errors, rerun the same check with escalated
+`ssh-add -l` and `~/.local/bin/doctor ai` may fail inside the Codex sandbox even
+when the host shell is healthy. If either fails with permission, keychain,
+socket, or token-looking errors, rerun the same check with escalated
 permissions before reporting a failure.
-
-The approved global commands are expected to include:
-
-- `gh auth status`
-- `acli jira auth status`
-- `ssh-add -l`
-- `docker version`
-- `docker version --format '{{.Client.Version}} client / {{.Server.Version}} server'`
 
 If escalation is unavailable or denied, report the check as `⚠️ Sandbox-limited`,
 not broken.
 
 ## Output Style
 
-Return a compact, pretty checklist. Use these status markers:
+Report a single markdown table with columns Area, Status, Detail — one row for the repo, one each for repository tools, issue-tracker tools, context-mode, SSH agent, and the doctor-ai findings. Status markers:
 
 - `✅` healthy
 - `❌` confirmed broken outside the sandbox
 - `⚠️` unavailable, degraded, or sandbox-limited
 
-Use this shape:
-
 ```markdown
 **Health Check**
-✅ Repo: clean on `branch-name`, last commit `abc1234`
-✅ Core tools: `rg`, `git`, `make`, `docker`, `gh`, `ssh-add`
-✅ context-mode: healthy, vX.Y.Z
-✅ Jira CLI: authenticated as user
-✅ GitHub CLI: authenticated as user
-✅ SSH agent: 1 key loaded
-✅ Docker: client and daemon reachable
 
-No blockers.
+| Area | Status | Detail |
+|---|---|---|
+| Repo | ✅ | clean on `branch-name`, last commit `abc1234` |
+| Repository tools (GitHub MCP) | ✅ | authenticated as your-gh-username |
+| Issue-tracker tools (Jira MCP) | ✅ | you@example.com |
+| context-mode | ✅ | healthy, vX.Y.Z |
+| SSH agent | ✅ | 1 key loaded |
+| doctor ai | ✅ | all static checks pass |
 ```
 
-When there are problems, keep them concrete:
-
-```markdown
-**Health Check**
-✅ Repo: clean on `feature/foo`
-✅ GitHub CLI: authenticated as `cengebretson`
-❌ Docker: daemon unreachable outside sandbox, OrbStack socket missing
-
-**Blockers**
-❌ Docker-backed tests will fail until OrbStack/Docker is running.
-```
+- On failure, put the remediation in the Detail cell (e.g. `run: ! ssh-add --apple-use-keychain`).
+- If the Jira MCP is not installed, use `⏭️` with `not installed (skipped)`.
+- If `doctor ai` reported failures or warnings, add one row per failing section with its detail instead of the all-green row.
+- Keep it concise: no trailing summary beyond the table, except a one-line blocker note when something is red.
 
 ## Reporting Rules
 

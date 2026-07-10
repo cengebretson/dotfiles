@@ -33,6 +33,7 @@ Fall back to CLI **only** when no MCP tool covers the specific operation — and
 When asked about a PR's status ("is it green", "why yellow", checks, what's left):
 
 - **Prefer the `pr-report` fish function as source of truth.** It already reads GraphQL `statusCheckRollup` + `reviewDecision` + unresolved Copilot/human thread counts correctly. Run `pr-report --json` and read the row before any ad hoc query. Trust it over hand-rolled `gh` calls.
+- **For agent consumption, prefer `los-scripts review`** (`~/workspace/scripts/bin/los-scripts review status|ready|summary|comments <pr>`) — it returns machine-readable JSON review state (paginated threads, checks rollup, `reviewDecision`) on stdout. `pr-report` remains the human-readable summary row.
 - **For CI, use the checks rollup, never the legacy status endpoint.** Use GraphQL `statusCheckRollup` (handle both `CheckRun.conclusion` and `StatusContext.state`) or `/commits/{sha}/check-runs?per_page=100`. NEVER judge CI from `/commits/{sha}/status` — it returns `state=pending` with `total_count=0` when a commit has only check-runs, a false yellow.
 - **Paginate before claiming green.** `/check-runs` defaults to 30; a failing check can be on a later page. Never say "all checks pass" from an unpaginated call — confirm against the rollup (`first:100`). This exact miss caused a wrong "all green" call.
 - **Report status as separate axes, do not conflate:** (1) CI checks pass/fail/pending, (2) `reviewDecision` (REVIEW_REQUIRED needs a human approval; Copilot's and my approvals do not count), (3) unresolved review threads, (4) `mergeStateStatus`. "Yellow" is usually pending CI or REVIEW_REQUIRED, not necessarily an unaddressed comment.
@@ -53,15 +54,17 @@ Run `/health-check` when first starting real work in a repo this session, or whe
 
 ### Shell command hygiene (avoid needless permission prompts)
 
-The permission allowlist matches the **literal command prefix**. Any wrapper that changes how the
-command string *starts* defeats an otherwise-matching rule and forces a prompt, even though the
-underlying tool is allowed. The allowlist is already broad (see `settings.json`), so prompts are
-almost always a command-construction problem, not a missing rule. Construct the simplest form that
-starts with the allowlisted token:
+The Bash sandbox (`sandbox.autoAllowBashIfSandboxed` in `settings.json`) auto-approves commands
+that are read-only or only write inside the repo/`/tmp` — those never prompt. Prompts come from
+commands the sandbox can't cover (network access, writes outside the repo), which go through the
+small `permissions.allow` prefix list instead (e.g. `Bash(git push*)`, `Bash(gh pr view*)`,
+`Bash(git --git-dir=$HOME/.dotfiles --work-tree=$HOME *)`). Those rules match the **literal command
+prefix**, so any wrapper that changes how the command string *starts* defeats an otherwise-matching
+rule and forces a prompt. Construct the simplest form that starts with the allowlisted token:
 
 - **Never prefix a Bash call with `cd <dir>`.** The cwd persists and starts at the project root. A leading `cd` (especially `cd … && …`) makes a compound that no rule matches. Run the command directly.
-- **Never prefix with an env-var assignment** (`PATH=… cmd`, `FOO=bar cmd`) when avoidable — it makes the command start with `PATH=` instead of the tool name, bypassing rules like `Bash(pre-commit *)` / `Bash(git commit*)`. (The python3.11 pre-commit workaround is the known exception and is now allowlisted as `PATH=* pre-commit *` / `PATH=* git commit*`.)
-- **Avoid `git -C <dir>`** — it starts with `git -C`, not `git commit`/`git push`, so the `git commit*`/`git push*` rules miss. Run git from the repo-root cwd instead. Use `--prefix`/`-C`/`--config` path flags only when the target really is a different directory.
+- **Never prefix with an env-var assignment** (`PATH=… cmd`, `FOO=bar cmd`) when avoidable — it makes the command start with `PATH=` instead of the tool name, so no prefix rule matches.
+- **Avoid `git -C <dir>`** when the cwd already works — it starts with `git -C`, not `git push`/`git fetch`, so the `git push*`/`git fetch*` rules miss. Run git from the repo-root cwd instead. Use `--prefix`/`-C`/`--config` path flags only when the target really is a different directory.
 - **Avoid multi-statement scripts** (`VAR=$(...)`, `for`/`while` loops, `;`-chains) when separate single-purpose calls work — loops and command substitution can never be allowlisted and always prompt. Reserve them for genuine one-off polling/aggregation, and expect a prompt there.
 - Prefer an MCP tool over a shell equivalent when one exists (GitHub, Atlassian, etc.) — MCP servers are allowlisted by wildcard and don't go through Bash prefix-matching at all.
 - For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
@@ -98,7 +101,7 @@ The dotfiles are shared across machines (e.g. personal + work). Per-machine iden
 
 ## Tmux
 
-- tmux 3.6 — `display-popup` height percentages (`-h 10%`) do not render; use fixed line counts (`-h 3`) instead
+- tmux 3.7b (`tmux -V` to confirm) — on 3.6, `display-popup` height percentages (`-h 10%`) did not render and fixed line counts (`-h 3`) were required; not retested on 3.7b, so fixed line counts remain the safe default
 - Width percentages (`-w 40%`) work fine
 
 ## context-mode

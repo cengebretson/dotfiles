@@ -18,6 +18,7 @@
 
 - Prefer MCP/app/plugin tools over raw CLI or REST when an available tool covers the operation.
 - For Jira work, prefer Atlassian CLI `acli` over the Atlassian Rovo MCP/plugin. `acli` is authenticated through the machine OAuth profile and supports useful comment operations such as list, create, update, and delete. Use MCP only when explicitly requested or when `acli` cannot cover the operation.
+- For structured Jira output, prefer `los-scripts jira` (`~/workspace/scripts/bin/los-scripts`) — it wraps `acli` and emits compact agent-parseable JSON on stdout (`view`, `epic-children`, `comments`, `comment-add`, `transition`, `link`). Fall back to raw `acli` when a needed operation is not wrapped.
 - For GitHub work, check for a GitHub MCP/app tool before using `gh` or `curl`. If no suitable tool is available or the tool fails, say that you are falling back to CLI before using it.
 - Use `rg` for text search and `rg --files` for file search before slower alternatives.
 - When searching local Codex, tmux, or Fish config, exclude generated caches and sessions such as `~/.config/codex/plugins/cache`, `~/.config/codex/sessions`, `~/.config/codex/context-mode`, and `~/.config/codex/.tmp` unless the task is specifically about those files.
@@ -80,6 +81,7 @@ git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
 
 ## GitHub PR Workflow
 
+- For PR review state, prefer `los-scripts review` (`~/workspace/scripts/bin/los-scripts`) — `status`, `ready`, `comments`, and `checks` return review state, threads, and the checks rollup as JSON on stdout. Prefer it over hand-rolled GraphQL; the guidance below remains the fallback when it does not cover the operation.
 - After renaming a branch that backs an open GitHub PR, immediately verify the PR state and head branch. GitHub can close the PR instead of moving the head branch cleanly. If that happens, recreate the PR from the renamed branch and update Jira links.
 - For Copilot review requests, use GraphQL `requestReviews` with `botIds`, then verify through `requested_reviewers` or PR events. Do not rely on `gh pr edit --add-reviewer` or REST reviewer shortcuts for Copilot because they can appear successful without starting a bot review.
 - For PR review cleanup, a clean later review is not enough. Always query unresolved `reviewThreads`, reply to fixed threads with the commit SHA, resolve them, and re-check unresolved thread count before declaring the PR clean.

@@ -37,7 +37,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 🤖 Claude Code
 
- * AI coding assistant with a custom statusline, vim mode, and diff review popup. See [claude config](.config/claude/README.md) for the full setup.
+ * AI coding assistant with a custom statusline and vim mode. See [claude config](.config/claude/README.md) for the full setup.
 
 #### 📖 Glow
 
@@ -64,6 +64,7 @@ Each config keeps its own reference, so there's a single source of truth per too
  | Tmux keybindings & status bar | [tmux/README.md](.config/tmux/README.md) |
  | Neovim keymaps & features | [nvim-v12/README.md](.config/nvim-v12/README.md) |
  | Claude Code statusline & tooling | [claude/README.md](.config/claude/README.md) |
+ | AI machine setup & integrations (Claude + Codex) | [AI-SETUP.md](.config/AI-SETUP.md) |
 
 ---
 
@@ -100,19 +101,7 @@ curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setu
 
 #### Machine-local files
 
-The setup script installs configs but **not** per-machine identity or secrets. Create these on each new machine — they're gitignored and never shared, so personal and work machines stay separate:
-
-| File | Purpose |
-|------|---------|
-| `~/.config/git/config.local` | Git `user.name` / `user.email` for this machine (personal vs. work) |
-| `~/.config/fish/secrets.fish` | Secret env vars / API tokens (e.g. `GH_TOKEN`), sourced by `conf.d/local-secrets.fish` |
-| `~/.config/claude/.claude.json` | Created automatically on first `claude` login (personal = gmail, work = work SSO) |
-
-Git sets `user.useConfigOnly = true`, so commits hard-fail with *"Author identity unknown"* until `config.local` provides an identity — no accidental `username@hostname` authors slip through.
-
-```bash
-printf '[user]\n\temail = you@example.com\n\tname = Chris Engebretson\n' > ~/.config/git/config.local
-```
+The setup script installs configs but **not** per-machine identity or secrets (git identity, fish secrets, Claude login). The canonical list lives in [claude/CLAUDE.md](.config/claude/CLAUDE.md) under *Machine-Local Files*, and the step-by-step creation is in the [AI-SETUP.md](.config/AI-SETUP.md) bootstrap.
 
 ---
 
