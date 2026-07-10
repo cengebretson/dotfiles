@@ -185,10 +185,30 @@ PY
 
   ai_section "Claude hooks"
   ai_check_executable "$CLAUDE_DIR/hooks/dispatch.sh" "dispatcher"
-  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention; else ai_line warn tmux-attention missing; fi
-  if ai_moshi_present; then ai_line ok moshi-hook; else ai_line warn moshi-hook missing; fi
-  ai_check_executable "$CLAUDE_DIR/hooks/format-on-edit.sh" "format-on-edit"
-  if [ -f "$CLAUDE_DIR/hooks/context-mode-cache-heal.mjs" ]; then ai_line ok context-mode-cache-heal; else ai_line warn context-mode-cache-heal missing; fi
+  # Handler inventory: dispatch.sh routes "dispatch.sh <name>" to
+  # hooks/handlers/<name>. A dangling symlink means the target repo is not
+  # checked out on this machine — expected on some machines, so warn not fail.
+  local handler handler_name
+  if [ -d "$CLAUDE_DIR/hooks/handlers" ]; then
+    for handler in "$CLAUDE_DIR/hooks/handlers"/*; do
+      { [ -e "$handler" ] || [ -L "$handler" ]; } || continue
+      handler_name="handler:$(basename "$handler")"
+      if [ -x "$handler" ]; then
+        ai_line ok "$handler_name"
+      elif [ -L "$handler" ] && [ ! -e "$handler" ]; then
+        ai_line warn "$handler_name" "symlink target missing (repo not on this machine)"
+      else
+        ai_line fail "$handler_name" "present but not executable"
+      fi
+    done
+  else
+    ai_line warn handlers "missing directory: $CLAUDE_DIR/hooks/handlers"
+  fi
+  # Handler prerequisites (handlers exit 100/skipped without these):
+  if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention "handler prereq"; else ai_line warn tmux-attention "missing — attention handlers skip"; fi
+  if ai_moshi_present; then ai_line ok moshi-hook "handler prereq"; else ai_line warn moshi-hook "missing — moshi handler skips"; fi
+  ai_check_executable "$CLAUDE_DIR/hooks/format-on-edit.sh" "format-on-edit (handler prereq)"
+  if [ -f "$CLAUDE_DIR/hooks/context-mode-cache-heal.mjs" ]; then ai_line ok context-mode-cache-heal "handler prereq"; else ai_line warn context-mode-cache-heal "missing — heal handler skips"; fi
   ai_check_executable "$CLAUDE_DIR/hooks/approve-compound-bash.sh" "approve-compound-bash"
   if ai_have shfmt; then ai_line ok shfmt "approve-compound-bash dep"; else ai_line warn shfmt "missing — approve-compound-bash falls through"; fi
   if [ -x /opt/homebrew/bin/bash ] || [ -x /usr/local/bin/bash ]; then ai_line ok modern-bash "approve-compound-bash dep"; else ai_line warn modern-bash "missing — needs bash 4.3+ via Homebrew; macOS ships 3.2"; fi

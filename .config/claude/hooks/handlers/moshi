@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# moshi notification bridge; payload arrives on stdin.
+set -u
+if command -v moshi-hook >/dev/null 2>&1; then
+  exec moshi-hook claude-hook >/dev/null 2>&1
+fi
+if [ -x /opt/homebrew/bin/moshi-hook ]; then
+  exec /opt/homebrew/bin/moshi-hook claude-hook >/dev/null 2>&1
+fi
+exit 100

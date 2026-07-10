@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# Format edited files; payload arrives on stdin and is forwarded via exec.
+set -u
+target="$HOME/.config/claude/hooks/format-on-edit.sh"
+[ -x "$target" ] || exit 100
+exec "$target" >/dev/null 2>&1

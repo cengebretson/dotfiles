@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+# context-mode session cache heal; payload arrives on stdin.
+set -u
+target="$HOME/.config/claude/hooks/context-mode-cache-heal.mjs"
+[ -f "$target" ] || exit 100
+exec "$target" >/dev/null 2>&1

@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
-# Generic Claude hook dispatcher.
+# Generic Claude hook dispatcher: routes "dispatch.sh <name>" to the matching
+# executable in hooks/handlers/<name>. The dispatcher itself knows nothing
+# about individual integrations, which keeps settings.json portable across
+# machines: a machine missing a handler (or a handler whose target tool/repo
+# is not installed there) skips silently and logs it.
 #
-# Health/readiness checks live in ~/.local/bin/ai-doctor — this script only dispatches.
-# Keeps settings.json portable by routing machine-specific hook commands here.
-# Future ideas:
-# - Add repo-specific local hook handoff for trusted worktrees.
-# - Add feature flags for optional integrations during troubleshooting.
-# - Add bounded execution if a portable timeout tool becomes available.
+# Handler contract:
+#   - stdin: the hook payload JSON (may be empty for some events)
+#   - stdout: passes through to Claude Code — used by context-injection
+#     (SessionStart) and decision (PreToolUse) handlers; side-effect handlers
+#     must self-suppress (>/dev/null) so noise never reaches the session
+#   - exit 0 = ok, exit 100 = skipped (missing prerequisite), other = failed
 #
+# Health/readiness checks live in ~/.local/bin/ai-doctor — this only dispatches.
 # Do not log hook payloads; they may contain prompt or file data.
 set -u
 
 event="${1:-}"
 payload="$(cat)"
+handlers_dir="$HOME/.config/claude/hooks/handlers"
 log_dir="$HOME/.config/claude/hooks/logs"
 log_file="$log_dir/hooks.log"
 
@@ -21,66 +27,26 @@ log_hook() {
   printf '%s event=%s status=%s detail=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$event" "${1:-unknown}" "${2:-}" >> "$log_file" 2>/dev/null || true
 }
 
-run_with_payload() {
-  label="$1"
-  shift
-  if printf '%s' "$payload" | "$@" >/dev/null 2>&1; then
-    log_hook ok "$label"
-  else
-    log_hook failed "$label:rc=$?"
-  fi
-  return 0
-}
-
-run_command() {
-  label="$1"
-  shift
-  if "$@" >/dev/null 2>&1; then
-    log_hook ok "$label"
-  else
-    log_hook failed "$label:rc=$?"
-  fi
-  return 0
-}
-
-have() {
-  command -v "$1" >/dev/null 2>&1
-}
-
+# Handler names are settings-controlled, but stay defensive: no path
+# separators, no dotfiles.
 case "$event" in
-  notification)
-    script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    if [ -x "$script" ]; then run_command tmux-attention-input "$script" input; else log_hook skipped tmux-attention-missing; fi
-    ;;
-  prompt-clear)
-    script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    if [ -x "$script" ]; then run_command tmux-attention-clear "$script" clear; else log_hook skipped tmux-attention-missing; fi
-    ;;
-  stop-failure)
-    script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
-    if [ -x "$script" ]; then run_command tmux-attention-blocked "$script" blocked; else log_hook skipped tmux-attention-missing; fi
-    ;;
-  format-on-edit)
-    script="$HOME/.config/claude/hooks/format-on-edit.sh"
-    if [ -x "$script" ]; then run_with_payload format-on-edit "$script"; else log_hook skipped format-on-edit-missing; fi
-    ;;
-  context-mode-cache-heal)
-    script="$HOME/.config/claude/hooks/context-mode-cache-heal.mjs"
-    if [ -f "$script" ]; then run_with_payload context-mode-cache-heal "$script"; else log_hook skipped context-mode-cache-heal-missing; fi
-    ;;
-  moshi)
-    if have moshi-hook; then
-      run_with_payload moshi-hook moshi-hook claude-hook
-    elif [ -x /opt/homebrew/bin/moshi-hook ]; then
-      run_with_payload moshi-hook /opt/homebrew/bin/moshi-hook claude-hook
-    else
-      log_hook skipped moshi-hook-missing
-    fi
-    ;;
-  *)
-    log_hook skipped unknown-event
+  '' | */* | .*)
+    log_hook skipped invalid-event
     exit 0
     ;;
 esac
 
+script="$handlers_dir/$event"
+if [ ! -x "$script" ]; then
+  log_hook skipped "no-handler:$event"
+  exit 0
+fi
+
+printf '%s' "$payload" | "$script"
+rc=$?
+case "$rc" in
+  0) log_hook ok "$event" ;;
+  100) log_hook skipped "$event:prerequisite-missing" ;;
+  *) log_hook failed "$event:rc=$rc" ;;
+esac
 exit 0

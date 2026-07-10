@@ -168,6 +168,14 @@
             "async": true
           }
         ]
+      },
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" domain-docs"
+          }
+        ]
       }
     ],
     "Stop": [
