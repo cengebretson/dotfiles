@@ -1,0 +1,4 @@
+# Installed automatically by mise/pyenv into every newly installed Python.
+# tmux-which-key's build.py needs pyyaml; a fresh mise Python without it
+# breaks that repo's plain `make test` (see its CLAUDE.md).
+pyyaml
