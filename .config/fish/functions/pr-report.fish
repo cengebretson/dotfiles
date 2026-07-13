@@ -1,4 +1,4 @@
-function pr-report --description "List your open PRs with Copilot threads, CI/review status, and Jira status"
+function pr-report --description "List your open PRs with merge conflicts, Copilot threads, CI/review status, and Jira status"
     # Flags: --json (machine-readable) / --slack (paste-into-Slack). Remaining args
     # are an optional filter matched case-insensitively against title, branch, labels.
     argparse h/help j/json s/slack short -- $argv
@@ -6,7 +6,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
     if set -q _flag_help
         set_color --bold cyan; echo "pr-report"; set_color normal
-        echo "List your open PRs with unresolved Copilot threads, CI/review status, and Jira status."
+        echo "List your open PRs with merge conflicts, unresolved Copilot threads, CI/review status, and Jira status."
         echo
         set_color --bold white; echo "USAGE"; set_color normal
         echo "    pr-report [--slack | --json] [FILTER...]"
@@ -21,7 +21,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set_color --bold white; echo "FILTER"; set_color normal
         echo "    Space-separated terms, matched case-insensitively against each PR's"
         echo "    title + branch + labels + review status (approved / review required /"
-        echo "    changes requested) + state (attention / waiting / approved)."
+        echo "    changes requested) + state (conflict / attention / waiting / approved)."
         echo "    Every term must match (AND); prefix a term with '!' to exclude it."
         echo "    Works in any mode and any position."
         echo
@@ -33,7 +33,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
         set_color --bold white; echo "NOTES"; set_color normal
-        printf '    • Marker: ◆ draft · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
+        printf '    • Marker: ◆ draft · \ue727 merge conflict · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
@@ -109,11 +109,11 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
     # reduces each PR to a TSV row so there are no per-PR calls. Field order:
     # 1 number  2 title  3 branch  4 reviewDecision  5 ci_pass  6 ci_fail
     # 7 ci_pend  8 labels(csv)  9 copilot_count  10 url  11 idle_days  12 comment_count  13 is_draft
-    # 14 requested_reviewers(csv)
+    # 14 requested_reviewers(csv)  15 mergeable  16 merge_state_status
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
-        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision updatedAt isDraft labels(first:20){nodes{name}} reviewRequests(first:20){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
+        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:20){nodes{name}} reviewRequests(first:20){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -143,7 +143,9 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
               (((now - (.updatedAt | fromdateiso8601)) / 86400) | floor | tostring),
               ($hum|tostring),
               (.isDraft | tostring),
-              $req
+              $req,
+              (.mergeable // ""),
+              (.mergeStateStatus // "")
             ] | @tsv' 2>/dev/null)
     if test $status -ne 0
         set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
@@ -157,21 +159,23 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
     # Universal sort for every output mode:
     #   1. draft before open
-    #   2. needs-attention before waiting before approved
+    #   2. merge conflicts before needs-attention before waiting before approved
     #   3. Jira key when present, then title
     # Fields: 2 title · 3 branch · 4 review · 6 ci_fail · 9 copilot ·
-    # 12 comments · 13 draft · 14 requested reviewers.
+    # 12 comments · 13 draft · 14 requested reviewers · 15 mergeable · 16 merge state.
     set -l sortable_lines
     for line in $pr_lines
         set -l p (string split \t $line)
         set -l draft_rank 1
         test "$p[13]" = true; and set draft_rank 0
 
-        set -l status_rank 1
-        if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
+        set -l status_rank 2
+        if test "$p[15]" = CONFLICTING; or test "$p[16]" = DIRTY
             set status_rank 0
+        else if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
+            set status_rank 1
         else if test "$p[4]" = APPROVED; and test -z "$p[14]"
-            set status_rank 2
+            set status_rank 3
         end
 
         set -l ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[3]")
@@ -248,19 +252,28 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         set -l is_draft $parts[13]
         test -n "$is_draft"; or set is_draft false
         set -l requested_reviewers $parts[14]
+        set -l mergeable $parts[15]
+        set -l merge_state_status $parts[16]
+        set -l has_merge_conflicts 0
+        if test "$mergeable" = CONFLICTING; or test "$merge_state_status" = DIRTY
+            set has_merge_conflicts 1
+        end
 
         # PR state drives the marker (computed before the filter so the filter can
         # match it):
+        #   conflict  — branch has merge conflicts with its base
         #   attention — needs YOUR action: open Copilot OR reviewer threads, failing CI, or changes requested
         #   approved  — clean and a reviewer approved
         #   waiting   — clean but still awaiting a reviewer (review required / no decision yet)
         set -l pr_state waiting
-        if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
+        if test $has_merge_conflicts -eq 1
+            set pr_state conflict
+        else if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
             set pr_state attention
         else if test "$review" = APPROVED; and test -z "$requested_reviewers"
             set pr_state approved
         end
-        if test "$is_draft" = true
+        if test "$is_draft" = true; and test $has_merge_conflicts -eq 0
             set pr_state draft
         end
 
@@ -277,10 +290,13 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             set review_color yellow
         end
 
+        set -l merge_conflict_text ""
+        test $has_merge_conflicts -eq 1; and set merge_conflict_text "merge conflict"
+
         # Filter: every include term must match and no exclude term may match,
         # against title + branch + labels + review status + state word.
         if test -n "$filter"
-            set -l haystack (string lower -- "$pr_title $pr_branch $parts[8] $review_text $pr_state")
+            set -l haystack (string lower -- "$pr_title $pr_branch $parts[8] $review_text $pr_state $merge_conflict_text $mergeable $merge_state_status")
             set -l skip 0
             for term in $filter_inc
                 string match -q -- "*$term*" $haystack; or set skip 1
@@ -293,7 +309,9 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
 
         # Count toward the summary only once a PR has passed the filter.
         set -l needs 0
-        test "$pr_state" = attention; and set needs 1
+        if test "$pr_state" = attention; or test "$pr_state" = conflict
+            set needs 1
+        end
         if test $needs -eq 1
             set found (math $found + 1)
         else
@@ -316,7 +334,7 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         if test "$mode" = json
             # Tab-joined record; jq builds the object (values never contain tabs).
             set -a json_rows (string join \t -- "$pr_num" "$pr_title" "$pr_url" "$pr_branch" \
-                "$review" "$jira_key" "$jira_status" "$jira_url" "$count" "$ci_pass" "$ci_fail" "$ci_pend" "$parts[8]" "$idle_days" "$comments" "$is_draft" "$requested_reviewers")
+                "$review" "$jira_key" "$jira_status" "$jira_url" "$count" "$ci_pass" "$ci_fail" "$ci_pend" "$parts[8]" "$idle_days" "$comments" "$is_draft" "$requested_reviewers" "$mergeable" "$merge_state_status")
             continue
         else if test "$mode" = slack
             # Lean entry: bullet list item with title, then link + GitHub review status,
@@ -324,18 +342,26 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
             # Use the literal • glyph: Slack only auto-converts "- " to a bullet when
             # typed, not when pasted, so a real bullet character shows reliably.
             set -l slack_review_text $review_text
+            test $has_merge_conflicts -eq 1; and set slack_review_text "merge conflict · $slack_review_text"
             test "$is_draft" = true; and set slack_review_text "draft · $review_text"
+            if test "$is_draft" = true; and test $has_merge_conflicts -eq 1
+                set slack_review_text "draft · merge conflict · $review_text"
+            end
             set -a slack_lines "• $pr_title" "    |  #$pr_num - $slack_review_text - $pr_url"
             test -n "$parts[8]"; and set -a slack_lines "    |  :label: "(string join " · " $pr_labels)
             continue
         end
 
         # --- pretty (default) terminal rendering ---
-        # Marker: ◆ magenta = draft, ● yellow = needs action, 󰍉 blue = awaiting reviewer, ✓ green = approved.
+        # Marker: ◆ magenta = draft,  red = merge conflict, ● yellow = needs action,
+        # 󰍉 blue = awaiting reviewer, ✓ green = approved.
         set -l num_color $dim
         switch $pr_state
             case draft
                 set_color magenta; printf "  ◆"; set_color normal
+                set num_color white
+            case conflict
+                set_color red; printf '  \ue727'; set_color normal # nf-dev-git_merge
                 set num_color white
             case attention
                 set_color yellow; printf "  ●"; set_color normal
@@ -387,6 +413,12 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
         # "  ·  " thereafter, so optional segments never leave a dangling dot.
         printf "     "
         set -l pre ""
+
+        # Merge conflicts are a distinct blocker, separate from review and CI.
+        if test $has_merge_conflicts -eq 1
+            set_color red; printf "merge conflict"; set_color normal
+            set pre "  ·  "
+        end
 
         # Unresolved threads — shown only when present (keeps clean PRs short).
         if test "$count" -gt 0 2>/dev/null
@@ -506,7 +538,10 @@ function pr-report --description "List your open PRs with Copilot threads, CI/re
                 idleDays: (.[13] | tonumber),
                 reviewerThreads: (.[14] | tonumber),
                 isDraft: (.[15] == "true"),
-                requestedReviewers: (if .[16] == "" then [] else (.[16] | split(",")) end)
+                requestedReviewers: (if .[16] == "" then [] else (.[16] | split(",")) end),
+                mergeable: ((.[17] | select(. != "")) // null),
+                mergeStateStatus: ((.[18] | select(. != "")) // null),
+                hasMergeConflicts: (.[17] == "CONFLICTING" or .[18] == "DIRTY")
             })'
         return 0
     else if test "$mode" = slack
