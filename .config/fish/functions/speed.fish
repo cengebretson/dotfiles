@@ -13,6 +13,10 @@ function speed --description 'Run macOS networkQuality with friendly modes'
             case watch --watch
                 set mode watch
                 if test (count $argv) -gt 1; and string match -qr '^[0-9]+$' -- $argv[2]
+                    if test $argv[2] -eq 0
+                        echo "speed: watch interval must be greater than zero" >&2
+                        return 2
+                    end
                     set interval $argv[2]
                     set -e argv[1]
                 end

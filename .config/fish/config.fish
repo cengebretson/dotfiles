@@ -36,8 +36,3 @@ end
 if test -f ~/.orbstack/shell/init2.fish
     source ~/.orbstack/shell/init2.fish
 end
-set -gx GIT_OPTIONAL_LOCKS 0
-
-# mise (manages node, bun, and other runtimes)
-set -e MISE_SHELL
-fish_add_path --path "$HOME/.local/share/mise/shims"
