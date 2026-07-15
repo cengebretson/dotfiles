@@ -32,6 +32,13 @@ run_ai_doctor() {
   local fails=0
   local warns=0
   local R DIM BOLD GREEN YELLOW RED HEAD
+  local codex_plugin_output=""
+  local codex_mcp_output=""
+  local codex_plugin_status=127
+  local codex_mcp_status=127
+  local plugins_enabled=""
+  local plugins_disabled=""
+  local mcp_seen=""
 
   if [ -t 1 ]; then
     R=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
@@ -80,7 +87,11 @@ run_ai_doctor() {
 
     if [ ! -f "$f" ]; then
       ai_line warn "$label" "missing"
-    elif ai_have python3 && python3 - "$f" >/dev/null 2>&1 <<'PY'
+    elif ! ai_have python3; then
+      ai_line warn "$label" "python3 missing — cannot validate TOML"
+    elif ! python3 -c 'import tomllib' >/dev/null 2>&1; then
+      ai_line warn "$label" "python3 tomllib missing — cannot validate TOML"
+    elif python3 - "$f" >/dev/null 2>&1 <<'PY'
 import pathlib
 import sys
 import tomllib
@@ -89,10 +100,8 @@ tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
 PY
     then
       ai_line ok "$label" "valid TOML"
-    elif ai_have python3; then
-      ai_line fail "$label" "invalid TOML"
     else
-      ai_line warn "$label" "python3 missing — cannot validate TOML"
+      ai_line fail "$label" "invalid TOML"
     fi
   }
 
@@ -195,6 +204,10 @@ PY
 
   ai_skill_has() { ai_list_skills "$1" | grep -qx "$2"; }
 
+  ai_bundled_browser_present() {
+    compgen -G "$CODEX_DIR/plugins/cache/openai-bundled/browser-use/*/skills/browser/SKILL.md" >/dev/null
+  }
+
   printf '%sdoctor ai%s  %sClaude Code + Codex readiness%s\n' "$BOLD" "$R" "$DIM" "$R"
 
   ai_section "Dependencies"
@@ -262,9 +275,22 @@ PY
     else
       ai_line warn codex "version unavailable"
     fi
-    if codex mcp list >/dev/null 2>&1; then
+
+    if codex_plugin_output="$(codex plugin list 2>/dev/null)"; then
+      codex_plugin_status=0
+      plugins_enabled="$(printf '%s\n' "$codex_plugin_output" | awk '/installed, enabled/ {n=$1; sub(/@.*/, "", n); print n}')"
+      plugins_disabled="$(printf '%s\n' "$codex_plugin_output" | awk '/installed, disabled/ {n=$1; sub(/@.*/, "", n); print n}')"
+      ai_line ok codex-plugins "list ok"
+    else
+      codex_plugin_status=$?
+      ai_line warn codex-plugins "list failed"
+    fi
+
+    if codex_mcp_output="$(codex mcp list 2>/dev/null)"; then
+      codex_mcp_status=0
       ai_line ok codex-mcp "list ok"
     else
+      codex_mcp_status=$?
       ai_line warn codex-mcp "list failed"
     fi
   else
@@ -301,29 +327,33 @@ PY
 
   ai_section "Integrations — Codex MCP + plugins"
   if ai_have codex; then
-    local plugins_installed mcp_seen
-    plugins_installed="$(codex plugin list 2>/dev/null | grep 'installed' | grep -v 'not installed' \
-      | awk '{n=$1; sub(/@.*/, "", n); print n}')"
-    ai_is_plugin() { printf '%s\n' "$plugins_installed" | grep -qx "$1"; }
+    ai_is_plugin() { printf '%s\n' "$plugins_enabled" | grep -qx "$1"; }
+    ai_is_disabled_plugin() { printf '%s\n' "$plugins_disabled" | grep -qx "$1"; }
+    ai_is_mcp() { printf '%s\n' "$mcp_seen" | grep -qx "$1"; }
 
-    mcp_seen=""
-    while IFS= read -r row; do
-      [ -n "$row" ] || continue
-      local name src
-      name="${row%% *}"
-      mcp_seen="$(printf '%s\n%s' "$mcp_seen" "$name")"
-      src="mcp"; ai_is_plugin "$name" && src="plugin + mcp"
-      if printf '%s' "$row" | grep -q 'Not logged in'; then
-        ai_line warn "$name" "$src · not logged in"
-      else
-        ai_line ok "$name" "$src"
-      fi
-    done < <(codex mcp list 2>/dev/null | awk 'NF && $1 != "Name" {print}')
+    if [ "$codex_mcp_status" -eq 0 ]; then
+      while IFS= read -r row; do
+        [ -n "$row" ] || continue
+        local name src
+        name="${row%% *}"
+        mcp_seen="$(printf '%s\n%s' "$mcp_seen" "$name")"
+        src="mcp"; ai_is_plugin "$name" && src="plugin + mcp"
+        if printf '%s' "$row" | grep -q 'Not logged in'; then
+          ai_line warn "$name" "$src · not logged in"
+        else
+          ai_line ok "$name" "$src"
+        fi
+      done < <(printf '%s\n' "$codex_mcp_output" | awk 'NF && $1 != "Name" {print}')
+    fi
 
     while IFS= read -r p; do
       [ -n "$p" ] || continue
-      printf '%s\n' "$mcp_seen" | grep -qx "$p" || ai_line ok "$p" "plugin"
-    done < <(printf '%s\n' "$plugins_installed")
+      ai_is_mcp "$p" || ai_line ok "$p" "plugin"
+    done < <(printf '%s\n' "$plugins_enabled")
+    while IFS= read -r p; do
+      [ -n "$p" ] || continue
+      ai_line warn "$p" "plugin disabled"
+    done < <(printf '%s\n' "$plugins_disabled")
   else
     ai_line warn codex "CLI missing"
   fi
@@ -356,15 +386,22 @@ PY
       ai_line warn "skill:$s" "missing from Codex"
     fi
   done
-  for p in context-mode github browser; do
-    if ai_have codex && codex plugin list 2>/dev/null | awk '{n=$1; sub(/@.*/, "", n); print n}' | grep -qx "$p"; then
+  for p in context-mode github; do
+    if ai_have codex && [ "$codex_plugin_status" -eq 0 ] && ai_is_plugin "$p"; then
       ai_line ok "plugin:$p"
-    elif ai_have codex && codex mcp list 2>/dev/null | awk 'NF && $1 != "Name" {print $1}' | grep -qx "$p"; then
+    elif ai_have codex && [ "$codex_mcp_status" -eq 0 ] && ai_is_mcp "$p"; then
       ai_line ok "mcp:$p"
     else
       ai_line warn "$p" "plugin/mcp missing"
     fi
   done
+  if ai_have codex && [ "$codex_plugin_status" -eq 0 ] && ai_is_plugin browser-use; then
+    ai_line ok "plugin:browser-use"
+  elif ai_bundled_browser_present; then
+    ai_line ok "plugin:browser-use" "bundled"
+  else
+    ai_line warn browser-use "bundled plugin missing"
+  fi
 
   ai_section "Dotfiles tracking"
   ai_dotfile_tracked ".local/bin/doctor"

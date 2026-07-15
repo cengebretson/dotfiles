@@ -16,6 +16,8 @@
 #   * an optional executable ./.release-sync hook is run with the new version
 #     after VERSION is bumped, to propagate it into other files (e.g. a source
 #     constant); whatever tracked files it changes are committed with the release
+#
+# Regression tests: ~/.config/git/tests/git-release.test.sh
 set -euo pipefail
 
 die() { echo "git-release: $*" >&2; exit 1; }
@@ -99,6 +101,7 @@ Options:
   -p, --push                push the branch and tag when done
   --allow-empty-changelog   release even if [Unreleased] has no entries
   --allow-branch            release from a branch other than the default
+  --allow-no-tests          release when no test runner can be detected
   --no-fetch                skip the "behind origin" check (no network)
   -c, --current             print the current version and exit
   -h, --help                show this help
@@ -127,6 +130,7 @@ show_current=false
 push=false
 allow_empty_changelog=false
 allow_branch=false
+allow_no_tests=false
 no_fetch=false
 for arg in "$@"; do
     case "${arg}" in
@@ -135,6 +139,7 @@ for arg in "$@"; do
         -p|--push) push=true ;;
         --allow-empty-changelog) allow_empty_changelog=true ;;
         --allow-branch) allow_branch=true ;;
+        --allow-no-tests) allow_no_tests=true ;;
         --no-fetch) no_fetch=true ;;
         -h|--help) usage; exit 0 ;;
         -*) die "unknown option: ${arg}" ;;
@@ -175,8 +180,17 @@ case "${remote}" in
         web="https://${hostpath%%:*}/${hostpath#*:}"
         ;;
     ssh://*)
-        rest="${remote#ssh://}"; rest="${rest#*@}"
+        rest="${remote#ssh://}"
+        authority="${rest%%/*}"
+        [[ "${authority}" == *@* ]] && rest="${rest#*@}"
         web="https://${rest}"
+        ;;
+    http://*|https://*)
+        scheme="${remote%%:*}"
+        rest="${remote#*://}"
+        authority="${rest%%/*}"
+        [[ "${authority}" == *@* ]] && rest="${rest#*@}"
+        web="${scheme}://${rest}"
         ;;
     *)
         web="${remote}"
@@ -193,6 +207,8 @@ precheck() {
     fi
 }
 [[ -z "$(git status --porcelain)" ]] || precheck "working tree is not clean; commit or stash first"
+original_head="$(git rev-parse --verify HEAD 2>/dev/null || true)"
+[[ -n "${original_head}" ]] || precheck "repository has no commits"
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null 2>&1; then
     precheck "tag ${tag} already exists"
 fi
@@ -200,10 +216,10 @@ fi
 # Release from the default branch unless told otherwise.
 branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
-if [[ "${allow_branch}" != true ]]; then
-    if [[ -z "${branch}" ]]; then
-        precheck "detached HEAD; checkout a branch first (or pass --allow-branch)"
-    elif [[ -n "${default_branch}" && "${branch}" != "${default_branch}" ]]; then
+if [[ -z "${branch}" ]]; then
+    precheck "detached HEAD; checkout a branch first"
+elif [[ "${allow_branch}" != true ]]; then
+    if [[ -n "${default_branch}" && "${branch}" != "${default_branch}" ]]; then
         precheck "on '${branch}', not the default branch '${default_branch}' (use --allow-branch)"
     elif [[ -z "${default_branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
         precheck "on '${branch}', not main/master (use --allow-branch)"
@@ -239,6 +255,10 @@ elif [[ -f Makefile ]] && grep -qE '^test:' Makefile; then
     test_cmd="make test"
 else
     test_cmd=""
+fi
+
+if [[ -z "${test_cmd}" && "${allow_no_tests}" != true ]]; then
+    precheck "no test runner detected; configure release.test-command or pass --allow-no-tests"
 fi
 
 # Decide what to do with the CHANGELOG.
@@ -288,25 +308,25 @@ if [[ -n "${test_cmd}" ]]; then
     echo "Running tests: ${test_cmd}"
     bash -c "${test_cmd}"
 else
-    echo "git-release: no test runner detected; skipping tests" >&2
+    echo "git-release: no test runner detected; skipping tests (--allow-no-tests)" >&2
 fi
 
 # Past this point we mutate the tree; restore it if anything below fails.
-version_existed=false; [[ -f VERSION ]] && version_existed=true
-changelog_existed=false; [[ -f CHANGELOG.md ]] && changelog_existed=true
-release_committed=false
 restore_on_failure() {
+    local rc=$?
+    trap - EXIT
     rm -f CHANGELOG.md.tmp
-    if [[ "${release_committed}" == true ]]; then
-        git reset -q --hard "HEAD^" || true
+    git tag -d "${tag}" >/dev/null 2>&1 || true
+    if git reset -q --hard "${original_head}"; then
+        if [[ -z "$(git status --porcelain)" ]]; then
+            echo "git-release: release aborted; working tree restored" >&2
+        else
+            echo "git-release: release aborted; tracked release changes restored, but untracked files remain" >&2
+        fi
     else
-        # The tree was clean before we started, so restoring all tracked files
-        # also reverts anything the after-bump hook touched.
-        git checkout -q -- . 2>/dev/null || true
+        echo "git-release: release aborted; automatic restore failed, reset to ${original_head} manually" >&2
     fi
-    [[ "${version_existed}" == true ]] || rm -f VERSION
-    [[ "${changelog_existed}" == true ]] || rm -f CHANGELOG.md
-    echo "git-release: release aborted; working tree restored" >&2
+    exit "${rc}"
 }
 trap restore_on_failure EXIT
 
@@ -385,7 +405,6 @@ if [[ -f CHANGELOG.md ]]; then git add -- CHANGELOG.md; fi
 # start, so this only picks up release changes).
 git add -u
 git commit -m "Release ${tag}"
-release_committed=true
 git tag -a "${tag}" -m "${tag}"
 trap - EXIT
 
