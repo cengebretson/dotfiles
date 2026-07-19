@@ -5,6 +5,7 @@
 
 # Per-machine settings overrides (absolute paths, local-only grants)
 settings.local.json
+rules/local.md
 
 # Per-machine runtime/state markers
 .last-cleanup

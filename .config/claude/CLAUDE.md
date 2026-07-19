@@ -32,14 +32,12 @@ Fall back to CLI **only** when no MCP tool covers the specific operation — and
 
 When asked about a PR's status ("is it green", "why yellow", checks, what's left):
 
-- **Prefer the `pr-report` fish function as source of truth.** It already reads GraphQL `statusCheckRollup` + `reviewDecision` + unresolved Copilot/human thread counts correctly. Run `pr-report --json` and read the row before any ad hoc query. Trust it over hand-rolled `gh` calls.
-- **For agent consumption, prefer `los-scripts review`** (`~/workspace/scripts/bin/los-scripts review status|ready|summary|comments <pr>`) — it returns machine-readable JSON review state (paginated threads, checks rollup, `reviewDecision`) on stdout. `pr-report` remains the human-readable summary row.
 - **For CI, use the checks rollup, never the legacy status endpoint.** Use GraphQL `statusCheckRollup` (handle both `CheckRun.conclusion` and `StatusContext.state`) or `/commits/{sha}/check-runs?per_page=100`. NEVER judge CI from `/commits/{sha}/status` — it returns `state=pending` with `total_count=0` when a commit has only check-runs, a false yellow.
 - **Paginate before claiming green.** `/check-runs` defaults to 30; a failing check can be on a later page. Never say "all checks pass" from an unpaginated call — confirm against the rollup (`first:100`). This exact miss caused a wrong "all green" call.
 - **Report status as separate axes, do not conflate:** (1) CI checks pass/fail/pending, (2) `reviewDecision` (REVIEW_REQUIRED needs a human approval; Copilot's and my approvals do not count), (3) unresolved review threads, (4) `mergeStateStatus`. "Yellow" is usually pending CI or REVIEW_REQUIRED, not necessarily an unaddressed comment.
 - **A green run plus yellow PR usually means REVIEW_REQUIRED**, not a CI or comment problem. Say so instead of hunting for comments.
 - The `copilot-pull-request-reviewer` check goes `in_progress` and makes the rollup pending; requesting a Copilot review re-introduces that transient pending/yellow, so do not re-request on trivial/comment-only commits.
-- `gh` authenticates with the keyring `gho_` token by default; use plain `gh` (no `env -u GH_TOKEN` prefix). If `gh` ever returns 401 "Bad credentials", check whether a stale `GH_TOKEN` got set in the shell and unset it (see the project `gh-token-limitations` memory).
+- Prefer the normal authenticated `gh` session. If `gh` returns 401 "Bad credentials", check for a stale `GH_TOKEN` or `GITHUB_TOKEN` environment override before re-authenticating.
 
 ## Session Startup
 
