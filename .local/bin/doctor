@@ -279,7 +279,11 @@ PY
   # Handler prerequisites (handlers exit 100/skipped without these):
   if [ -x "$TMUX_ATTENTION" ]; then ai_line ok tmux-attention "handler prereq"; else ai_line warn tmux-attention "missing — attention handlers skip"; fi
   if ai_moshi_present; then ai_line ok moshi-hook "handler prereq"; else ai_line warn moshi-hook "missing — moshi handler skips"; fi
-  if [ -r "$CODEX_DIR/local.md" ]; then ai_line ok local.md "handler prereq"; else ai_line warn local.md "missing — local-instructions handler skips"; fi
+  if [ -r "$CODEX_DIR/local.md" ]; then
+    ai_line ok local.md "optional machine-local instructions loaded"
+  else
+    ai_line ok local.md "optional — absent"
+  fi
   ai_check_routes "$CODEX_DIR/hooks.json"
 
   ai_section "Config syntax"
