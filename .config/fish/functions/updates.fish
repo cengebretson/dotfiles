@@ -66,7 +66,7 @@ function updates --description 'Update Homebrew (+ install missing Brewfile entr
         set --append results "$ok fish_update_completions"
     else
         set --append results "$fail fish_update_completions"
-        set --append failures 'fish_update_completions'
+        set --append failures fish_update_completions
     end
 
     if command -q mise

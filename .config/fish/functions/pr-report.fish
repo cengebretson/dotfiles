@@ -5,38 +5,51 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     or return
 
     if set -q _flag_help
-        set_color --bold cyan; echo "pr-report"; set_color normal
+        set_color --bold cyan
+        echo pr-report
+        set_color normal
         echo "List your open PRs with merge conflicts, unresolved Copilot threads, CI/review status, and Jira status."
         echo
-        set_color --bold white; echo "USAGE"; set_color normal
+        set_color --bold white
+        echo USAGE
+        set_color normal
         echo "    pr-report [--slack | --json] [FILTER...]"
         echo
-        set_color --bold white; echo "OPTIONS"; set_color normal
+        set_color --bold white
+        echo OPTIONS
+        set_color normal
         echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
         echo "        --short   One line per PR: marker + #number + title (Jira key links to the issue) + [labels]."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
         echo
-        set_color --bold white; echo "FILTER"; set_color normal
+        set_color --bold white
+        echo FILTER
+        set_color normal
         echo "    Space-separated terms, matched case-insensitively against each PR's"
         echo "    title + branch + labels + review status (approved / review required /"
         echo "    changes requested) + state (conflict / attention / waiting / approved)."
         echo "    Every term must match (AND); prefix a term with '!' to exclude it."
         echo "    Works in any mode and any position."
         echo
-        set_color --bold white; echo "EXAMPLES"; set_color normal
+        set_color --bold white
+        echo EXAMPLES
+        set_color normal
         echo "    pr-report                              # full report, current repo"
         echo "    pr-report login                        # only PRs matching \"login\""
         echo "    pr-report '!approved'                  # everything not yet approved"
         echo "    pr-report 'ready for review !approved' # that label, but not approved"
         echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
-        set_color --bold white; echo "NOTES"; set_color normal
+        set_color --bold white
+        echo NOTES
+        set_color normal
         printf '    • Marker: ◆ draft · \ue727 merge conflict · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
+        echo "    • PR search is paginated; nested GitHub collections are capped at 100 items per PR."
         return 0
     end
 
@@ -65,13 +78,17 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
     set -l repo (gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
     if test -z "$repo"
-        set_color red; echo "error: not in a GitHub repository" >&2; set_color normal
+        set_color red
+        echo "error: not in a GitHub repository" >&2
+        set_color normal
         return 1
     end
 
     set -l me (gh api user --jq .login 2>/dev/null)
     if test -z "$me"
-        set_color red; echo "error: gh not authenticated" >&2; set_color normal
+        set_color red
+        echo "error: gh not authenticated" >&2
+        set_color normal
         return 1
     end
 
@@ -93,18 +110,26 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
     # Decorative header is for humans only — keep it out of json/slack payloads.
     if test "$mode" = pretty
-        set_color --bold cyan; echo "󰊤  PR Report"; set_color normal
-        set_color $dim; echo "   $repo · @$me"; set_color normal
+        set_color --bold cyan
+        echo "󰊤  PR Report"
+        set_color normal
+        set_color $dim
+        echo "   $repo · @$me"
+        set_color normal
         if test -n "$filter"
-            set_color $dim; echo "   filter: \"$filter\""; set_color normal
+            set_color $dim
+            echo "   filter: \"$filter\""
+            set_color normal
         end
         if test $jira_ok -eq 0
-            set_color $dim; echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"; set_color normal
+            set_color $dim
+            echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"
+            set_color normal
         end
         echo ""
     end
 
-    # ONE GraphQL call returns every open PR you authored with its url, review
+    # One paginated GraphQL request returns every open PR you authored with its url, review
     # decision, CI check rollup, labels, AND unresolved Copilot thread count. jq
     # reduces each PR to a TSV row so there are no per-PR calls. Field order:
     # 1 number  2 title  3 branch  4 reviewDecision  5 ci_pass  6 ci_fail
@@ -112,8 +137,8 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # 14 requested_reviewers(csv)  15 mergeable  16 merge_state_status
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
-    set -l pr_lines (gh api graphql -f q="repo:$repo is:pr is:open author:$me" \
-        -f query='query($q:String!){search(query:$q,type:ISSUE,first:100){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:20){nodes{name}} reviewRequests(first:20){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}}}' \
+    set -l pr_lines (gh api graphql --paginate -f q="repo:$repo is:pr is:open author:$me" \
+        -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -148,7 +173,9 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
               (.mergeStateStatus // "")
             ] | @tsv' 2>/dev/null)
     if test $status -ne 0
-        set_color red; echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2; set_color normal
+        set_color red
+        echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2
+        set_color normal
         return 1
     end
 
@@ -180,7 +207,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
         set -l ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[3]")
         test -n "$ticket"; or set ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[2]")
-        test -n "$ticket"; or set ticket "ZZZZ-999999"
+        test -n "$ticket"; or set ticket ZZZZ-999999
 
         set -l ticket_prefix (string replace -r -- '-[0-9]+$' '' "$ticket")
         set -l ticket_number (string match -rg -- '-([0-9]+)$' "$ticket")
@@ -229,7 +256,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
     set -l found 0
     set -l clean 0
-    set -l json_rows   # TSV records accumulated for --json
+    set -l json_rows # TSV records accumulated for --json
     set -l slack_lines # bullet lines accumulated for --slack
 
     for line in $pr_lines
@@ -281,9 +308,15 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set -l review_text
         set -l review_color
         switch $review
-            case APPROVED; set review_text approved; set review_color green
-            case CHANGES_REQUESTED; set review_text "changes requested"; set review_color red
-            case '*'; set review_text "review required"; set review_color yellow
+            case APPROVED
+                set review_text approved
+                set review_color green
+            case CHANGES_REQUESTED
+                set review_text "changes requested"
+                set review_color red
+            case '*'
+                set review_text "review required"
+                set review_color yellow
         end
         if test -n "$requested_reviewers"; and test "$is_draft" != true
             set review_text "re-review requested"
@@ -358,18 +391,28 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set -l num_color $dim
         switch $pr_state
             case draft
-                set_color magenta; printf "  ◆"; set_color normal
+                set_color magenta
+                printf "  ◆"
+                set_color normal
                 set num_color white
             case conflict
-                set_color red; printf '  \ue727'; set_color normal # nf-dev-git_merge
+                set_color red
+                printf '  \ue727'
+                set_color normal # nf-dev-git_merge
                 set num_color white
             case attention
-                set_color yellow; printf "  ●"; set_color normal
+                set_color yellow
+                printf "  ●"
+                set_color normal
                 set num_color white
             case approved
-                set_color green; printf "  ✓"; set_color normal
+                set_color green
+                printf "  ✓"
+                set_color normal
             case '*' # waiting on a reviewer
-                set_color blue; printf '  \U000f0349'; set_color normal # nf-md-magnify
+                set_color blue
+                printf '  \U000f0349'
+                set_color normal # nf-md-magnify
         end
         # PR number is a click-to-open OSC 8 hyperlink to the PR on GitHub.
         set_color --bold $num_color
@@ -384,7 +427,8 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         # Colours mirror the full report (Jira Atlassian-blue; labels keyed by
         # meaning) so a glance reads the same in either mode.
         if set -q _flag_short
-            set_color normal; printf "  "
+            set_color normal
+            printf "  "
             if test -n "$jira_key" -a -n "$jira_url"; and string match -q -- "$jira_key*" "$pr_title"
                 # Link only the key prefix; print the rest of the title verbatim.
                 # Keep the title's normal colour — the OSC 8 link still makes it
@@ -401,12 +445,14 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             for label in $pr_labels
                 test -n "$label"; or continue
                 _pr_report_label_color $label
-                printf " [%s]" $label; set_color normal
+                printf " [%s]" $label
+                set_color normal
             end
             echo ""
             continue
         end
-        set_color normal; echo "  $pr_title"
+        set_color normal
+        echo "  $pr_title"
 
         # Detail line — only segments that carry signal, joined by a dim " · ".
         # $pre holds the separator: empty before the first printed segment, then
@@ -416,48 +462,84 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
         # Merge conflicts are a distinct blocker, separate from review and CI.
         if test $has_merge_conflicts -eq 1
-            set_color red; printf "merge conflict"; set_color normal
+            set_color red
+            printf "merge conflict"
+            set_color normal
             set pre "  ·  "
         end
 
         # Unresolved threads — shown only when present (keeps clean PRs short).
         if test "$count" -gt 0 2>/dev/null
-            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
-            set_color red; printf "%s copilot" $count; set_color normal
+            set_color $dim
+            printf '%s' "$pre"
+            set_color normal
+            set pre "  ·  "
+            set_color red
+            printf "%s copilot" $count
+            set_color normal
         end
         if test "$comments" -gt 0 2>/dev/null
-            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
-            set -l noun comments; test "$comments" -eq 1; and set noun comment
-            set_color red; printf "%s %s" $comments $noun; set_color normal
+            set_color $dim
+            printf '%s' "$pre"
+            set_color normal
+            set pre "  ·  "
+            set -l noun comments
+            test "$comments" -eq 1; and set noun comment
+            set_color red
+            printf "%s %s" $comments $noun
+            set_color normal
         end
 
         # CI rollup (always).
-        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+        set_color $dim
+        printf '%s' "$pre"
+        set_color normal
+        set pre "  ·  "
         if test (math $ci_pass + $ci_fail + $ci_pend) -eq 0
-            set_color $dim; printf "ci none"; set_color normal
+            set_color $dim
+            printf "ci none"
+            set_color normal
         else
-            set_color $dim; printf "ci "; set_color normal
-            set_color green; printf "✓%s" $ci_pass; set_color normal
+            set_color $dim
+            printf "ci "
+            set_color normal
+            set_color green
+            printf "✓%s" $ci_pass
+            set_color normal
             if test "$ci_fail" -gt 0 2>/dev/null
-                set_color red; printf " ✗%s" $ci_fail; set_color normal
+                set_color red
+                printf " ✗%s" $ci_fail
+                set_color normal
             end
             if test "$ci_pend" -gt 0 2>/dev/null
-                set_color yellow; printf " ●%s" $ci_pend; set_color normal
+                set_color yellow
+                printf " ●%s" $ci_pend
+                set_color normal
             end
         end
 
         # Review decision (always).
-        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
-        set_color $review_color; printf "%s" $review_text; set_color normal
+        set_color $dim
+        printf '%s' "$pre"
+        set_color normal
+        set pre "  ·  "
+        set_color $review_color
+        printf "%s" $review_text
+        set_color normal
 
         # Jira (when the branch carries a key).
         if test -n "$jira_key"
-            set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
-            set_color 2684FF; printf '\U000f0e6f '; set_color normal # Atlassian-blue Jira clipboard glyph
+            set_color $dim
+            printf '%s' "$pre"
+            set_color normal
+            set pre "  ·  "
+            set_color 2684FF
+            printf '\U000f0e6f '
+            set_color normal # Atlassian-blue Jira clipboard glyph
             set -l jira_text
             if test -n "$jira_status"
                 switch (string lower -- $jira_status)
-                    case 'done' 'closed' 'resolved'
+                    case done closed resolved
                         set_color green
                     case '*progress*' '*review*' '*test*'
                         set_color cyan
@@ -479,7 +561,10 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         end
 
         # Idle since last activity — escalating colour when stale (always).
-        set_color $dim; printf '%s' "$pre"; set_color normal; set pre "  ·  "
+        set_color $dim
+        printf '%s' "$pre"
+        set_color normal
+        set pre "  ·  "
         if test "$idle_days" -gt 14 2>/dev/null
             set_color red
         else if test "$idle_days" -gt 7 2>/dev/null
@@ -488,7 +573,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             set_color $dim
         end
         if test "$idle_days" -le 0 2>/dev/null
-            printf "today"
+            printf today
         else
             printf "%sd idle" $idle_days
         end
@@ -503,10 +588,13 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             for label in $pr_labels
                 set i (math $i + 1)
                 if test $i -gt 1
-                    set_color $dim; printf "  ·  "; set_color normal
+                    set_color $dim
+                    printf "  ·  "
+                    set_color normal
                 end
                 _pr_report_label_color $label
-                printf "%s" $label; set_color normal
+                printf "%s" $label
+                set_color normal
             end
             echo ""
         end
@@ -552,10 +640,16 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # --- pretty summary ---
     echo ""
     if test $found -eq 0
-        set_color --bold green; echo "  All clear — no PRs need attention."; set_color normal
+        set_color --bold green
+        echo "  All clear — no PRs need attention."
+        set_color normal
     else
-        set_color --bold red; printf "  $found PR(s) need attention"; set_color normal
-        set_color $dim; echo "  ($clean clean)"; set_color normal
+        set_color --bold red
+        printf "  $found PR(s) need attention"
+        set_color normal
+        set_color $dim
+        echo "  ($clean clean)"
+        set_color normal
     end
 end
 
@@ -569,7 +663,9 @@ function _pr_report_none --argument-names mode slack_msg pretty_msg
         case slack
             echo $slack_msg
         case '*'
-            set_color yellow; echo "  $pretty_msg"; set_color normal
+            set_color yellow
+            echo "  $pretty_msg"
+            set_color normal
     end
 end
 

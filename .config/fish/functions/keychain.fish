@@ -195,6 +195,11 @@ function _keychain_env
     set -l acct $argv[3]
     set -l path "$argv[4]"
 
+    if not _keychain_valid_env_name "$env_name"
+        printf 'keychain: invalid environment variable name: %s\n' "$env_name" >&2
+        return 2
+    end
+
     set -l extra
     test -n "$path"; and set extra -p "$path"
 
@@ -205,4 +210,8 @@ function _keychain_env
     end
 
     set -gx $env_name $secret
+end
+
+function _keychain_valid_env_name --argument-names env_name
+    string match -qr '^[A-Za-z_][A-Za-z0-9_]*$' -- "$env_name"
 end

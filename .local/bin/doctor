@@ -41,19 +41,44 @@ run_ai_doctor() {
   local mcp_seen=""
 
   if [ -t 1 ]; then
-    R=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
-    GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; HEAD=$'\033[1;36m'
+    R=$'\033[0m'
+    DIM=$'\033[2m'
+    BOLD=$'\033[1m'
+    GREEN=$'\033[32m'
+    YELLOW=$'\033[33m'
+    RED=$'\033[31m'
+    HEAD=$'\033[1;36m'
   else
-    R=''; DIM=''; BOLD=''; GREEN=''; YELLOW=''; RED=''; HEAD=''
+    R=''
+    DIM=''
+    BOLD=''
+    GREEN=''
+    YELLOW=''
+    RED=''
+    HEAD=''
   fi
 
   ai_line() {
     local status="$1" label="$2" detail="${3:-}" sym col
     case "$status" in
-      ok) sym='✓'; col=$GREEN ;;
-      warn) sym='⚠'; col=$YELLOW; warns=$((warns + 1)) ;;
-      fail) sym='✗'; col=$RED; fails=$((fails + 1)) ;;
-      *) sym='·'; col= ;;
+      ok)
+        sym='✓'
+        col=$GREEN
+        ;;
+      warn)
+        sym='⚠'
+        col=$YELLOW
+        warns=$((warns + 1))
+        ;;
+      fail)
+        sym='✗'
+        col=$RED
+        fails=$((fails + 1))
+        ;;
+      *)
+        sym='·'
+        col=
+        ;;
     esac
     if [ -n "$detail" ]; then
       printf '  %s%s%s %-23s %s%s%s\n' "$col" "$sym" "$R" "$label" "$DIM" "$detail" "$R"
@@ -91,14 +116,13 @@ run_ai_doctor() {
       ai_line warn "$label" "python3 missing — cannot validate TOML"
     elif ! python3 -c 'import tomllib' >/dev/null 2>&1; then
       ai_line warn "$label" "python3 tomllib missing — cannot validate TOML"
-    elif python3 - "$f" >/dev/null 2>&1 <<'PY'
+    elif python3 - "$f" >/dev/null 2>&1 <<'PY'; then
 import pathlib
 import sys
 import tomllib
 
 tomllib.loads(pathlib.Path(sys.argv[1]).read_text())
 PY
-    then
       ai_line ok "$label" "valid TOML"
     else
       ai_line fail "$label" "invalid TOML"
@@ -115,6 +139,23 @@ PY
       ai_line fail "$label" "not executable"
     else
       ai_line warn "$label" "missing"
+    fi
+  }
+
+  ai_check_private_file() {
+    local f="$1"
+    local label="$2"
+    local expected_mode="${3:-600}"
+    local mode=""
+
+    [ -e "$f" ] || return 0
+    mode="$(stat -f '%Lp' "$f" 2>/dev/null || stat -c '%a' "$f" 2>/dev/null || true)"
+    if [ "$mode" = "$expected_mode" ]; then
+      ai_line ok "$label" "mode $mode"
+    elif [ -n "$mode" ]; then
+      ai_line fail "$label" "mode $mode (expected $expected_mode)"
+    else
+      ai_line warn "$label" "mode unavailable"
     fi
   }
 
@@ -211,7 +252,7 @@ PY
   printf '%sdoctor ai%s  %sClaude Code + Codex readiness%s\n' "$BOLD" "$R" "$DIM" "$R"
 
   ai_section "Dependencies"
-  for t in bash shfmt jq node npx fish gh rg fd bat eza delta codex python3; do
+  for t in bash shellcheck shfmt jq node npx fish gh rg fd bat eza delta codex python3 starship zoxide; do
     if ai_have "$t"; then ai_line ok "$t"; else ai_line warn "$t" "missing — brew bundle --file ~/.config/Brewfile"; fi
   done
 
@@ -246,6 +287,7 @@ PY
   ai_check_json "$CODEX_DIR/hooks.json" "codex hooks"
   ai_check_toml "$CODEX_DIR/config.shared.toml" "codex shared"
   [ -f "$CODEX_DIR/config.toml" ] && ai_check_toml "$CODEX_DIR/config.toml" "codex local"
+  ai_check_private_file "$HOME/.config/fish/secrets.fish" "fish secrets"
 
   ai_section "Local bin"
   ai_check_executable "$HOME/.local/bin/doctor" "doctor"
@@ -337,7 +379,8 @@ PY
         local name src
         name="${row%% *}"
         mcp_seen="$(printf '%s\n%s' "$mcp_seen" "$name")"
-        src="mcp"; ai_is_plugin "$name" && src="plugin + mcp"
+        src="mcp"
+        ai_is_plugin "$name" && src="plugin + mcp"
         if printf '%s' "$row" | grep -q 'Not logged in'; then
           ai_line warn "$name" "$src · not logged in"
         else
@@ -479,10 +522,22 @@ run_docker_doctor() {
   docker_line() {
     local status="$1" label="$2" detail="${3:-}" sym col
     case "$status" in
-      ok) sym='✓'; col=$green ;;
-      warn) sym='⚠'; col=$yellow ;;
-      fail) sym='✗'; col=$red ;;
-      *) sym='·'; col= ;;
+      ok)
+        sym='✓'
+        col=$green
+        ;;
+      warn)
+        sym='⚠'
+        col=$yellow
+        ;;
+      fail)
+        sym='✗'
+        col=$red
+        ;;
+      *)
+        sym='·'
+        col=
+        ;;
     esac
     if [[ -n "$detail" ]]; then
       printf '  %s%s%s %-18s %s%s%s\n' "$col" "$sym" "$reset" "$label" "$dim" "$detail" "$reset"
@@ -517,15 +572,15 @@ run_docker_doctor() {
 
   docker_show_largest_images() {
     docker_heading 'Largest images'
-    docker image ls --format '{{.Size}}\t{{.Repository}}:{{.Tag}}\t{{.ID}}' \
-      | sort -hr \
-      | head -n 10
+    docker image ls --format '{{.Size}}\t{{.Repository}}:{{.Tag}}\t{{.ID}}' |
+      sort -hr |
+      head -n 10
   }
 
   docker_show_largest_volumes() {
     docker_heading 'Largest volumes'
-    docker system df -v \
-      | awk '
+    docker system df -v |
+      awk '
           /^Local Volumes space usage:/ {flag=1; count=0; next}
           /^Build cache usage:/ {flag=0}
           flag && NF {
@@ -775,19 +830,44 @@ run_dotfiles_doctor() {
   local work_tree="$HOME"
 
   if [ -t 1 ]; then
-    R=$'\033[0m'; DIM=$'\033[2m'; BOLD=$'\033[1m'
-    GREEN=$'\033[32m'; YELLOW=$'\033[33m'; RED=$'\033[31m'; HEAD=$'\033[1;36m'
+    R=$'\033[0m'
+    DIM=$'\033[2m'
+    BOLD=$'\033[1m'
+    GREEN=$'\033[32m'
+    YELLOW=$'\033[33m'
+    RED=$'\033[31m'
+    HEAD=$'\033[1;36m'
   else
-    R=''; DIM=''; BOLD=''; GREEN=''; YELLOW=''; RED=''; HEAD=''
+    R=''
+    DIM=''
+    BOLD=''
+    GREEN=''
+    YELLOW=''
+    RED=''
+    HEAD=''
   fi
 
   dot_line() {
     local status="$1" label="$2" detail="${3:-}" sym col
     case "$status" in
-      ok) sym='✓'; col=$GREEN ;;
-      warn) sym='⚠'; col=$YELLOW; warns=$((warns + 1)) ;;
-      fail) sym='✗'; col=$RED; fails=$((fails + 1)) ;;
-      *) sym='·'; col= ;;
+      ok)
+        sym='✓'
+        col=$GREEN
+        ;;
+      warn)
+        sym='⚠'
+        col=$YELLOW
+        warns=$((warns + 1))
+        ;;
+      fail)
+        sym='✗'
+        col=$RED
+        fails=$((fails + 1))
+        ;;
+      *)
+        sym='·'
+        col=
+        ;;
     esac
     if [ -n "$detail" ]; then
       printf '  %s%s%s %-24s %s%s%s\n' "$col" "$sym" "$R" "$label" "$DIM" "$detail" "$R"
@@ -824,6 +904,25 @@ run_dotfiles_doctor() {
     fi
   }
 
+  dot_check_private_file() {
+    local rel="$1"
+    local expected_mode="${2:-600}"
+    local path="$work_tree/$rel"
+    local mode=""
+
+    dot_check_untracked "$rel"
+    [ -e "$path" ] || return 0
+
+    mode="$(stat -f '%Lp' "$path" 2>/dev/null || stat -c '%a' "$path" 2>/dev/null || true)"
+    if [ "$mode" = "$expected_mode" ]; then
+      dot_line ok permissions "$rel mode $mode"
+    elif [ -n "$mode" ]; then
+      dot_line fail permissions "$rel mode $mode (expected $expected_mode)"
+    else
+      dot_line warn permissions "$rel mode unavailable"
+    fi
+  }
+
   dot_check_fish() {
     local rel="$1"
     if [ ! -f "$work_tree/$rel" ]; then
@@ -834,6 +933,39 @@ run_dotfiles_doctor() {
       dot_line ok fish "$rel"
     else
       dot_line fail fish "$rel"
+    fi
+
+    if dot_have fish_indent; then
+      if fish_indent --check "$work_tree/$rel" >/dev/null 2>&1; then
+        dot_line ok fish-format "$rel"
+      else
+        dot_line fail fish-format "$rel"
+      fi
+    fi
+  }
+
+  dot_check_bash() {
+    local rel="$1"
+    local path="$work_tree/$rel"
+
+    if [ ! -f "$path" ] || ! head -1 "$path" | grep -q 'bash'; then
+      return 0
+    fi
+
+    if bash -n "$path" >/dev/null 2>&1; then
+      dot_line ok bash "$rel"
+    else
+      dot_line fail bash "$rel"
+    fi
+
+    if dot_have shellcheck; then
+      if shellcheck -x -S style "$path" >/dev/null 2>&1; then
+        dot_line ok shellcheck "$rel"
+      else
+        dot_line fail shellcheck "$rel"
+      fi
+    else
+      dot_line warn shellcheck "$rel — shellcheck missing"
     fi
   }
 
@@ -888,9 +1020,9 @@ run_dotfiles_doctor() {
   local untracked
   untracked="$(
     dot_git status --short --untracked-files=all -- \
-      .config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git .local/bin .gitconfig .gitignore .tmux.conf 2>/dev/null \
-      | awk '$1 == "??" {print $2}' \
-      | grep -Ev '^(\.config/codex/(plugins/cache|sessions|context-mode|\.tmp|process_manager|plugins/\.plugin-appserver)/|\.config/codex/chrome-native-hosts\.json$|\.config/claude/(projects/|settings\.json\.bak)|\.config/fish/(completions|conf\.d|functions)/|\.config/fish/fish_variables$)' || true
+      .config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git .local/bin .gitconfig .gitignore .tmux.conf 2>/dev/null |
+      awk '$1 == "??" {print $2}' |
+      grep -Ev '^(\.config/codex/(plugins/cache|sessions|context-mode|\.tmp|process_manager|plugins/\.plugin-appserver)/|\.config/codex/chrome-native-hosts\.json$|\.config/claude/(projects/|settings\.json\.bak)|\.config/fish/(completions|conf\.d|functions)/|\.config/fish/fish_variables$)' || true
   )"
   if [ -n "$untracked" ]; then
     dot_line warn untracked "$(dot_count_lines "$untracked") paths"
@@ -904,7 +1036,7 @@ run_dotfiles_doctor() {
 
   dot_section "Protected local files"
   dot_check_untracked ".config/git/config.local"
-  dot_check_untracked ".config/fish/secrets.fish"
+  dot_check_private_file ".config/fish/secrets.fish"
   dot_check_untracked ".config/claude/.claude.json"
   dot_check_untracked ".config/codex/config.toml"
 
@@ -923,6 +1055,17 @@ run_dotfiles_doctor() {
     done < <(printf '%s\n' "$fish_files")
   else
     dot_line warn fish "no tracked Fish files"
+  fi
+
+  dot_section "Bash syntax and lint"
+  local shell_files
+  shell_files="$(dot_git ls-files '.local/bin/*' '.config/git/tests/*.sh' 2>/dev/null)"
+  if [ -n "$shell_files" ]; then
+    while IFS= read -r rel; do
+      [ -n "$rel" ] && dot_check_bash "$rel"
+    done < <(printf '%s\n' "$shell_files")
+  else
+    dot_line warn bash "no tracked local scripts"
   fi
 
   dot_section "Lua syntax"

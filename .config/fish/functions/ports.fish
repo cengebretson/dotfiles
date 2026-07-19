@@ -24,14 +24,24 @@ function ports --description 'List or stop listening TCP ports'
                 return 1
             end
 
+            if not _ports_valid_port "$port"
+                printf 'ports: invalid TCP port: %s (expected 1-65535)\n' "$port" >&2
+                return 2
+            end
+
             set -l pids (_ports_pids $port)
             if test (count $pids) -eq 0
                 echo "No listener found on port $port"
                 return 1
             end
 
-            kill $pids
-            echo "Sent TERM to "(string join ', ' $pids)" for port $port"
+            if command kill -- $pids
+                echo "Sent TERM to "(string join ', ' $pids)" for port $port"
+            else
+                printf 'ports: failed to send TERM to %s for port %s\n' \
+                    (string join ', ' $pids) "$port" >&2
+                return 1
+            end
     end
 end
 
@@ -45,6 +55,12 @@ end
 
 function _ports_pids --argument-names port
     lsof -nP -tiTCP:$port -sTCP:LISTEN
+end
+
+function _ports_valid_port --argument-names port
+    string match -qr '^[0-9]+$' -- "$port"
+    and test "$port" -ge 1
+    and test "$port" -le 65535
 end
 
 function _ports_usage

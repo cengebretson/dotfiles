@@ -1,5 +1,5 @@
 alias reload 'exec fish'
-alias o 'open'
+alias o open
 alias oo 'open .'
 
 # pico8
@@ -28,12 +28,12 @@ alias ipx "curl https://ipinfo.io/ip"
 alias flush "sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder"
 
 # CLI Tools
-alias cat "bat"
+alias cat bat
 alias ping "prettyping --nolegend"
-alias find "fd"
+alias find fd
 alias mkdir "mkdir -p"
-alias vi "nvim"
-alias vim "nvim"
+alias vi nvim
+alias vim nvim
 
 # git
 alias gcopy "git rev-parse --short HEAD | pbcopy"

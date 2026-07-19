@@ -20,64 +20,74 @@
 # Regression tests: ~/.config/git/tests/git-release.test.sh
 set -euo pipefail
 
-die() { echo "git-release: $*" >&2; exit 1; }
+die() {
+  echo "git-release: $*" >&2
+  exit 1
+}
 
 is_transient_network_error() {
-    local log="$1"
-    grep -Eiq \
-        'could not resolve hostname|temporary failure|operation timed out|connection timed out|connection reset|network is unreachable|failed to connect' \
-        "${log}"
+  local log="$1"
+  grep -Eiq \
+    'could not resolve hostname|temporary failure|operation timed out|connection timed out|connection reset|network is unreachable|failed to connect' \
+    "${log}"
 }
 
 push_with_retry() {
-    local branch="$1" log rc
-    log="$(mktemp "${TMPDIR:-/tmp}/git-release-push.XXXXXX")"
-    # Capture stderr to a plain file, then replay it. A `2> >(tee ...)`
-    # process substitution runs asynchronously, so the log could still be
-    # empty when it is grepped for the transient-error pattern.
-    git push origin "${branch}" --follow-tags 2>"${log}"
+  local branch="$1" log rc
+  log="$(mktemp "${TMPDIR:-/tmp}/git-release-push.XXXXXX")"
+  # Capture stderr to a plain file, then replay it. A `2> >(tee ...)`
+  # process substitution runs asynchronously, so the log could still be
+  # empty when it is grepped for the transient-error pattern.
+  git push origin "${branch}" --follow-tags 2>"${log}"
+  rc=$?
+  cat "${log}" >&2
+  if [[ ${rc} -ne 0 ]] && is_transient_network_error "${log}"; then
+    echo "git-release: push failed with a possible transient network/DNS error; retrying once..." >&2
+    sleep 2
+    git push origin "${branch}" --follow-tags
     rc=$?
-    cat "${log}" >&2
-    if [[ ${rc} -ne 0 ]] && is_transient_network_error "${log}"; then
-        echo "git-release: push failed with a possible transient network/DNS error; retrying once..." >&2
-        sleep 2
-        git push origin "${branch}" --follow-tags
-        rc=$?
-    fi
-    rm -f "${log}"
-    return "${rc}"
+  fi
+  rm -f "${log}"
+  return "${rc}"
 }
 
 # The current version: the VERSION file if present, else the latest git tag
 # (without its leading "v"), else 0.0.0 for a repo that has never released.
 read_current_version() {
-    if [[ -f VERSION ]]; then
-        cat VERSION
-    else
-        local t
-        t="$(git describe --tags --abbrev=0 2>/dev/null || true)"
-        if [[ -n "${t}" ]]; then echo "${t#v}"; else echo "0.0.0"; fi
-    fi
+  if [[ -f VERSION ]]; then
+    cat VERSION
+  else
+    local t
+    t="$(git describe --tags --abbrev=0 2>/dev/null || true)"
+    if [[ -n "${t}" ]]; then echo "${t#v}"; else echo "0.0.0"; fi
+  fi
 }
 
 # Apply a major/minor/patch bump to an X.Y.Z version (e.g. minor: 0.5.0 -> 0.6.0).
 bump_version() {
-    local kind="$1" cur="$2" ma mi pa
-    [[ "${cur}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-        || die "current version '${cur}' is not X.Y.Z; pass an explicit version instead"
-    IFS=. read -r ma mi pa <<< "${cur}"
-    case "${kind}" in
-        major) ma=$((ma + 1)); mi=0; pa=0 ;;
-        minor) mi=$((mi + 1)); pa=0 ;;
-        patch) pa=$((pa + 1)) ;;
-    esac
-    echo "${ma}.${mi}.${pa}"
+  local kind="$1" cur="$2" ma mi pa
+  [[ "${cur}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+    die "current version '${cur}' is not X.Y.Z; pass an explicit version instead"
+  IFS=. read -r ma mi pa <<<"${cur}"
+  case "${kind}" in
+    major)
+      ma=$((ma + 1))
+      mi=0
+      pa=0
+      ;;
+    minor)
+      mi=$((mi + 1))
+      pa=0
+      ;;
+    patch) pa=$((pa + 1)) ;;
+  esac
+  echo "${ma}.${mi}.${pa}"
 }
 
 # Succeeds if the CHANGELOG's [Unreleased] section has real entries (a non-blank
 # line that is not a "### Group" subheading) before the next version heading.
 unreleased_has_content() {
-    awk '
+  awk '
         /^## \[Unreleased\]/ { inblock = 1; next }
         inblock && (/^## \[/ || /^\[Unreleased\]:/) { inblock = 0 }
         inblock && NF && !/^###/ { found = 1 }
@@ -86,7 +96,7 @@ unreleased_has_content() {
 }
 
 usage() {
-    cat <<'EOF'
+  cat <<'EOF'
 git-release — cut a release for the current git repository.
 
 Usage:
@@ -133,18 +143,24 @@ allow_branch=false
 allow_no_tests=false
 no_fetch=false
 for arg in "$@"; do
-    case "${arg}" in
-        -n|--dry-run) dry_run=true ;;
-        -c|--current) show_current=true ;;
-        -p|--push) push=true ;;
-        --allow-empty-changelog) allow_empty_changelog=true ;;
-        --allow-branch) allow_branch=true ;;
-        --allow-no-tests) allow_no_tests=true ;;
-        --no-fetch) no_fetch=true ;;
-        -h|--help) usage; exit 0 ;;
-        -*) die "unknown option: ${arg}" ;;
-        *) [[ -z "${spec}" ]] || die "unexpected argument: ${arg}"; spec="${arg}" ;;
-    esac
+  case "${arg}" in
+    -n | --dry-run) dry_run=true ;;
+    -c | --current) show_current=true ;;
+    -p | --push) push=true ;;
+    --allow-empty-changelog) allow_empty_changelog=true ;;
+    --allow-branch) allow_branch=true ;;
+    --allow-no-tests) allow_no_tests=true ;;
+    --no-fetch) no_fetch=true ;;
+    -h | --help)
+      usage
+      exit 0
+      ;;
+    -*) die "unknown option: ${arg}" ;;
+    *)
+      [[ -z "${spec}" ]] || die "unexpected argument: ${arg}"
+      spec="${arg}"
+      ;;
+  esac
 done
 
 # Operate from the repo root regardless of where we were invoked.
@@ -154,20 +170,23 @@ cd "${root}"
 current="$(read_current_version)"
 
 if [[ "${show_current}" == true ]]; then
-    echo "${current}"
-    exit 0
+  echo "${current}"
+  exit 0
 fi
 
 # Resolve the target version: a bump keyword applied to the current version, or
 # an explicit X.Y.Z.
 case "${spec}" in
-    major|minor|patch) version="$(bump_version "${spec}" "${current}")" ;;
-    "") usage >&2; exit 1 ;;
-    *)
-        [[ "${spec}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] \
-            || die "not a version or bump keyword: ${spec} (use X.Y.Z, or major|minor|patch)"
-        version="${spec}"
-        ;;
+  major | minor | patch) version="$(bump_version "${spec}" "${current}")" ;;
+  "")
+    usage >&2
+    exit 1
+    ;;
+  *)
+    [[ "${spec}" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] ||
+      die "not a version or bump keyword: ${spec} (use X.Y.Z, or major|minor|patch)"
+    version="${spec}"
+    ;;
 esac
 tag="v${version}"
 
@@ -175,67 +194,67 @@ tag="v${version}"
 remote="$(git remote get-url origin 2>/dev/null)" || die "no 'origin' remote configured"
 remote="${remote%.git}"
 case "${remote}" in
-    git@*:*)
-        hostpath="${remote#git@}"
-        web="https://${hostpath%%:*}/${hostpath#*:}"
-        ;;
-    ssh://*)
-        rest="${remote#ssh://}"
-        authority="${rest%%/*}"
-        [[ "${authority}" == *@* ]] && rest="${rest#*@}"
-        web="https://${rest}"
-        ;;
-    http://*|https://*)
-        scheme="${remote%%:*}"
-        rest="${remote#*://}"
-        authority="${rest%%/*}"
-        [[ "${authority}" == *@* ]] && rest="${rest#*@}"
-        web="${scheme}://${rest}"
-        ;;
-    *)
-        web="${remote}"
-        ;;
+  git@*:*)
+    hostpath="${remote#git@}"
+    web="https://${hostpath%%:*}/${hostpath#*:}"
+    ;;
+  ssh://*)
+    rest="${remote#ssh://}"
+    authority="${rest%%/*}"
+    [[ "${authority}" == *@* ]] && rest="${rest#*@}"
+    web="https://${rest}"
+    ;;
+  http://* | https://*)
+    scheme="${remote%%:*}"
+    rest="${remote#*://}"
+    authority="${rest%%/*}"
+    [[ "${authority}" == *@* ]] && rest="${rest#*@}"
+    web="${scheme}://${rest}"
+    ;;
+  *)
+    web="${remote}"
+    ;;
 esac
 
 # Preconditions. Under --dry-run these are notes (so you can preview a pending
 # release) rather than hard failures.
 precheck() {
-    if [[ "${dry_run}" == true ]]; then
-        echo "git-release: note: $* (would block a real release)" >&2
-    else
-        die "$*"
-    fi
+  if [[ "${dry_run}" == true ]]; then
+    echo "git-release: note: $* (would block a real release)" >&2
+  else
+    die "$*"
+  fi
 }
 [[ -z "$(git status --porcelain)" ]] || precheck "working tree is not clean; commit or stash first"
 original_head="$(git rev-parse --verify HEAD 2>/dev/null || true)"
 [[ -n "${original_head}" ]] || precheck "repository has no commits"
 if git rev-parse -q --verify "refs/tags/${tag}" >/dev/null 2>&1; then
-    precheck "tag ${tag} already exists"
+  precheck "tag ${tag} already exists"
 fi
 
 # Release from the default branch unless told otherwise.
 branch="$(git symbolic-ref --short HEAD 2>/dev/null || true)"
 default_branch="$(git symbolic-ref --short refs/remotes/origin/HEAD 2>/dev/null | sed 's#^origin/##' || true)"
 if [[ -z "${branch}" ]]; then
-    precheck "detached HEAD; checkout a branch first"
+  precheck "detached HEAD; checkout a branch first"
 elif [[ "${allow_branch}" != true ]]; then
-    if [[ -n "${default_branch}" && "${branch}" != "${default_branch}" ]]; then
-        precheck "on '${branch}', not the default branch '${default_branch}' (use --allow-branch)"
-    elif [[ -z "${default_branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
-        precheck "on '${branch}', not main/master (use --allow-branch)"
-    fi
+  if [[ -n "${default_branch}" && "${branch}" != "${default_branch}" ]]; then
+    precheck "on '${branch}', not the default branch '${default_branch}' (use --allow-branch)"
+  elif [[ -z "${default_branch}" && "${branch}" != "main" && "${branch}" != "master" ]]; then
+    precheck "on '${branch}', not main/master (use --allow-branch)"
+  fi
 fi
 
 # Warn if local is behind origin, so we don't tag a stale commit.
 if [[ "${no_fetch}" != true && -n "${branch}" ]]; then
-    if git fetch -q origin "${branch}" 2>/dev/null; then
-        behind="$(git rev-list --count "HEAD..origin/${branch}" 2>/dev/null || echo 0)"
-        if [[ "${behind}" -gt 0 ]]; then
-            precheck "local ${branch} is ${behind} commit(s) behind origin/${branch}; pull first"
-        fi
-    else
-        echo "git-release: note: could not fetch origin (offline?); skipping behind-origin check" >&2
+  if git fetch -q origin "${branch}" 2>/dev/null; then
+    behind="$(git rev-list --count "HEAD..origin/${branch}" 2>/dev/null || echo 0)"
+    if [[ "${behind}" -gt 0 ]]; then
+      precheck "local ${branch} is ${behind} commit(s) behind origin/${branch}; pull first"
     fi
+  else
+    echo "git-release: note: could not fetch origin (offline?); skipping behind-origin check" >&2
+  fi
 fi
 
 prev_tag="$(git describe --tags --abbrev=0 2>/dev/null || true)"
@@ -246,19 +265,19 @@ if [[ -f VERSION ]]; then old_version="$(cat VERSION)"; else old_version="(none)
 # Resolve the test runner: env override, then per-repo git config, then the
 # conventional runners.
 if [[ -n "${GIT_RELEASE_TEST_CMD:-}" ]]; then
-    test_cmd="${GIT_RELEASE_TEST_CMD}"
+  test_cmd="${GIT_RELEASE_TEST_CMD}"
 elif test_cmd="$(git config --get release.test-command 2>/dev/null)" && [[ -n "${test_cmd}" ]]; then
-    : # set from git config release.test-command
+  : # set from git config release.test-command
 elif [[ -x tests/check.sh ]]; then
-    test_cmd="tests/check.sh"
+  test_cmd="tests/check.sh"
 elif [[ -f Makefile ]] && grep -qE '^test:' Makefile; then
-    test_cmd="make test"
+  test_cmd="make test"
 else
-    test_cmd=""
+  test_cmd=""
 fi
 
 if [[ -z "${test_cmd}" && "${allow_no_tests}" != true ]]; then
-    precheck "no test runner detected; configure release.test-command or pass --allow-no-tests"
+  precheck "no test runner detected; configure release.test-command or pass --allow-no-tests"
 fi
 
 # Decide what to do with the CHANGELOG.
@@ -266,31 +285,31 @@ fi
 #   create  — no file -> scaffold a Keep a Changelog skeleton for this version
 #   none    — file exists but has no [Unreleased] section -> leave it alone
 if [[ -f CHANGELOG.md ]] && grep -qE '^## \[Unreleased\]' CHANGELOG.md; then
-    changelog_action="promote"
-    changelog_note="promote [Unreleased] -> [${version}] - ${date_str}"
+  changelog_action="promote"
+  changelog_note="promote [Unreleased] -> [${version}] - ${date_str}"
 elif [[ -f CHANGELOG.md ]]; then
-    changelog_action="none"
-    changelog_note="CHANGELOG.md has no [Unreleased] section — leaving it untouched"
+  changelog_action="none"
+  changelog_note="CHANGELOG.md has no [Unreleased] section — leaving it untouched"
 else
-    changelog_action="create"
-    changelog_note="create CHANGELOG.md with a [${version}] - ${date_str} section"
+  changelog_action="create"
+  changelog_note="create CHANGELOG.md with a [${version}] - ${date_str} section"
 fi
 
 # Guard against publishing a release with empty notes.
 if [[ "${changelog_action}" == "promote" ]] && ! unreleased_has_content; then
-    if [[ "${allow_empty_changelog}" == true ]]; then
-        changelog_note="${changelog_note} (WARNING: [Unreleased] is empty)"
-    elif [[ "${dry_run}" == true ]]; then
-        changelog_note="${changelog_note} (EMPTY — would block; pass --allow-empty-changelog)"
-    else
-        die "[Unreleased] in CHANGELOG.md has no entries; add notes or pass --allow-empty-changelog"
-    fi
+  if [[ "${allow_empty_changelog}" == true ]]; then
+    changelog_note="${changelog_note} (WARNING: [Unreleased] is empty)"
+  elif [[ "${dry_run}" == true ]]; then
+    changelog_note="${changelog_note} (EMPTY — would block; pass --allow-empty-changelog)"
+  else
+    die "[Unreleased] in CHANGELOG.md has no entries; add notes or pass --allow-empty-changelog"
+  fi
 fi
 
 if [[ "${push}" == true ]]; then push_note="and push to origin"; else push_note="(no push)"; fi
 
 if [[ "${dry_run}" == true ]]; then
-    cat <<EOF
+  cat <<EOF
 [dry-run] repo:         ${web}
 [dry-run] new version:  ${version}  (tag ${tag})
 [dry-run] previous tag: ${prev_tag:-(none)}
@@ -299,43 +318,40 @@ if [[ "${dry_run}" == true ]]; then
 [dry-run] CHANGELOG:    ${changelog_note}
 [dry-run] would run tests, commit VERSION/CHANGELOG, tag ${tag} ${push_note}
 EOF
-    exit 0
+  exit 0
 fi
 
 # Run the repo's tests first, against the current tree, so a failure leaves
 # nothing half-applied.
 if [[ -n "${test_cmd}" ]]; then
-    echo "Running tests: ${test_cmd}"
-    bash -c "${test_cmd}"
+  echo "Running tests: ${test_cmd}"
+  bash -c "${test_cmd}"
 else
-    echo "git-release: no test runner detected; skipping tests (--allow-no-tests)" >&2
+  echo "git-release: no test runner detected; skipping tests (--allow-no-tests)" >&2
 fi
 
-# Past this point we mutate the tree; restore it if anything below fails.
+# Past this point we mutate the tree. On failure, move HEAD back without touching
+# the working tree so concurrent editor/formatter changes can never be erased.
 restore_on_failure() {
-    local rc=$?
-    trap - EXIT
-    rm -f CHANGELOG.md.tmp
-    git tag -d "${tag}" >/dev/null 2>&1 || true
-    if git reset -q --hard "${original_head}"; then
-        if [[ -z "$(git status --porcelain)" ]]; then
-            echo "git-release: release aborted; working tree restored" >&2
-        else
-            echo "git-release: release aborted; tracked release changes restored, but untracked files remain" >&2
-        fi
-    else
-        echo "git-release: release aborted; automatic restore failed, reset to ${original_head} manually" >&2
-    fi
-    exit "${rc}"
+  local rc=$?
+  trap - EXIT
+  rm -f CHANGELOG.md.tmp
+  git tag -d "${tag}" >/dev/null 2>&1 || true
+  if git reset -q --mixed "${original_head}"; then
+    echo "git-release: release aborted; HEAD restored and working-tree changes preserved" >&2
+  else
+    echo "git-release: release aborted; automatic HEAD restore failed; inspect the repository before continuing" >&2
+  fi
+  exit "${rc}"
 }
 trap restore_on_failure EXIT
 
 # Bump the version file.
-printf "%s\n" "${version}" > VERSION
+printf "%s\n" "${version}" >VERSION
 
 # Apply the changelog change.
 if [[ "${changelog_action}" == "promote" ]]; then
-    awk -v ver="${version}" -v d="${date_str}" -v tag="${tag}" -v prev="${prev_tag}" -v web="${web}" '
+  awk -v ver="${version}" -v d="${date_str}" -v tag="${tag}" -v prev="${prev_tag}" -v web="${web}" '
         function link_refs() {
             print "[Unreleased]: " web "/compare/" tag "...HEAD"
             if (prev != "")
@@ -364,11 +380,11 @@ if [[ "${changelog_action}" == "promote" ]]; then
                 link_refs()
             }
         }
-    ' CHANGELOG.md > CHANGELOG.md.tmp
-    mv CHANGELOG.md.tmp CHANGELOG.md
+    ' CHANGELOG.md >CHANGELOG.md.tmp
+  mv CHANGELOG.md.tmp CHANGELOG.md
 elif [[ "${changelog_action}" == "create" ]]; then
-    {
-        cat <<EOF
+  {
+    cat <<EOF
 # Changelog
 
 All notable changes to this project are documented in this file.
@@ -381,13 +397,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [${version}] - ${date_str}
 
 EOF
-        printf '[Unreleased]: %s/compare/%s...HEAD\n' "${web}" "${tag}"
-        if [[ -n "${prev_tag}" ]]; then
-            printf '[%s]: %s/compare/%s...%s\n' "${version}" "${web}" "${prev_tag}" "${tag}"
-        else
-            printf '[%s]: %s/releases/tag/%s\n' "${version}" "${web}" "${tag}"
-        fi
-    } > CHANGELOG.md
+    printf '[Unreleased]: %s/compare/%s...HEAD\n' "${web}" "${tag}"
+    if [[ -n "${prev_tag}" ]]; then
+      printf '[%s]: %s/compare/%s...%s\n' "${version}" "${web}" "${prev_tag}" "${tag}"
+    else
+      printf '[%s]: %s/releases/tag/%s\n' "${version}" "${web}" "${tag}"
+    fi
+  } >CHANGELOG.md
 fi
 
 # Optional after-bump hook: lets a repo propagate the new version into files
@@ -395,30 +411,45 @@ fi
 # repo root with the new version as $1, after VERSION/CHANGELOG are written and
 # before the commit. Whatever tracked files it changes are staged below.
 if [[ -x ./.release-sync ]]; then
-    echo "Running after-bump hook: .release-sync ${version}"
-    ./.release-sync "${version}"
+  echo "Running after-bump hook: .release-sync ${version}"
+  ./.release-sync "${version}"
 fi
+
+# Snapshot the tracked release paths before staging. This prevents an unrelated
+# tracked file changed after this point from being swept into the release.
+release_tracked_paths=()
+while IFS= read -r -d '' path; do
+  release_tracked_paths+=("${path}")
+done < <(git diff --name-only -z)
 
 git add -- VERSION
 if [[ -f CHANGELOG.md ]]; then git add -- CHANGELOG.md; fi
-# Stage any tracked files the after-bump hook modified (the tree was clean to
-# start, so this only picks up release changes).
-git add -u
+# Stage the exact tracked paths changed by VERSION/CHANGELOG/.release-sync.
+if [[ "${#release_tracked_paths[@]}" -gt 0 ]]; then
+  git add -- "${release_tracked_paths[@]}"
+fi
+
+# Anything still modified was changed after the snapshot, most likely by an
+# editor, formatter, or hook. Abort without deleting it.
+git diff --quiet ||
+  die "tracked files changed while preparing the release; changes were preserved"
 git commit -m "Release ${tag}"
+git diff --quiet ||
+  die "tracked files changed during the release commit; changes were preserved"
 git tag -a "${tag}" -m "${tag}"
 trap - EXIT
 
 echo "Tagged ${tag}."
 
 if [[ "${push}" == true ]]; then
-    echo "Pushing ${branch} and ${tag} to origin..."
-    push_with_retry "${branch}" \
-        || die "push failed; the release commit and tag ${tag} exist locally — retry with: git push origin ${branch} --follow-tags"
-    echo "Pushed ${tag}; the release workflow will publish it."
-    echo "  Actions: ${web}/actions"
-    echo "  Release: ${web}/releases/tag/${tag}"
+  echo "Pushing ${branch} and ${tag} to origin..."
+  push_with_retry "${branch}" ||
+    die "push failed; the release commit and tag ${tag} exist locally — retry with: git push origin ${branch} --follow-tags"
+  echo "Pushed ${tag}; the release workflow will publish it."
+  echo "  Actions: ${web}/actions"
+  echo "  Release: ${web}/releases/tag/${tag}"
 else
-    cat <<EOF
+  cat <<EOF
 
 Review the commit and changelog, then publish with:
 

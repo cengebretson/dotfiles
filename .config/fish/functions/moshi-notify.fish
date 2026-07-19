@@ -42,11 +42,11 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
                 (set_color $acc) (set_color normal) (set_color --bold $txt) (set_color normal) \
                 (set_color $dim) (set_color normal)
             printf '  %s────────────────────%s\n' (set_color $dim) (set_color normal)
-            printf '    %son%s | %sloud%s      start the daemon\n'  (set_color $txt) (set_color normal) (set_color $sub) (set_color normal)
-            printf '    %soff%s | %squiet%s    stop the daemon\n'   (set_color $txt) (set_color normal) (set_color $sub) (set_color normal)
+            printf '    %son%s | %sloud%s      start the daemon\n' (set_color $txt) (set_color normal) (set_color $sub) (set_color normal)
+            printf '    %soff%s | %squiet%s    stop the daemon\n' (set_color $txt) (set_color normal) (set_color $sub) (set_color normal)
             printf '    %stoggle%s         flip the daemon on/off\n' (set_color $txt) (set_color normal)
             printf '    %sstatus%s         show daemon + pairing + hook health %s(default)%s\n' (set_color $txt) (set_color normal) (set_color $dim) (set_color normal)
-            printf '    %s-h%s, %s--help%s     show this help\n'     (set_color $txt) (set_color normal) (set_color $txt) (set_color normal)
+            printf '    %s-h%s, %s--help%s     show this help\n' (set_color $txt) (set_color normal) (set_color $txt) (set_color normal)
             echo ''
         case status ''
             # Catppuccin Mocha palette (matches the tmux-moshi plugin's moshi-status).

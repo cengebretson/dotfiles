@@ -89,6 +89,12 @@ These live in `functions/` and are not Fisher-managed.
 | `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |
 | `rtmux` | Pick and attach to a tmux session on an online Tailscale peer via fzf. Username is resolved per host from your ssh config (so a `User` directive in `~/.ssh/config.local` is honored); `-u <user>` forces one user for all hosts. `--doctor` diagnoses connectivity. Falls back to `TERM=xterm-256color` on hosts lacking the local terminfo. (peer helper: `_rtmux_peers`) |
 
+## Validation
+
+Run `fish -c 'fishtape ~/.config/fish/tests/*.test.fish'` for custom-function regression tests. `doctor dotfiles` checks tracked Fish syntax/formatting, Bash syntax, ShellCheck, protected-file permissions, and dotfiles state.
+
+`secrets.fish` must be untracked and mode `0600`; `conf.d/local-secrets.fish` refuses to source it with broader permissions. Prefer authenticated CLI/keychain credentials over long-lived plaintext tokens.
+
 ## Custom Completions
 
 Tracked completions under `completions/` (most others are Fisher-managed and not tracked).

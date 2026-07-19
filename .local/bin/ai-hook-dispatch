@@ -34,7 +34,7 @@ log_file="$log_dir/hooks.log"
 
 log_hook() {
   mkdir -p "$log_dir" >/dev/null 2>&1 || return 0
-  printf '%s event=%s status=%s detail=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$event" "${1:-unknown}" "${2:-}" >> "$log_file" 2>/dev/null || true
+  printf '%s event=%s status=%s detail=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$event" "${1:-unknown}" "${2:-}" >>"$log_file" 2>/dev/null || true
 }
 
 # Handler names are settings-controlled, but stay defensive: no path

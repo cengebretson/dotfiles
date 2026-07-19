@@ -26,10 +26,14 @@ if status is-interactive
         fzf_configure_bindings --directory=\ct --processes=\cp
     end
 
-    starship init fish | source
+    if command -q starship
+        starship init fish | source
+    end
 
     # zoxide integration to use j and ji keys
-    zoxide init --cmd j fish | source
+    if command -q zoxide
+        zoxide init --cmd j fish | source
+    end
 end
 
 # Added by OrbStack: command-line tools and integration

@@ -61,16 +61,19 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # stall the whole menu (this was previously a serial loop that paid up to
     # ConnectTimeout seconds per peer). Rows are then assembled in peer order.
     set -l tmpdir (mktemp -d)
+    if test -z "$tmpdir"; or not test -d "$tmpdir"
+        echo 'rtmux: could not create temporary directory' >&2
+        return 1
+    end
     # Ctrl-C during the parallel queries cancels the function before the
-    # rm -rf below runs; an INT trap covers that window.
-    trap "rm -rf '$tmpdir'" INT
+    # rm -rf below runs; cover the termination signals Fish can trap.
+    trap "command rm -rf -- '$tmpdir'" HUP INT TERM
     set -l i 0
     for peer in $peers
         set i (math $i + 1)
         set -l target (string split -f1 \t -- $peer)
         ssh $ssh_opts $ssh_pre$target \
-            "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" \
-            >$tmpdir/$i 2>/dev/null &
+            "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" >$tmpdir/$i 2>/dev/null &
     end
     wait
 
@@ -87,8 +90,8 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
         end
         set -a rows (printf '%s\t%s\t%-12s %s' $target __new__ $label '[+ new session]')
     end
-    rm -rf $tmpdir
-    trap - INT
+    command rm -rf -- "$tmpdir"
+    trap - HUP INT TERM
 
     set -l pick (printf '%s\n' $rows \
         | fzf --delimiter \t --with-nth 3 \
@@ -178,7 +181,7 @@ function _rtmux_doctor --argument-names ssh_pre
     printf '\n\U1f489 rtmux doctor\n' # syringe
     set_color normal
 
-    _rtmux_section 'Dependencies'
+    _rtmux_section Dependencies
     for tool in tailscale fzf jq ssh
         if command -q $tool
             _rtmux_ok "$tool found"
@@ -215,7 +218,7 @@ function _rtmux_doctor --argument-names ssh_pre
         _rtmux_hint 'load a key (`ssh-add --apple-use-keychain`).'
     end
 
-    _rtmux_section 'Peers'
+    _rtmux_section Peers
     set -l peers (_rtmux_peers)
     if test -z "$peers"
         _rtmux_fail 'no online macOS/Linux peers found'
