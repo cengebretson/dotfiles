@@ -200,7 +200,7 @@ PY
 
   ai_check_shadow() {
     local cmd="$1"
-    local matches first count
+    local matches first second count first_version second_version detail
 
     if ! ai_have "$cmd"; then
       ai_line warn "$cmd" "not found"
@@ -212,7 +212,21 @@ PY
     count="$(printf '%s\n' "$matches" | sed '/^$/d' | wc -l | tr -d ' ')"
 
     if [ "$count" -gt 1 ]; then
-      ai_line warn "$cmd" "shadowed: $first (+$((count - 1)) more)"
+      second="$(printf '%s\n' "$matches" | sed -n '2p')"
+      first_version=""
+      second_version=""
+      case "$cmd" in
+        claude|codex|gh)
+          first_version="$("$first" --version 2>/dev/null | head -n 1 || true)"
+          second_version="$("$second" --version 2>/dev/null | head -n 1 || true)"
+          ;;
+      esac
+      detail="shadowed: $first"
+      [ -n "$first_version" ] && detail="$detail ($first_version)"
+      detail="$detail; also $second"
+      [ -n "$second_version" ] && detail="$detail ($second_version)"
+      [ "$count" -gt 2 ] && detail="$detail (+$((count - 2)) more)"
+      ai_line warn "$cmd" "$detail"
     else
       ai_line ok "$cmd" "$first"
     fi
@@ -296,6 +310,17 @@ PY
   ai_section "Local bin"
   ai_check_executable "$HOME/.local/bin/doctor" "doctor"
 
+  ai_section "Execution context"
+  if [ -n "${CODEX_SANDBOX:-}" ]; then
+    local context_detail="Codex sandbox (${CODEX_SANDBOX})"
+    if [ "${CODEX_SANDBOX_NETWORK_DISABLED:-}" = "1" ]; then
+      context_detail="$context_detail; network restricted"
+    fi
+    ai_line note context "$context_detail"
+  else
+    ai_line ok context "host shell"
+  fi
+
   ai_section "Command resolution"
   for cmd in codex gh claude doctor; do
     ai_check_shadow "$cmd"
@@ -305,6 +330,8 @@ PY
   if ai_have gh; then
     if gh auth status >/dev/null 2>&1; then
       ai_line ok gh "authenticated"
+    elif [ -n "${CODEX_SANDBOX:-}" ]; then
+      ai_line note gh "sandbox-limited — run 'gh auth status' in your terminal to verify host auth"
     else
       ai_line warn gh "auth status failed"
     fi
@@ -343,24 +370,31 @@ PY
     ai_line warn codex "missing"
   fi
 
-  ai_section "moshi service"
+  ai_section "Moshi (optional)"
+  local moshi_required="${DOCTOR_REQUIRE_MOSHI:-0}"
   if ai_have moshi-hook; then
-    local st
+    local st moshi_paired=0 moshi_running=0
     st="$(moshi-hook status 2>/dev/null)"
     if printf '%s' "$st" | grep -q 'status:.*unpaired'; then
-      ai_line warn pairing "unpaired — moshi-hook pair --token <token>"
+      moshi_paired=0
     elif printf '%s' "$st" | grep -q 'status:.*paired'; then
-      ai_line ok pairing "paired"
-    else
-      ai_line warn pairing "status unknown"
+      moshi_paired=1
     fi
     if pgrep -f 'moshi-hook serve' >/dev/null 2>&1; then
-      ai_line ok daemon "serve running"
-    else
-      ai_line warn daemon "not running — brew services start moshi-hook"
+      moshi_running=1
     fi
+    if [ "$moshi_paired" -eq 1 ] && [ "$moshi_running" -eq 1 ]; then
+      ai_line ok moshi "paired and running"
+    elif [ "$moshi_required" = "1" ]; then
+      [ "$moshi_paired" -eq 1 ] || ai_line warn pairing "unpaired; run moshi-hook pair"
+      [ "$moshi_running" -eq 1 ] || ai_line warn daemon "not running; brew services start moshi-hook"
+    else
+      ai_line note moshi "disabled; set DOCTOR_REQUIRE_MOSHI=1 to require pairing and the daemon"
+    fi
+  elif [ "$moshi_required" = "1" ]; then
+    ai_line warn moshi-hook "missing; brew bundle --file ~/.config/Brewfile"
   else
-    ai_line warn moshi-hook "missing — brew bundle --file ~/.config/Brewfile"
+    ai_line note moshi "not installed; optional"
   fi
 
   ai_section "Integrations — Claude plugins"
@@ -399,7 +433,11 @@ PY
     done < <(printf '%s\n' "$plugins_enabled")
     while IFS= read -r p; do
       [ -n "$p" ] || continue
-      ai_line warn "$p" "plugin disabled"
+      if [ "$p" = "atlassian-rovo" ]; then
+        ai_line note "$p" "plugin disabled; acli is the primary Jira client"
+      else
+        ai_line warn "$p" "plugin disabled"
+      fi
     done < <(printf '%s\n' "$plugins_disabled")
   else
     ai_line warn codex "CLI missing"
@@ -463,7 +501,11 @@ PY
   else
     printf '  %s✓ all good%s\n' "$GREEN" "$R"
   fi
-  printf '  %sNext: diff Integrations vs the registry in ~/.config/AI-SETUP.md to install any missing.%s\n' "$DIM" "$R"
+  if [ "$fails" -gt 0 ]; then
+    printf '  %sNext: resolve the failures above.%s\n' "$DIM" "$R"
+  elif [ "$warns" -gt 0 ]; then
+    printf '  %sNext: review the warnings above.%s\n' "$DIM" "$R"
+  fi
   [ "$fails" -gt 0 ] && return 1
   return 0
 }
