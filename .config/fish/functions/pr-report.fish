@@ -1,7 +1,7 @@
 function pr-report --description "List your open PRs with merge conflicts, Copilot threads, CI/review status, and Jira status"
     # Flags: --json (machine-readable) / --slack (paste-into-Slack). Remaining args
     # are an optional filter matched case-insensitively against title, branch, labels.
-    argparse h/help j/json s/slack short -- $argv
+    argparse h/help j/json s/slack a/all short -- $argv
     or return
 
     if set -q _flag_help
@@ -13,13 +13,14 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set_color --bold white
         echo USAGE
         set_color normal
-        echo "    pr-report [--slack | --json] [FILTER...]"
+        echo "    pr-report [--all] [--slack | --json] [FILTER...]"
         echo
         set_color --bold white
         echo OPTIONS
         set_color normal
         echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
+        echo "    -a, --all     Include draft PRs (the default shows non-draft PRs only)."
         echo "        --short   One line per PR: marker + #number + title (Jira key links to the issue) + [labels]."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
@@ -36,7 +37,8 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set_color --bold white
         echo EXAMPLES
         set_color normal
-        echo "    pr-report                              # full report, current repo"
+        echo "    pr-report                              # non-draft PRs, current repo"
+        echo "    pr-report --all                        # include drafts"
         echo "    pr-report login                        # only PRs matching \"login\""
         echo "    pr-report '!approved'                  # everything not yet approved"
         echo "    pr-report 'ready for review !approved' # that label, but not approved"
@@ -179,8 +181,21 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         return 1
     end
 
+    set -l pr_scope "open non-draft"
+    if not set -q _flag_all
+        set -l non_draft_lines
+        for line in $pr_lines
+            set -l p (string split \t $line)
+            test "$p[13]" = true; and continue
+            set -a non_draft_lines $line
+        end
+        set pr_lines $non_draft_lines
+    else
+        set pr_scope "open"
+    end
+
     if test -z "$pr_lines"
-        _pr_report_none $mode "No open PRs in $repo." "No open PRs found."
+        _pr_report_none $mode "No $pr_scope PRs in $repo." "No $pr_scope PRs found."
         return 0
     end
 
