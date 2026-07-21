@@ -202,7 +202,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # Universal sort for every output mode:
     #   1. draft before open
     #   2. merge conflicts before needs-attention before waiting before approved
-    #   3. Jira key when present, then title
+    #   3. title, then PR number for a stable tie-breaker
     # Fields: 2 title · 3 branch · 4 review · 6 ci_fail · 9 copilot ·
     # 12 comments · 13 draft · 14 requested reviewers · 15 mergeable · 16 merge state.
     set -l sortable_lines
@@ -220,18 +220,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             set status_rank 3
         end
 
-        set -l ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[3]")
-        test -n "$ticket"; or set ticket (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- "$p[2]")
-        test -n "$ticket"; or set ticket ZZZZ-999999
-
-        set -l ticket_prefix (string replace -r -- '-[0-9]+$' '' "$ticket")
-        set -l ticket_number (string match -rg -- '-([0-9]+)$' "$ticket")
-        set -l ticket_sort "$ticket_prefix-999999"
-        if test -n "$ticket_number"
-            set ticket_sort (printf '%s-%06d' "$ticket_prefix" "$ticket_number")
-        end
-
-        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$ticket_sort") (string lower -- "$p[2]") $line)
+        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$p[2]") $p[1] $line)
     end
     set pr_lines (printf '%s\n' $sortable_lines | sort -t \t -k1,1n -k2,2n -k3,3 -k4,4 | cut -f5-)
 
