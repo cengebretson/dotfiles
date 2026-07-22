@@ -83,6 +83,10 @@ eval "$(mise activate bash --shims)"
 echo "✓ Mise runtimes"
 
 # ── Claude Code ────────────────────────────────────────────────────────────────
+if ! command -v claude &>/dev/null && [ ! -x "$HOME/.local/bin/claude" ]; then
+  echo "Installing Claude Code..."
+  curl -fsSL https://claude.ai/install.sh | bash
+fi
 mkdir -p "$HOME/.config/claude"
 if [ ! -e "$HOME/.claude" ]; then
   ln -s "$HOME/.config/claude" "$HOME/.claude"
