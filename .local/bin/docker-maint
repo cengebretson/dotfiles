@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+set -u
+
+lib_dir="${DOCTOR_LIB_DIR:-$HOME/.local/lib/doctor}"
+if [[ ! -r "$lib_dir/common.sh" || ! -r "$lib_dir/docker-maint.sh" ]]; then
+	printf 'docker-maint: missing module under %s\n' "$lib_dir" >&2
+	exit 1
+fi
+
+# shellcheck source=/dev/null
+source "$lib_dir/common.sh"
+# shellcheck source=/dev/null
+source "$lib_dir/docker-maint.sh"
+
+run_docker_maintenance "$@"
