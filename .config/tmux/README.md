@@ -26,8 +26,8 @@ Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to sy
 
 Two themes are available and toggled with `prefix + T`:
 
-- **appearance1.conf** — centered window list, solid background, online/battery/path modules
-- **appearance2.conf** — left-aligned window list, mocha theme, path/CPU/RAM modules
+- **appearance1.conf** — centered window list, solid background, online/battery/project modules
+- **appearance2.conf** — left-aligned window list, mocha theme, project/CPU/RAM modules
 
 `appearance.conf` is a symlink pointing to whichever is active. `scripts/toggle_theme.sh` swaps the symlink and reloads the config.
 
@@ -37,7 +37,7 @@ Both themes use custom status modules and window text formats.
 
 **Left:** prefix indicator, session name
 
-**Right (appearance2):** remote-connection indicator (`󰚥`, when applicable), current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
+**Right (appearance2):** remote-connection indicator (`󰚥`, when applicable), active agent project or current path, CPU%, RAM%, Moshi daemon indicator (`󰄛`)
 
 The Moshi `󰄛` indicator is present in both themes. On narrow clients (under `@phone_max_cols`, e.g. the phone) the bar collapses to a compact form: see the Moshi section.
 

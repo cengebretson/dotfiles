@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# tmux attention marker: clear the waiting flag when a prompt is submitted.
+# Clear the waiting marker and show this Claude turn's project in tmux.
 set -u
-script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
+script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
 [ -x "$script" ] || exit 100
-exec "$script" clear >/dev/null 2>&1
+exec "$script" turn-start >/dev/null 2>&1

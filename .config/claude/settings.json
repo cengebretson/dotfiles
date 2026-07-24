@@ -71,6 +71,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" agent-turn-stop"
+          },
+          {
+            "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": false
           }

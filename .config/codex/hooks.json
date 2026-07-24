@@ -38,6 +38,10 @@
         "hooks": [
           {
             "type": "command",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" agent-turn-stop"
+          },
+          {
+            "type": "command",
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
           }
         ]
