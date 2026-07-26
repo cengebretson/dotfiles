@@ -54,7 +54,12 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     # A real tab ($tab) is used as the tmux -F delimiter — tmux does not expand
     # the "\t" escape, so it must be a literal tab character.
     set -l tab (printf '\t')
-    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes
+    # accept-new = trust-on-first-use over the authenticated tailnet: without it,
+    # BatchMode has no way to accept an unseen host key, so the first non-interactive
+    # contact with a peer (or a peer only ever accepted under a different name, e.g.
+    # short name vs MagicDNS FQDN) fails with "Host key verification failed" and its
+    # sessions silently never list. A *changed* known key still errors, preserving MITM protection.
+    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new
 
     # Query every peer in parallel: each background job writes its session list
     # to a per-peer temp file, so one slow or unreachable peer can no longer
@@ -170,12 +175,26 @@ function _rtmux_hint --argument-names message
     set_color normal
 end
 
+function _rtmux_port_open --argument-names host port
+    # True if a TCP connection to host:port succeeds. Uses bash's /dev/tcp
+    # (always present on macOS) to avoid depending on nc, whose flags differ
+    # between the BSD and GNU builds. Intended for localhost probes only: a
+    # refused local port fails instantly, so no timeout is needed; do not point
+    # it at a remote host, where connect() could block.
+    command bash -c "exec 3<>/dev/tcp/$host/$port" 2>/dev/null
+end
+
 function _rtmux_doctor --argument-names ssh_pre
     # Walks every failure point of rtmux in order with colored status glyphs.
     # ssh_pre is "" (let ssh config resolve the user) or "user@" (forced).
     # Returns nonzero if any hard check failed.
     set -l failures 0
-    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes
+    # accept-new = trust-on-first-use over the authenticated tailnet: without it,
+    # BatchMode has no way to accept an unseen host key, so the first non-interactive
+    # contact with a peer (or a peer only ever accepted under a different name, e.g.
+    # short name vs MagicDNS FQDN) fails with "Host key verification failed" and its
+    # sessions silently never list. A *changed* known key still errors, preserving MITM protection.
+    set -l ssh_opts -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new
 
     set_color -o 89b4fa # blue
     printf '\n\U1f489 rtmux doctor\n' # syringe
@@ -216,6 +235,22 @@ function _rtmux_doctor --argument-names ssh_pre
     else
         _rtmux_warn 'no identities in ssh-agent; key auth will fail unless you'
         _rtmux_hint 'load a key (`ssh-add --apple-use-keychain`).'
+    end
+
+    _rtmux_section 'Local SSH server (Remote Login)'
+    # This Mac is itself a peer: other machines and mosh clients (e.g. the phone)
+    # connect INTO it, so its own sshd must accept inbound connections. Probe the
+    # port rather than `systemsetup -getremotelogin`, which needs admin; the
+    # listener is the state that actually matters for an inbound ssh/mosh. This is
+    # a warn, not a failure: rtmux only connects outbound, so it still works with
+    # Remote Login off, but inbound sessions (the phone) will not.
+    if _rtmux_port_open 127.0.0.1 22
+        _rtmux_ok 'sshd is accepting connections on port 22 (inbound ssh/mosh ok)'
+    else
+        _rtmux_warn 'nothing is listening on port 22 — Remote Login is off'
+        _rtmux_hint 'Enable it: `sudo systemsetup -setremotelogin on`'
+        _rtmux_hint '(or System Settings > General > Sharing > Remote Login).'
+        _rtmux_hint 'Without it, inbound ssh/mosh from other devices cannot connect.'
     end
 
     _rtmux_section Peers
