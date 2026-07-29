@@ -191,7 +191,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         end
         set pr_lines $non_draft_lines
     else
-        set pr_scope "open"
+        set pr_scope open
     end
 
     if test -z "$pr_lines"

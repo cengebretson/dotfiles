@@ -21,7 +21,11 @@ run_docker_doctor() {
 	doctor_line ok desktop "$desktop"
 
 	if ! docker info >/dev/null 2>&1; then
-		doctor_line fail daemon "docker info failed"
+		if [[ -n "${CODEX_SANDBOX:-}" ]]; then
+			doctor_line note daemon "sandbox-limited; verify in host shell"
+		else
+			doctor_line fail daemon "docker info failed"
+		fi
 		doctor_summary
 		return
 	fi
@@ -40,8 +44,8 @@ run_docker_doctor() {
 	docker system df -v | awk '
     /^Local Volumes space usage:/ {flag=1; count=0; next}
     /^Build cache usage:/ {flag=0}
-    flag && NF {print; count++; if (count >= 12) exit}
-  '
+    flag && NF && $1 != "VOLUME" {print}
+  ' | sort -k3 -hr | head -n 12
 
 	local orbstack_data="$HOME/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data"
 	if [[ -d "$orbstack_data" ]]; then

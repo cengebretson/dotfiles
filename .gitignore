@@ -5,4 +5,8 @@
 .config/fish/secrets.fish
 .config/claude/.claude.json
 .config/codex/config.toml
+/.config/codex/skills/ctx-browser-debug/
+/.config/codex/skills/ctx-resume/
+/.config/codex/skills/ctx-triage/
+/.config/git/tests/
 .ssh/config.local

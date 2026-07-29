@@ -8,12 +8,13 @@ usage() {
 	cat <<'EOF'
 Usage:
   doctor ai
-  doctor dotfiles
+  doctor dotfiles [--verbose]
   doctor docker
 
 Subcommands are read-only:
   ai       Audit Claude Code + Codex readiness.
   dotfiles Audit dotfile tracking, protections, and syntax.
+             Use --verbose for per-file success output.
   docker   Inspect Docker/OrbStack readiness and disk usage.
 
 For destructive Docker cleanup, use docker-maint.
@@ -47,15 +48,15 @@ ai | --ai)
 	run_ai_doctor
 	;;
 dotfiles | --dotfiles)
-	[[ $# -eq 1 ]] || {
-		printf '%s: dotfiles does not take options\n' "$script_name" >&2
+	[[ $# -eq 1 || ($# -eq 2 && "${2:-}" = --verbose) ]] || {
+		printf '%s: dotfiles only accepts --verbose\n' "$script_name" >&2
 		exit 2
 	}
 	load_module dotfiles
-	run_dotfiles_doctor
+	run_dotfiles_doctor "${2:-}"
 	;;
 docker | --docker)
-	[[ $# -eq 1 || "${2:-}" = status ]] || {
+	[[ $# -eq 1 ]] || {
 		printf '%s: docker is read-only; use docker-maint for cleanup\n' "$script_name" >&2
 		exit 2
 	}
