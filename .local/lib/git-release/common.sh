@@ -22,15 +22,15 @@ git_release_is_transient_network_error() {
 }
 
 git_release_push_with_retry() {
-	local branch="$1" log rc
+	local branch="$1" tag="$2" log rc
 	log="$(mktemp "${TMPDIR:-/tmp}/git-release-push.XXXXXX")"
-	git push origin "$branch" --follow-tags 2>"$log"
+	git push --atomic origin "$branch" "refs/tags/$tag" 2>"$log"
 	rc=$?
 	cat "$log" >&2
 	if [[ "$rc" -ne 0 ]] && git_release_is_transient_network_error "$log"; then
 		printf '%s\n' 'git-release: push failed with a possible transient network/DNS error; retrying once...' >&2
 		sleep 2
-		git push origin "$branch" --follow-tags
+		git push --atomic origin "$branch" "refs/tags/$tag"
 		rc=$?
 	fi
 	rm -f "$log"

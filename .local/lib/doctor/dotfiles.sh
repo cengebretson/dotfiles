@@ -168,12 +168,10 @@ run_dotfiles_doctor() {
 	local missing_tracked=0
 	local -a expected_tracked=(
 		.local/bin/doctor
-		.local/bin/docker-maint
 		.local/bin/git-release
 		.local/lib/doctor/common.sh
 		.local/lib/doctor/ai.sh
 		.local/lib/doctor/docker.sh
-		.local/lib/doctor/docker-maint.sh
 		.local/lib/doctor/dotfiles.sh
 		.local/lib/git-release/common.sh
 		.local/lib/git-release/version.sh

@@ -1,12 +1,17 @@
-function __moshi_refresh_paired --description 'Refresh the cached @moshi_paired tmux option'
-    # moshi-hook status touches Keychain (slow), so the tmux status script reads
-    # this cached option instead of querying every 15s refresh. Refresh it here
-    # whenever daemon/pairing state might have changed.
-    if moshi-hook status 2>/dev/null | grep -qE '^status:[[:space:]]+paired'
+function __moshi_set_paired --argument-names pairing --description 'Update the cached @moshi_paired tmux option'
+    if test "$pairing" = paired
         tmux set -g @moshi_paired yes 2>/dev/null
     else
         tmux set -g @moshi_paired no 2>/dev/null
     end
+end
+
+function __moshi_refresh_paired --description 'Refresh the cached @moshi_paired tmux option'
+    # moshi-hook status touches Keychain (slow), so the tmux status script reads
+    # this cached option instead of querying every 15s refresh. Refresh it here
+    # whenever daemon/pairing state might have changed.
+    set -l pairing (moshi-hook status 2>/dev/null | string replace -rf '^status:[[:space:]]*' '')
+    __moshi_set_paired "$pairing"
 end
 
 function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
@@ -14,17 +19,23 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
     # is wrapped in `env -u TMUX` to make start/stop/list work from inside a session.
     switch "$argv[1]"
         case off quiet mute
-            if env -u TMUX brew services stop moshi-hook
+            env -u TMUX brew services stop moshi-hook
+            set -l service_status $status
+            if test $service_status -eq 0
                 echo "Moshi notifications OFF"
             end
             __moshi_refresh_paired
             tmux refresh-client -S 2>/dev/null
+            return $service_status
         case on loud
-            if env -u TMUX brew services start moshi-hook
+            env -u TMUX brew services start moshi-hook
+            set -l service_status $status
+            if test $service_status -eq 0
                 echo "Moshi notifications ON"
             end
             __moshi_refresh_paired
             tmux refresh-client -S 2>/dev/null
+            return $service_status
         case toggle
             # Flip based on whether the daemon is currently running (pgrep is instant).
             if pgrep -f "moshi-hook serve" >/dev/null 2>&1
@@ -130,7 +141,7 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             end
             echo ''
 
-            __moshi_refresh_paired
+            __moshi_set_paired "$pairing"
         case '*'
             printf 'moshi-notify: unknown command: %s\n' "$argv[1]" >&2
             printf "Run 'moshi-notify --help' for usage.\n" >&2

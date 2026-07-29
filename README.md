@@ -80,7 +80,7 @@ Any executable named `git-<name>` on `$PATH` becomes a git subcommand automatica
 git release --current         # print the current version
 git release minor             # 0.5.0 -> 0.6.0 (also: major, patch, or an explicit X.Y.Z)
 git release minor --dry-run   # preview, change nothing
-git release minor --push      # tag and push (otherwise push manually with --follow-tags)
+git release minor --push      # atomically push the release branch and exact tag
 ```
 
 Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and auto-detects the test runner (`tests/check.sh`, else `make test`, else `GIT_RELEASE_TEST_CMD`).

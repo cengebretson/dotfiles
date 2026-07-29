@@ -38,7 +38,7 @@ function _keychain_help
     echo "  keychain [list] <host> [--show-passwords]"
     echo "  keychain setenv <env-var> <host> <account> [path]"
     echo "  keychain add <host> <account> [path]"
-    echo "  keychain delete <host> <account> [path]"
+    echo "  keychain delete [-y|--yes] <host> <account> [path]"
     echo ""
     echo "Commands:"
     echo "  list      List matching internet-password entries for a host"
@@ -49,6 +49,7 @@ function _keychain_help
     echo "Options:"
     echo "  -h, --help        Show this help"
     echo "  --show-passwords  Include retrieved passwords in list output"
+    echo "  -y, --yes         Skip the delete confirmation"
 end
 
 function _keychain_list
@@ -159,9 +160,12 @@ function _keychain_add
 end
 
 function _keychain_delete
+    argparse y/yes -- $argv
+    or return 2
+
     if test (count $argv) -lt 2
         echo "Usage:"
-        echo "  keychain delete <host> <account> [path]"
+        echo "  keychain delete [-y|--yes] <host> <account> [path]"
         return 1
     end
 
@@ -174,6 +178,16 @@ function _keychain_delete
 
     set -l where "$acct @ $host"
     test -n "$path"; and set where "$where / $path"
+
+    if not set -q _flag_yes
+        read -l -P "Delete $where? [y/N] " confirmation
+        switch (string lower -- "$confirmation")
+            case y yes
+            case '*'
+                echo "Canceled."
+                return 1
+        end
+    end
 
     if security delete-internet-password -s $host -a "$acct" $extra
         echo "Deleted: $where"

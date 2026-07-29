@@ -63,7 +63,7 @@ Defined in `alias.fish`, `config.fish`, and custom functions. Highlights:
 | `cat` / `find` / `vi`,`vim` | `bat` / `fd` / `nvim` |
 | `o` / `oo` | `open` / `open .` |
 | `reload` | `exec fish` |
-| `updates` | brew update + upgrade + bundle install + tmux TPM plugins + Fisher plugins + completions + mise upgrade/prune + cleanup |
+| `updates` | brew update + upgrade + bundle install + tmux TPM plugins + Fisher plugins + completions + mise upgrade/prune + cleanup. Use `--dry-run` to preview or `--only brew,mise` to select components. |
 | `gcopy` | copy short HEAD SHA to clipboard |
 | `ipl` / `ipx` | local IP (en0) / external IP |
 | `flush` | flush macOS DNS cache |
@@ -79,11 +79,11 @@ These live in `functions/` and are not Fisher-managed.
 | `codex` | Run Codex and rename the tmux window to `codex` while active |
 | `confetti` | Trigger the Raycast confetti extension |
 | `fish_greeting` | Show a custom shell greeting with random image/system info |
-| `keychain` | List, add, or delete macOS Keychain internet-password entries, or export one into an environment variable (`setenv`) |
+| `keychain` | List, add, or delete macOS Keychain internet-password entries, or export one into an environment variable (`setenv`). Deletes prompt unless `--yes` is passed. |
 | `kp` | Kill processes selected with fzf |
 | `ports` | List listening TCP ports, filter by port, or stop a listener |
 | `speed` | Run macOS `networkQuality` with simple, watch, upload, download, and verbose modes |
-| `pr-report` | List your open PRs with CI/review status, unresolved Copilot/human threads, Jira status, and labels; `--json`, `--slack`, `--short` output modes plus include/exclude term filtering |
+| `pr-report` | List your open PRs with CI/review status, unresolved Copilot/human threads, Jira status, and labels; supports `--all`, fast GitHub-only `--no-jira`, `--json`, `--slack`, `--short`, and include/exclude term filtering |
 | `tmux-attention` | Interactive convenience wrapper to set/clear the per-window `@agent_attention` marker in tmux (bell fallback outside tmux). Agent hooks do not use this function — they call the tmux-attention plugin CLI (`~/.config/tmux/plugins/tmux-attention/scripts/tmux-attention`) via hook handlers |
 | `moshi-notify` | Toggle/inspect Moshi agent-hook notifications: `off`/`on`/`toggle`/`status` (bound to `prefix N` in tmux) |
 | `phoneview` | Create grouped tmux session mirrors (`phone-<name>`) for the phone to attach to without clobbering the laptop view; `phoneview all`/`<name>`/`clean` |

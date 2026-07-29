@@ -72,15 +72,22 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     end
     # Ctrl-C during the parallel queries cancels the function before the
     # rm -rf below runs; cover the termination signals Fish can trap.
+    set -l saved_hup_trap (trap -p HUP)
+    set -l saved_int_trap (trap -p INT)
+    set -l saved_term_trap (trap -p TERM)
     trap "command rm -rf -- '$tmpdir'" HUP INT TERM
     set -l i 0
+    set -l query_pids
     for peer in $peers
         set i (math $i + 1)
         set -l target (string split -f1 \t -- $peer)
         ssh $ssh_opts $ssh_pre$target \
             "tmux list-sessions -F '#{session_name}$tab#{session_windows}w#{?session_attached, (attached),}'" >$tmpdir/$i 2>/dev/null &
+        set -a query_pids $last_pid
     end
-    wait
+    if test (count $query_pids) -gt 0
+        wait $query_pids
+    end
 
     set -l rows
     set i 0
@@ -97,6 +104,9 @@ function rtmux --description 'Pick and attach to a tmux session on a Tailscale p
     end
     command rm -rf -- "$tmpdir"
     trap - HUP INT TERM
+    test (count $saved_hup_trap) -eq 0; or printf '%s\n' $saved_hup_trap | source
+    test (count $saved_int_trap) -eq 0; or printf '%s\n' $saved_int_trap | source
+    test (count $saved_term_trap) -eq 0; or printf '%s\n' $saved_term_trap | source
 
     set -l pick (printf '%s\n' $rows \
         | fzf --delimiter \t --with-nth 3 \
@@ -279,9 +289,18 @@ function _rtmux_doctor --argument-names ssh_pre
         printf ' (%s)\n' $target
         set_color normal
 
-        # Non-interactive SSH: this is exactly how session listing authenticates.
-        ssh $ssh_opts $ssh_pre$target true 2>/dev/null
-        if test $status -ne 0
+        # One non-interactive SSH connection verifies authentication, tmux
+        # availability, and the session count. Distinct markers preserve the
+        # useful diagnosis without paying for three handshakes per peer.
+        set -l probe (ssh $ssh_opts $ssh_pre$target \
+            'if ! command -v tmux >/dev/null 2>&1
+                printf "__RTMUX_NO_TMUX__\n"
+            else
+                count=$(tmux list-sessions 2>/dev/null | wc -l | tr -d " ")
+                printf "__RTMUX_OK__%s\n" "$count"
+            fi' 2>/dev/null)
+        set -l probe_status $status
+        if test $probe_status -ne 0
             _rtmux_warn 'non-interactive SSH failed; sessions will not be listed.'
             _rtmux_hint "Check key auth and the username for $target — e.g. a Host block with the right User in ~/.ssh/config.local."
             _rtmux_hint 'The "[+ new session]" entry still works interactively.'
@@ -289,14 +308,16 @@ function _rtmux_doctor --argument-names ssh_pre
         end
         _rtmux_ok 'SSH ok'
 
-        if not ssh $ssh_opts $ssh_pre$target \
-                "command -v tmux >/dev/null 2>&1"
+        if contains -- __RTMUX_NO_TMUX__ $probe
             _rtmux_warn 'tmux not found on remote PATH'
             continue
         end
-        set -l n (ssh $ssh_opts $ssh_pre$target \
-            "tmux list-sessions 2>/dev/null | wc -l | tr -d ' '")
-        _rtmux_ok "tmux present, $n running session(s)"
+        set -l n (string match -rg '^__RTMUX_OK__([0-9]+)$' -- $probe)
+        if test -n "$n"
+            _rtmux_ok "tmux present, $n running session(s)"
+        else
+            _rtmux_warn 'SSH succeeded but returned an unexpected tmux probe result'
+        end
     end
 
     printf '\n'

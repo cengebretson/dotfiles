@@ -9,15 +9,15 @@ usage() {
 Usage:
   doctor ai
   doctor dotfiles [--verbose]
-  doctor docker
+  doctor docker [--clean [--volumes] [--dry-run]]
 
-Subcommands are read-only:
+Subcommands:
   ai       Audit Claude Code + Codex readiness.
   dotfiles Audit dotfile tracking, protections, and syntax.
              Use --verbose for per-file success output.
   docker   Inspect Docker/OrbStack readiness and disk usage.
-
-For destructive Docker cleanup, use docker-maint.
+             Default is read-only. Add --clean to prune unused data;
+             --volumes includes unused anonymous volumes.
 EOF
 }
 
@@ -56,12 +56,8 @@ dotfiles | --dotfiles)
 	run_dotfiles_doctor "${2:-}"
 	;;
 docker | --docker)
-	[[ $# -eq 1 ]] || {
-		printf '%s: docker is read-only; use docker-maint for cleanup\n' "$script_name" >&2
-		exit 2
-	}
 	load_module docker
-	run_docker_doctor
+	run_docker_doctor "${@:2}"
 	;;
 -h | --help | help) usage ;;
 *)

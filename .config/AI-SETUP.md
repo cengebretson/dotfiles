@@ -113,7 +113,8 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
   `hooks.json`. Handler contract: payload arrives on stdin; **stdout passes through** (so
   context-injection *and* `PreToolUse` decision hooks both work through the dispatcher);
   side-effect handlers must self-suppress (`>/dev/null`); exit `0` = ok, exit `100` = prerequisite
-  missing on this machine (logged `skipped`), anything else = failed. Logs: `hooks/logs/hooks.log`.
+  missing on this machine (logged `skipped`), anything else = failed. Logs: `hooks/logs/hooks.log`,
+  capped at 1 MiB with one rotated backup; payloads are never logged.
 - Machine-specific handlers are **untracked symlinks** (e.g. `domain-docs` →
   `~/workspace/scripts/analysis/automation/claude-session-hook.sh`): they dangle harmlessly on
   machines without the target repo, and `doctor ai` reports them as such. Shared shims are tracked

@@ -22,10 +22,10 @@ Options:
   -h, --help                show this help
 
 Bumps VERSION, promotes the CHANGELOG [Unreleased] section, runs the repo's
-tests, commits, and creates an annotated tag vX.Y.Z. Without --push, publish
-manually with:
+tests, commits, and creates an annotated tag vX.Y.Z. Explicit versions must be
+greater than the current version. Without --push, publish manually with:
 
-  git push origin <branch> --follow-tags
+  git push --atomic origin <branch> refs/tags/vX.Y.Z
 
 The current version comes from VERSION or the latest Git tag. The test runner
 is resolved from GIT_RELEASE_TEST_CMD, release.test-command, tests/check.sh,
@@ -100,6 +100,15 @@ git_release_main() {
 		if git fetch -q origin "$branch" 2>/dev/null; then
 			behind="$(git rev-list --count "HEAD..origin/$branch" 2>/dev/null || echo 0)"
 			[[ "$behind" -gt 0 ]] && git_release_precheck "$dry_run" "local $branch is $behind commit(s) behind origin/$branch; pull first"
+			local remote_tag_rc
+			if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+				git_release_precheck "$dry_run" "tag $tag already exists on origin"
+			else
+				remote_tag_rc=$?
+				if [[ "$remote_tag_rc" -ne 2 ]]; then
+					printf 'git-release: note: could not verify whether %s exists on origin; continuing with local checks\n' "$tag" >&2
+				fi
+			fi
 		else
 			printf '%s\n' 'git-release: note: could not fetch origin (offline?); skipping behind-origin check' >&2
 		fi
@@ -177,11 +186,11 @@ EOF
 	printf 'Tagged %s.\n' "$tag"
 	if [[ "$push" = true ]]; then
 		printf 'Pushing %s and %s to origin...\n' "$branch" "$tag"
-		git_release_push_with_retry "$branch" ||
-			git_release_die "push failed; the release commit and tag $tag exist locally — retry with: git push origin $branch --follow-tags"
+		git_release_push_with_retry "$branch" "$tag" ||
+			git_release_die "push failed; the release commit and tag $tag exist locally — retry with: git push --atomic origin $branch refs/tags/$tag"
 		printf 'Pushed %s; the release workflow will publish it.\n' "$tag"
 		printf '  Actions: %s/actions\n  Release: %s/releases/tag/%s\n' "$web" "$web" "$tag"
 	else
-		printf '\nReview the commit and changelog, then publish with:\n\n  git push origin %s --follow-tags\n\n' "$branch"
+		printf '\nReview the commit and changelog, then publish with:\n\n  git push --atomic origin %s refs/tags/%s\n\n' "$branch" "$tag"
 	fi
 }

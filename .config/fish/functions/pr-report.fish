@@ -1,7 +1,7 @@
 function pr-report --description "List your open PRs with merge conflicts, Copilot threads, CI/review status, and Jira status"
     # Flags: --json (machine-readable) / --slack (paste-into-Slack). Remaining args
     # are an optional filter matched case-insensitively against title, branch, labels.
-    argparse h/help j/json s/slack a/all short -- $argv
+    argparse h/help j/json s/slack a/all n/no-jira short -- $argv
     or return
 
     if set -q _flag_help
@@ -13,7 +13,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set_color --bold white
         echo USAGE
         set_color normal
-        echo "    pr-report [--all] [--slack | --json] [FILTER...]"
+        echo "    pr-report [--all] [--no-jira] [--slack | --json] [FILTER...]"
         echo
         set_color --bold white
         echo OPTIONS
@@ -21,6 +21,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         echo "    -s, --slack   Lean plain-text list to paste into Slack (title, link, review status, labels)."
         echo "    -j, --json    Machine-readable JSON array (pipe into jq, a webhook, etc.)."
         echo "    -a, --all     Include draft PRs (the default shows non-draft PRs only)."
+        echo "    -n, --no-jira Skip Jira status enrichment for a faster report."
         echo "        --short   One line per PR: marker + #number + title (Jira key links to the issue) + [labels]."
         echo "    -h, --help    Show this help."
         echo "    (no flag)     Pretty terminal report — the default."
@@ -42,6 +43,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         echo "    pr-report login                        # only PRs matching \"login\""
         echo "    pr-report '!approved'                  # everything not yet approved"
         echo "    pr-report 'ready for review !approved' # that label, but not approved"
+        echo "    pr-report --no-jira --short            # faster GitHub-only report"
         echo "    pr-report --json | jq '.[].url'        # just the PR URLs"
         echo
         set_color --bold white
@@ -78,7 +80,15 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # brblack maps to a near-invisible surface colour on this theme.
     set -l dim a6adc8
 
-    set -l repo (gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
+    # Prefer the local Git remote so startup does not block on an API request.
+    # Fall back to gh for unusual remote formats or repositories without origin.
+    set -l remote_url (git remote get-url origin 2>/dev/null)
+    set -l repo (string replace -r '^git@github\.com:' '' -- "$remote_url" \
+        | string replace -r '^https?://github\.com/' '' \
+        | string replace -r '\.git$' '')
+    if not string match -qr '^[^/]+/[^/]+$' -- "$repo"
+        set repo (gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null)
+    end
     if test -z "$repo"
         set_color red
         echo "error: not in a GitHub repository" >&2
@@ -86,46 +96,38 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         return 1
     end
 
-    set -l me (gh api user --jq .login 2>/dev/null)
-    if test -z "$me"
-        set_color red
-        echo "error: gh not authenticated" >&2
-        set_color normal
-        return 1
-    end
-
-    # Jira is optional: only enrich rows when acli is installed AND authenticated.
-    # `acli jira auth status` exits 0 only when a Jira site is authenticated.
+    # Start the optional Jira auth check in parallel with GitHub. The result is
+    # collected after the GraphQL call, keeping auth latency off the critical path.
     set -l jira_ok 0
-    if command -q acli; and acli jira auth status >/dev/null 2>&1
-        set jira_ok 1
+    set -l jira_auth_file ""
+    set -l jira_auth_pid ""
+    if not set -q _flag_no_jira; and command -q acli
+        set jira_auth_file (mktemp /private/tmp/pr-report-jira-auth.XXXXXX 2>/dev/null)
+        if test -n "$jira_auth_file"
+            acli jira auth status >$jira_auth_file 2>/dev/null &
+            set jira_auth_pid $last_pid
+        end
     end
 
-    # Jira base URL for click-to-open links — derived from the authenticated acli
-    # site (e.g. "Site: venturesgo.atlassian.net"). Left empty when unknown so the
-    # segment falls back to plain text.
     set -l jira_server ""
-    if test $jira_ok -eq 1
-        set -l site (acli jira auth status 2>/dev/null | string match -rg 'Site:\s*(\S+)')
-        test -n "$site"; and set jira_server "https://$site"
-    end
 
-    # Decorative header is for humans only — keep it out of json/slack payloads.
+    # Print the human header before network work so the command responds
+    # immediately. Machine-readable modes remain free of decorative output.
     if test "$mode" = pretty
         set_color --bold cyan
         echo "󰊤  PR Report"
         set_color normal
         set_color $dim
-        echo "   $repo · @$me"
+        echo "   $repo"
         set_color normal
         if test -n "$filter"
             set_color $dim
             echo "   filter: \"$filter\""
             set_color normal
         end
-        if test $jira_ok -eq 0
+        if set -q _flag_no_jira
             set_color $dim
-            echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"
+            echo "   jira: skipped (--no-jira)"
             set_color normal
         end
         echo ""
@@ -139,7 +141,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # 14 requested_reviewers(csv)  15 mergeable  16 merge_state_status
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
-    set -l pr_lines (gh api graphql --paginate -f q="repo:$repo is:pr is:open author:$me" \
+    set -l pr_lines (gh api graphql --paginate -f q="repo:$repo is:pr is:open author:@me" \
         -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
         --jq '
             def cls:
@@ -174,11 +176,32 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
               (.mergeable // ""),
               (.mergeStateStatus // "")
             ] | @tsv' 2>/dev/null)
-    if test $status -ne 0
+    set -l github_status $status
+
+    # Collect the Jira auth result once. This also derives the Jira base URL,
+    # replacing the previous second, serial `acli jira auth status` call.
+    if test -n "$jira_auth_pid"
+        wait $jira_auth_pid
+        if test $status -eq 0
+            set jira_ok 1
+            set -l site (string match -rg 'Site:\s*(\S+)' <$jira_auth_file)
+            test -n "$site"; and set jira_server "https://$site"
+        end
+        command rm -f -- "$jira_auth_file"
+    end
+
+    if test $github_status -ne 0
         set_color red
         echo "error: GitHub API request failed — run 'gh auth status' to check token permissions" >&2
         set_color normal
         return 1
+    end
+
+    if test "$mode" = pretty; and not set -q _flag_no_jira; and test $jira_ok -eq 0
+        set_color $dim
+        echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"
+        set_color normal
+        echo ""
     end
 
     set -l pr_scope "open non-draft"
