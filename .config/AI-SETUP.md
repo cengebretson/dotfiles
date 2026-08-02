@@ -47,6 +47,7 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <cmd>
 | `.local/bin/doctor` | health/audit entrypoint (`doctor ai` = hooks, integrations, deps, skills) | ✅ |
 | `.local/bin/ai-hook-dispatch` | shared hook dispatcher; each tool's `hooks/dispatch.sh` symlinks to it | ✅ |
 | `claude/hooks/handlers/`, `codex/hooks/handlers/` | per-tool hook handlers (shims tracked; machine-local symlinks like `domain-docs` 🚫 untracked) | ✅/🚫 |
+| `~/.agents/skills/` | **cross-agent** skills shared by both tools; each tool's `skills/<name>` is a symlink into here (e.g. the `voltra-*` set). `doctor ai` treats anything present here as shared, so it is exempt from the Claude↔Codex parity check | 🚫 untracked |
 
 Rule of thumb for *every* config: **share the reference, never the secret or the machine-specific bit.**
 
@@ -63,9 +64,10 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
 4. **Logins:**
    - `gh auth` (or set `GH_TOKEN` in `secrets.fish`)
    - Claude Code: sign in (determines which subscription bills)
-   - Codex GitHub MCP (PAT path): set `GITHUB_PERSONAL_ACCESS_TOKEN` in `secrets.fish` **and** ensure
-     `[mcp_servers.github]` in `config.toml` has `bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"`
-     (it's in `config.shared.toml`). `codex mcp login github` does **not** work — see Gotchas.
+   - Codex GitHub MCP (reuses gh's token — no separate PAT): `secrets.fish` exports
+     `GITHUB_MCP_TOKEN=(gh auth token)`, and `[mcp_servers.github]` in `config.toml` sets
+     `bearer_token_env_var = "GITHUB_MCP_TOKEN"` (it's in `config.shared.toml`). So `gh auth login`
+     is the only credential step. `codex mcp login github` does **not** work — see Gotchas.
    - moshi (remote approvals/notifications, optional): `moshi-hook pair --token <token>` (token from
      the Moshi app; secret stored in the macOS keychain, per machine), then `brew services start
      moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maintains the socket +
@@ -161,7 +163,7 @@ per-plugin prose (it rots against the tools' own installers).
 | Integration | Scope | Claude (`enabledPlugins` id / how) | Codex (command) | Verify |
 |---|---|---|---|---|
 | context-mode | shared | `context-mode@context-mode` 🤖 | `codex plugin add context-mode@context-mode` 🤖 | `/health-check` · `codex plugin list` |
-| github | shared | user-scoped `mcpServers.github` in gitignored `~/.config/claude/.claude.json`, added via `claude mcp add -s user` 🤖 then OAuth 🧑 (the `github@claude-plugins-official` plugin is an alternative) | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_PERSONAL_ACCESS_TOKEN`, PAT in `secrets.fish` 🤖 — `codex mcp login github` **fails** (no OAuth DCR, see Gotchas) | `jq '.mcpServers \| keys' ~/.config/claude/.claude.json` · `codex mcp get github` · `mcp__github__*` resolves |
+| github | **Codex-only today** | ⚠️ **not configured** — `claude mcp list` shows no github server and `mcp__github__*` does not resolve, so Claude falls back to `gh`. To add: `claude mcp add -s user` 🤖 then OAuth 🧑, or the `github@claude-plugins-official` plugin | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_MCP_TOKEN`; `secrets.fish` exports it as `(gh auth token)` — no separate PAT 🤖 — `codex mcp login github` **fails** (no OAuth DCR, see Gotchas) | `jq '.mcpServers \| keys' ~/.config/claude/.claude.json` · `codex mcp get github` · `mcp__github__*` resolves |
 | playwright (browser) | shared | `playwright@claude-plugins-official` 🤖 | `codex mcp add playwright -- npx @playwright/mcp@latest` 🤖 (needs node) | tool list shows playwright |
 | atlassian (Jira+Confluence) | **local/work** | `atlassian@claude-plugins-official` 🤖, then login 🧑 | `codex plugin add atlassian-rovo@openai-curated` 🤖, then `codex mcp login atlassian-rovo` 🧑 | server reachable after login |
 | Google Drive | shared | Claude.ai **connector**, not a plugin — enable in app 🧑 | — | connector shows connected |
@@ -213,7 +215,7 @@ Glance here when one tool gets a capability the other lacks.
 | Concept | Claude Code | Codex CLI |
 |---|---|---|
 | Agent-behavior instructions | `claude/CLAUDE.md` | `codex/AGENTS.md` |
-| Reusable skills | `claude/skills/<name>/SKILL.md` | `codex/skills/<name>/SKILL.md` (keep the set in sync; intentional Codex-only exemptions: `fast-loop`, because Claude's loop behavior lives in CLAUDE.md; `playwright`, because Claude gets it via the official plugin; and the context-mode helpers `ctx-browser-debug`, `ctx-resume`, and `ctx-triage`; `doctor ai` skips these exemptions) |
+| Reusable skills | `claude/skills/<name>/SKILL.md` | `codex/skills/<name>/SKILL.md` (keep the set in sync; intentional Codex-only exemptions: `fast-loop`, because Claude's loop behavior lives in CLAUDE.md; `playwright`, because Claude gets it via the official plugin; and the context-mode helpers `ctx-browser-debug`, `ctx-resume`, and `ctx-triage`; `doctor ai` skips these exemptions). Skills living in `~/.agents/skills/` and symlinked into one tool count as **shared**, not as parity drift — that dir is untracked, so a fresh clone restores the symlinks' targets not at all and those skills must be re-installed per machine |
 | Command allowlist | `permissions.allow` (string globs) | `rules/default.rules` (tokenized `prefix_rule`) |
 | Compound-command approval | `hooks/approve-compound-bash.sh` (decomposes pipes/chains) | native — tokenized prefix matching, no decomposition needed |
 | LLM approval reviewer | DIY `PreToolUse` prompt hook | native `approvals_reviewer = "auto_review"` |
@@ -221,7 +223,7 @@ Glance here when one tool gets a capability the other lacks.
 | Coarse trust dial | sandbox + bypass mode | `approval_policy` + `sandbox_mode` |
 | Named modes | (none) | profiles (`-p strict/plan/auto`) |
 | Shared/local split | `settings.json` (tracked) + `*.local.json` | `config.shared.toml` (tracked) + `config.toml` (gitignored) |
-| GitHub MCP | user-scoped `mcpServers.github` in gitignored `.claude.json` (`claude mcp add -s user`); official plugin is the managed-OAuth alternative | `[mcp_servers.github]` + PAT via `bearer_token_env_var` (no OAuth DCR) |
+| GitHub MCP | **not currently configured** — `claude mcp list` shows none; add via `claude mcp add -s user` or the `github@claude-plugins-official` plugin | `[mcp_servers.github]` + `bearer_token_env_var = GITHUB_MCP_TOKEN`, reusing gh's token (no OAuth DCR) |
 | Desktop app vs config | `Claude.app` keeps a **separate** store (`~/Library/Application Support/Claude/`, own MCP/connectors) — CLI config does **not** carry in | `Codex.app` **shares** `~/.codex/` (config, profiles, MCP, hooks, rules, auth) — only Electron state is app-local |
 | Remote approvals/notify (moshi) | `dispatch.sh moshi` → `moshi-hook claude-hook` (9 hook events) | `dispatch.sh moshi` → `moshi-hook codex-hook` (4 hook events) |
 
@@ -235,9 +237,11 @@ Glance here when one tool gets a capability the other lacks.
   machines; share a curated baseline as a `rules/*.dotfiles-reference-*` snapshot instead.
 - **Codex GitHub MCP uses a PAT, not OAuth.** `codex mcp login github` fails with *"Dynamic client
   registration not supported"* — the Copilot MCP endpoint (`api.githubcopilot.com/mcp`) doesn't offer
-  OAuth DCR. Authenticate with a PAT: `bearer_token_env_var = "GITHUB_PERSONAL_ACCESS_TOKEN"` in the
-  `[mcp_servers.github]` block of the live `config.toml`, token set in `secrets.fish` (machine-local).
-  Restart Codex after adding it; verify with `codex mcp get github`.
+  OAuth DCR. Authenticate by reusing gh's token: `bearer_token_env_var = "GITHUB_MCP_TOKEN"` in the
+  `[mcp_servers.github]` block of the live `config.toml`, with `secrets.fish` exporting
+  `GITHUB_MCP_TOKEN=(gh auth token)` (machine-local). This avoids a second long-lived PAT, but means
+  the MCP silently loses auth if `gh auth login` lapses. Restart Codex after adding it; verify with
+  `codex mcp get github`.
 - **The minimal Claude allowlist is load-bearing on the sandbox.** `sandbox.enabled` +
   `autoAllowBashIfSandboxed` (tracked in `settings.json`) are what auto-approve read-only + in-repo-write
   commands — which is why ~half the allowlist could be deleted. Disable the sandbox and those start

@@ -20,13 +20,17 @@ status_line_use_colors = true
 [plugins."context-mode@context-mode"]
 enabled = true
 
-# MCP servers: safe to share when they hold no secret. GitHub authenticates via
-# OAuth — run `codex mcp login github` once per machine (creds stored encrypted,
-# machine-local; no PAT in config or env). Keep work-only / inline-token / local-
-# path servers in config.toml only.
+# MCP servers: safe to share when they hold no secret. Keep work-only /
+# inline-token / local-path servers in config.toml only.
+#
+# GitHub does NOT use `codex mcp login github` — that fails with "Dynamic client
+# registration not supported" (the Copilot MCP endpoint offers no OAuth DCR).
+# Instead reuse the OAuth token gh already manages: secrets.fish exports
+# GITHUB_MCP_TOKEN=(gh auth token) at shell startup, so there is no long-lived
+# PAT in config or env. Requires `gh auth login` on the machine.
 [mcp_servers.github]
 url = "https://api.githubcopilot.com/mcp/"
-# auth: codex mcp login github
+bearer_token_env_var = "GITHUB_MCP_TOKEN"
 
 # Optional local hooks: keep repo or machine-specific commands out of shared config.
 # Use ~/.config/codex/hooks.json to call ~/.config/codex/hooks/dispatch.sh,
