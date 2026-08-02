@@ -45,3 +45,8 @@ context-mode/
 # every herdr upgrade. brew "herdr" in the Brewfile reinstalls it per machine.
 # The SessionStart hook referencing it in settings.json IS tracked.
 hooks/herdr-agent-state.sh
+
+# Skill installed and updated by herdr, not authored here. (Personal skills
+# such as health-check stay tracked; skills symlinked from ~/.agents/skills
+# are shared cross-agent and untracked by design.)
+skills/herdr/
