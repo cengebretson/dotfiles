@@ -12,8 +12,11 @@ tmp/
 cache/
 context-mode/
 backups/
-plugins/cache/
-plugins/.marketplace-plugin-source-staging/
+# Installed plugin artifacts, never dotfiles. Ignored wholesale (as claude/
+# does) because Codex keeps adding new staging subdirs — .plugin-appserver,
+# .remote-plugin-install-staging — and enumerating them individually meant
+# plugins/ kept resurfacing as untracked.
+plugins/
 shell_snapshots/
 version.json
 *.log

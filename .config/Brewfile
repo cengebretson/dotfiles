@@ -65,9 +65,11 @@ cask "codex"
 cask "copilot-cli"
 brew "rjyo/moshi/moshi-hook"
 
+# ── Apps ───────────────────────────────────────────────────────────────────────
+cask "orbstack"   # container/VM runtime (Docker-compatible)
+cask "qlmarkdown" # QuickLook markdown preview
+
 # ── Fonts ──────────────────────────────────────────────────────────────────────
-cask "orbstack"
-cask "qlmarkdown"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-monaspice-nerd-font"
 cask "font-fira-code-nerd-font"

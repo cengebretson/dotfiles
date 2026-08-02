@@ -38,6 +38,15 @@ case "${fp##*.}" in
   lua)
     have stylua && stylua "$fp" >/dev/null 2>&1
     ;;
+  fish)
+    # fish_indent is canonical and has no per-project config, so the
+    # "don't fight repo style" caveat above does not apply. Closes the loop
+    # with `doctor dotfiles`, which format-checks tracked fish files.
+    have fish_indent && fish_indent -w "$fp" >/dev/null 2>&1
+    ;;
 esac
+# Deliberately no shfmt branch: doctor only syntax/ShellChecks bash, never
+# format-checks it, so there is no drift to close — and shfmt's defaults
+# (spaces) would fight these dotfiles' tabs in every repo lacking .editorconfig.
 
 exit 0
