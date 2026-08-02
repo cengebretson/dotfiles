@@ -8,5 +8,4 @@
 /.config/codex/skills/ctx-browser-debug/
 /.config/codex/skills/ctx-resume/
 /.config/codex/skills/ctx-triage/
-/.config/git/tests/
 .ssh/config.local

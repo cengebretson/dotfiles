@@ -4,7 +4,7 @@ run_dotfiles_doctor() {
 	local dot_git="$HOME/.dotfiles" work_tree="$HOME"
 	local verbose=0
 	local dot_fish_missing_reported=0 dot_fish_indent_missing_reported=0
-	local dot_shellcheck_missing_reported=0 dot_luac_missing_reported=0
+	local dot_shellcheck_missing_reported=0 dot_lua_missing_reported=0
 	[[ "${1:-}" = --verbose ]] && verbose=1
 	doctor_init 24
 	doctor_heading dotfiles "Bare dotfiles repo readiness"
@@ -74,6 +74,9 @@ run_dotfiles_doctor() {
 
 	dot_check_bash() {
 		local rel="$1" path="$work_tree/$1"
+		# Skip symlinks: each tool's hooks/dispatch.sh points at
+		# .local/bin/ai-hook-dispatch, which is checked at its real path.
+		[[ -L "$path" ]] && return 1
 		[[ -f "$path" ]] && head -1 "$path" | grep -q bash || return 1
 		if bash -n "$path" >/dev/null 2>&1; then dot_verbose_ok bash "$rel"; else doctor_line fail bash "$rel"; fi
 		if doctor_have shellcheck; then
@@ -85,18 +88,27 @@ run_dotfiles_doctor() {
 		return 0
 	}
 
+	# Prefer luajit: it is the dialect Neovim actually runs. A standalone `luac`
+	# is often 5.4+, which rejects code that is valid under LuaJIT (e.g.
+	# reassigning a for-loop variable) and would report false failures.
 	dot_check_lua() {
 		local rel="$1" path="$work_tree/$1"
 		[[ -f "$path" ]] || return
-		if ! doctor_have luac; then
-			if [[ "$dot_luac_missing_reported" -eq 0 ]]; then
-				doctor_line warn lua "luac missing"
-				dot_luac_missing_reported=1
+		if doctor_have luajit; then
+			if luajit -b "$path" /dev/null >/dev/null 2>&1; then
+				dot_verbose_ok lua "$rel"
+			else
+				doctor_line fail lua "$rel"
 			fi
-		elif luac -p "$path" >/dev/null 2>&1; then
-			dot_verbose_ok lua "$rel"
-		else
-			doctor_line fail lua "$rel"
+		elif doctor_have luac; then
+			if luac -p "$path" >/dev/null 2>&1; then
+				dot_verbose_ok lua "$rel"
+			else
+				doctor_line fail lua "$rel"
+			fi
+		elif [[ "$dot_lua_missing_reported" -eq 0 ]]; then
+			doctor_line warn lua "luajit/luac missing"
+			dot_lua_missing_reported=1
 		fi
 	}
 
@@ -104,8 +116,7 @@ run_dotfiles_doctor() {
 		local rel="$1"
 		[[ -L "$work_tree/$rel" ]] && return 0
 		case "$rel" in
-		.config/claude/hooks/handlers/agent-turn-stop | \
-			.config/claude/image-cache/* | \
+		.config/claude/image-cache/* | \
 			.config/claude/projects/* | \
 			.config/claude/settings.json.bak | \
 			.config/codex/.sandbox_migration | \
@@ -117,7 +128,6 @@ run_dotfiles_doctor() {
 			.config/codex/process_manager/* | \
 			.config/codex/sessions/* | \
 			.config/codex/.tmp/* | \
-			.config/codex/hooks/handlers/agent-turn-stop | \
 			.config/fish/completions/* | \
 			.config/fish/conf.d/* | \
 			.config/fish/functions/* | \
@@ -210,7 +220,15 @@ run_dotfiles_doctor() {
 	done < <(printf '%s\n' "$files")
 	dot_group_summary fish "$file_count files, syntax + format" "$fails_before" "$warns_before"
 
-	files="$(dot_git ls-files '.local/bin/*' '.local/lib/doctor/*.sh' '.local/lib/git-release/*.sh' '.config/git/tests/*.sh' 2>/dev/null)"
+	# Cover every tracked bash file, not just ~/.local. The hook handlers,
+	# statusline, and tmux scripts are all load-bearing bash under .config and
+	# went unchecked for as long as this glob only named .local paths.
+	# dot_check_bash filters by shebang, so non-bash matches cost nothing.
+	files="$(dot_git ls-files \
+		'.local/bin/*' '.local/lib/doctor/*.sh' '.local/lib/git-release/*.sh' \
+		'.config/*.sh' '.config/claude/*.sh' '.config/claude/hooks/*.sh' \
+		'.config/claude/hooks/handlers/*' '.config/codex/hooks/handlers/*' \
+		'.config/tmux/scripts/*' 2>/dev/null)"
 	file_count=0
 	fails_before=$DOCTOR_FAILS
 	warns_before=$DOCTOR_WARNS
@@ -220,7 +238,10 @@ run_dotfiles_doctor() {
 	done < <(printf '%s\n' "$files")
 	dot_group_summary bash "$file_count files, syntax + ShellCheck" "$fails_before" "$warns_before"
 
-	files="$(dot_git ls-files '.config/nvim/*.lua' '.config/nvim/**/*.lua' 2>/dev/null)"
+	# Glob nvim* (not a hardcoded appname): the config dir is versioned
+	# (nvim-v12), and pinning the exact name is what silently disabled this
+	# whole check once already.
+	files="$(dot_git ls-files '.config/nvim*/*.lua' '.config/nvim*/**/*.lua' 2>/dev/null)"
 	file_count=0
 	fails_before=$DOCTOR_FAILS
 	warns_before=$DOCTOR_WARNS
@@ -229,7 +250,7 @@ run_dotfiles_doctor() {
 		file_count=$((file_count + 1))
 		dot_check_lua "$rel"
 	done < <(printf '%s\n' "$files")
-	if [[ "$file_count" -gt 0 ]]; then dot_group_summary lua "$file_count files, syntax" "$fails_before" "$warns_before"; fi
+	dot_group_summary lua "$file_count files, syntax" "$fails_before" "$warns_before"
 
 	doctor_summary
 }
