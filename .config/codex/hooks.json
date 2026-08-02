@@ -2,33 +2,42 @@
   "hooks": {
     "PermissionRequest": [
       {
-        "matcher": ".*",
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" permission-request-notify"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" permission-request-notify",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "type": "command"
           }
-        ]
+        ],
+        "matcher": ".*"
       }
     ],
     "SessionStart": [
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" local-instructions"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" local-instructions",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" domain-docs"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" domain-docs",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash \"$HOME/.config/codex/herdr-agent-state.sh\" session",
+            "timeout": 10,
+            "type": "command"
           }
         ]
       }
@@ -37,12 +46,12 @@
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" agent-turn-stop"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" agent-turn-stop",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "type": "command"
           }
         ]
       }
@@ -51,12 +60,12 @@
       {
         "hooks": [
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" prompt-clear"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" prompt-clear",
+            "type": "command"
           },
           {
-            "type": "command",
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi"
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "type": "command"
           }
         ]
       }

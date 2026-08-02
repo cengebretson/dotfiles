@@ -1,5 +1,200 @@
 {
+  "editorMode": "vim",
+  "effortLevel": "high",
+  "enabledPlugins": {
+    "context-mode@context-mode": true,
+    "playwright@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "context-mode": {
+      "source": {
+        "repo": "mksglu/context-mode",
+        "source": "github"
+      }
+    }
+  },
+  "hooks": {
+    "Notification": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" notification",
+            "type": "command"
+          }
+        ],
+        "matcher": "permission_prompt|idle_prompt"
+      }
+    ],
+    "PermissionRequest": [
+      {
+        "hooks": [
+          {
+            "async": false,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" format-on-edit",
+            "type": "command"
+          }
+        ],
+        "matcher": "Edit|Write|MultiEdit"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ],
+        "matcher": "AskUserQuestion"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ],
+        "matcher": "ExitPlanMode"
+      }
+    ],
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/approve-compound-bash.sh\"",
+            "timeout": 5,
+            "type": "command"
+          }
+        ],
+        "matcher": "Bash"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ],
+        "matcher": "AskUserQuestion"
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ],
+        "matcher": "ExitPlanMode"
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" context-mode-cache-heal >/dev/null 2>&1",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" domain-docs",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "command": "bash \"$HOME/.config/claude/hooks/herdr-agent-state.sh\" session",
+            "timeout": 10,
+            "type": "command"
+          }
+        ],
+        "matcher": "*"
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" agent-turn-stop",
+            "type": "command"
+          },
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "StopFailure": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" stop-failure",
+            "type": "command"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" prompt-clear",
+            "type": "command"
+          }
+        ]
+      },
+      {
+        "hooks": [
+          {
+            "async": true,
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "type": "command"
+          }
+        ]
+      }
+    ]
+  },
+  "model": "opus",
   "permissions": {
+    "additionalDirectories": [],
     "allow": [
       "mcp__plugin_context-mode_context-mode__*",
       "Bash(mkdir -p *)",
@@ -41,6 +236,7 @@
       "Bash(git release*)",
       "Bash(git --git-dir=$HOME/.dotfiles --work-tree=$HOME *)"
     ],
+    "defaultMode": "auto",
     "deny": [
       "Bash(git clean -f*)",
       "Bash(git push --force *)",
@@ -49,200 +245,11 @@
       "Bash(git reset --hard*)",
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
-    ],
-    "defaultMode": "auto",
-    "additionalDirectories": []
-  },
-  "model": "opus",
-  "hooks": {
-    "Notification": [
-      {
-        "matcher": "permission_prompt|idle_prompt",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" notification"
-          }
-        ]
-      }
-    ],
-    "PermissionRequest": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" agent-turn-stop"
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": false
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" format-on-edit"
-          }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/approve-compound-bash.sh\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "ExitPlanMode",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "SessionEnd": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" context-mode-cache-heal >/dev/null 2>&1"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" domain-docs"
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      }
-    ],
-    "StopFailure": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" stop-failure"
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" prompt-clear"
-          }
-        ]
-      },
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      }
     ]
   },
-  "statusLine": {
-    "type": "command",
-    "command": "~/.config/claude/statusline.sh",
-    "hideVimModeIndicator": true
-  },
-  "enabledPlugins": {
-    "context-mode@context-mode": true,
-    "playwright@claude-plugins-official": true
-  },
-  "extraKnownMarketplaces": {
-    "context-mode": {
-      "source": {
-        "source": "github",
-        "repo": "mksglu/context-mode"
-      }
-    }
-  },
   "sandbox": {
-    "enabled": true,
     "autoAllowBashIfSandboxed": true,
+    "enabled": true,
     "filesystem": {
       "allowWrite": [
         "/tmp",
@@ -250,8 +257,11 @@
       ]
     }
   },
-  "effortLevel": "high",
-  "tui": "fullscreen",
+  "statusLine": {
+    "command": "~/.config/claude/statusline.sh",
+    "hideVimModeIndicator": true,
+    "type": "command"
+  },
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "tui": "fullscreen"
 }

@@ -20,12 +20,19 @@ The portable CLI is `~/.config/tmux/plugins/tmux-attention/scripts/tmux-attentio
 
 Claude and Codex hooks route through the shared dispatcher `~/.local/bin/ai-hook-dispatch` (symlinked as each tool's `hooks/dispatch.sh`) to handler shims that exec the plugin CLI:
 
-| Handler | CLI call |
-|---------|----------|
-| `~/.config/claude/hooks/handlers/notification` | `input` |
-| `~/.config/claude/hooks/handlers/stop-failure` | `blocked` |
-| `~/.config/claude/hooks/handlers/prompt-clear` | `clear` |
-| `~/.config/codex/hooks/handlers/permission-request-notify` | `input` |
-| `~/.config/codex/hooks/handlers/prompt-clear` | `clear` |
+| Tool | Hook event | Handler | CLI call |
+|------|-----------|---------|----------|
+| Claude | `Notification` | `notification` | `input` |
+| Claude | `StopFailure` | `stop-failure` | `blocked` |
+| Claude | `UserPromptSubmit` | `prompt-clear` | `turn-start` |
+| Claude | `Stop` | `agent-turn-stop` | `turn-stop` |
+| Codex | `PermissionRequest` | `permission-request-notify` | `input` |
+| Codex | `UserPromptSubmit` | `prompt-clear` | `turn-start` |
+| Codex | `Stop` | `agent-turn-stop` | `turn-stop` |
+
+`turn-start` sets the window's agent context (and clears any pending marker);
+`turn-stop` releases it so the tab reverts to its PWD fallback. They must stay
+paired — without the `Stop` half, `@agent_context_active` never resets and the
+tab shows the agent's project indefinitely.
 
 For icon/behavior options, clear-on-view hook details, hook installation, and tests, see the plugin's own docs: `plugins/tmux-attention/README.md` and `plugins/tmux-attention/docs/hooks.md`.
