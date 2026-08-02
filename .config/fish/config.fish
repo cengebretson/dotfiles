@@ -34,6 +34,10 @@ if status is-interactive
     if command -q zoxide
         zoxide init --cmd j fish | source
     end
+
+    if command -q herdr
+        herdr completion fish | source
+    end
 end
 
 # Added by OrbStack: command-line tools and integration
