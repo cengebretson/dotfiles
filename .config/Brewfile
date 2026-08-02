@@ -63,6 +63,7 @@ brew "httpie"
 # ── AI Tools ───────────────────────────────────────────────────────────────────
 cask "codex"
 cask "copilot-cli"
+brew "herdr" # agent multiplexer; installs the SessionStart hooks both agents call
 brew "rjyo/moshi/moshi-hook"
 
 # ── Apps ───────────────────────────────────────────────────────────────────────
