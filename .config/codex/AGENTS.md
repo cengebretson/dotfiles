@@ -34,6 +34,8 @@
 ## Permission Hygiene
 
 - When requesting a persistent command approval, keep `prefix_rule` narrow and task-shaped, such as `["make", "test"]` or `["gh", "pr", "view"]`.
+- Never request escalation or persistent approval solely for standalone, local, read-only `rg` or `jq` commands.
+- When filtering output from a remote or otherwise approval-requiring command, do not combine that command with `rg` or `jq` in one shell pipeline or compound command. Prefer the remote tool's native filtering option, such as `gh --jq`, or run the remote command and local filtering as separate tool calls so the approval prompt identifies the operation that actually needs access.
 - For routine Jira CLI work, prefer narrow `acli` approval prefixes such as `["acli", "jira", "auth", "status"]`, `["acli", "jira", "workitem", "view"]`, `["acli", "jira", "workitem", "search"]`, or `["acli", "jira", "workitem", "comment", "list"]`; request mutating prefixes like `comment create/update/delete`, `workitem edit`, or `transition` only when the task needs them.
 - Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
 - Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
