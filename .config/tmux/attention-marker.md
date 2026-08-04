@@ -14,6 +14,11 @@ States and default icons (from `plugins/tmux-attention/tmux-attention.tmux`):
 
 ## CLI
 
+While an agent turn is active, `@tmux_attention_tab_icon` renders `󰚩`. An
+attention state takes precedence over that working icon. The local Catppuccin
+tab formats use this compact icon in place of the numbered-square glyph, then
+fall back to the number when neither state is present.
+
 The portable CLI is `~/.config/tmux/plugins/tmux-attention/scripts/tmux-attention`. Subcommands: a state (`input|blocked|review|done|clear`; no state defaults to `input`; `--target` selects a tmux target), `event <event>` (e.g. `approval_required`, `task_complete`), `get`, `list`, `status-format`, `catppuccin-format`, `doctor [--probe]`, and `version`.
 
 ## Hook Wiring
