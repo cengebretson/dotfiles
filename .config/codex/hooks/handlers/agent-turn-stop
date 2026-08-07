@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# Release this Codex turn's tmux context so the window tab reverts to its PWD
-# fallback. Pairs with prompt-clear (turn-start) on UserPromptSubmit.
+# Complete this Codex turn by clearing its tmux context and marking the response
+# ready. Pairs with prompt-clear (turn-start) on UserPromptSubmit.
 set -u
 script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
 [ -x "$script" ] || exit 100
-exec "$script" turn-stop >/dev/null 2>&1
+exec "$script" turn-done --source codex --reason response_ready >/dev/null 2>&1
