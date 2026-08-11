@@ -11,3 +11,7 @@
 /.config/codex/skills/ctx-resume/
 /.config/codex/skills/ctx-triage/
 .ssh/config.local
+# Machine-local CA bundle snapshot of this host's trust store, including any
+# corporate/MDM roots. Regenerate with .config/certs/refresh-ca-bundle.sh
+# rather than syncing it between machines.
+.config/certs/*.pem
