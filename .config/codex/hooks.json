@@ -1,5 +1,16 @@
 {
   "hooks": {
+    "PreToolUse": [
+      {
+        "hooks": [
+          {
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" agent-turn-active",
+            "type": "command"
+          }
+        ],
+        "matcher": ".*"
+      }
+    ],
     "PermissionRequest": [
       {
         "hooks": [
