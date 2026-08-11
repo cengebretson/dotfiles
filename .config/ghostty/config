@@ -1,7 +1,8 @@
 # font settings
 font-size = 16
 #font-family = "Iosevka Light"
-font-family="JetBrains Mono ExtraLight"
+font-family = "JetBrainsMono Nerd Font"
+font-style = "ExtraLight"
 adjust-cell-height = 17
 bold-is-bright = true
 
