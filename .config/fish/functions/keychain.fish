@@ -151,7 +151,10 @@ function _keychain_add
     set -l where "$acct @ $host"
     test -n "$path"; and set where "$where / $path"
 
-    if security add-internet-password -r htps -s $host -a "$acct" $extra -w "$token"
+    # -U upserts: update the existing item in place, or create it when absent. Without it,
+    # `security add-internet-password` exits 45 ("The specified item already exists in the keychain")
+    # on any rotate, discarding the token the user just typed and leaving the stale value in place.
+    if security add-internet-password -U -r htps -s $host -a "$acct" $extra -w "$token"
         echo "Stored: $where"
     else
         echo "Failed to store credential."
