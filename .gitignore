@@ -15,3 +15,8 @@
 # corporate/MDM roots. Regenerate with .config/certs/refresh-ca-bundle.sh
 # rather than syncing it between machines.
 .config/certs/*.pem
+
+# Holds plaintext registry tokens (GitHub Packages, fontawesome) and is mode 600.
+# Never track it; recover the values from the keychain entries instead
+# (github.com/cengebretson/packages).
+.npmrc
