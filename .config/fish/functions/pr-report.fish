@@ -142,7 +142,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l pr_lines (gh api graphql --paginate -f q="repo:$repo is:pr is:open author:@me" \
-        -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{status conclusion} ... on StatusContext{state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
+        -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{databaseId name status conclusion} ... on StatusContext{context createdAt state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -156,8 +156,18 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
                 elif ($s == "PENDING" or $s == "EXPECTED") then "pending"
                 else "fail" end
               end;
+            def check_key:
+              if .__typename == "CheckRun" then "check:" + (.name // "")
+              else "status:" + (.context // "") end;
+            def latest_contexts:
+              sort_by(check_key)
+              | group_by(check_key)
+              | map(
+                  if .[0].__typename == "CheckRun" then max_by(.databaseId // 0)
+                  else max_by(.createdAt // "") end
+                );
             .data.search.nodes[] | select(.number) |
-            ([ (.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // [])[] | cls ]) as $c |
+            ((.commits.nodes[0].commit.statusCheckRollup.contexts.nodes // []) | latest_contexts | map(cls)) as $c |
             ([ .reviewThreads.nodes[] | select(.isResolved==false) ]) as $open |
             ([ $open[] | select(any(.comments.nodes[]; .author!=null and (.author.login|ascii_downcase|contains("copilot")))) ] | length) as $cop |
             (($open | length) - $cop) as $hum |
