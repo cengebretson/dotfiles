@@ -18,7 +18,8 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | `prefix + N` | Toggle Moshi notifications (daemon off/on) |
 | `Option + h/l` | Previous / next window |
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
-| `C-k` | Which-key menu |
+| `C-k` | Which-key menu (also `prefix + Space`) |
+| `Option + j` / `Option + J` | fzf-jump: all panes / attention queue (also `prefix + j`) |
 
 Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to system clipboard, `Escape` to exit. A `󰆏 COPY` indicator appears in the status bar while in copy mode. Search match highlights use Catppuccin mauve.
 
@@ -26,8 +27,8 @@ Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to sy
 
 Two themes are available and toggled with `prefix + T`:
 
-- **appearance1.conf** — centered window list, solid background, online/battery/project modules
-- **appearance2.conf** — left-aligned window list, mocha theme, project/CPU/RAM modules
+- **appearance1.conf** — frappe, centered window list, remote/battery/moshi/project modules
+- **appearance2.conf** — mocha, left-aligned window list, remote/project/moshi modules (battery commented out)
 
 `appearance.conf` is a symlink pointing to whichever is active. `scripts/toggle_theme.sh` swaps the symlink and reloads the config.
 
@@ -103,14 +104,26 @@ Helper scripts live in `scripts/`:
 - `tmux-plugins/tpm` — plugin manager
 - `tmux-plugins/tmux-sensible` — sane defaults
 - `tmux-plugins/tmux-battery` — battery status
-- `tmux-plugins/tmux-cpu` — CPU/RAM stats
-- `tmux-plugins/tmux-online-status` — network status
 - `catppuccin/tmux` — theme framework
 - `christoomey/vim-tmux-navigator` — seamless pane/split navigation with Neovim
 - `cengebretson/tmux-which-key` — which-key menu
 - `cengebretson/tmux-fzf-jump` — fzf session/window/pane switcher (`prefix + j`), shows attention states and activity markers
 - `cengebretson/tmux-attention` — per-window agent attention marker (`@agent_attention` state + tab icon); see `attention-marker.md`
 - `cengebretson/tmux-moshi` — Moshi daemon indicator/toggle for the status bar (see the Moshi section)
+
+### which-key config lives outside the plugin directory
+
+`@tmux-which-key-xdg-enable` is on, with `@tmux-which-key-xdg-plugin-path` set to `tmux/which-key`, so the menu definition is read from **`~/.config/tmux/which-key/config.yaml`** (tracked in dotfiles) rather than from inside the TPM-managed plugin directory, where a plugin update or fresh clone would discard it. The generated init script lands in `~/.local/share/tmux/which-key/init.tmux` and is not tracked. Both options must stay **above** the `run '…/tpm/tpm'` line — they are read as the plugin loads.
+
+The menu is rebuilt from that YAML on every TPM init. Validate edits before reloading:
+
+```sh
+python3 ~/.config/tmux/plugins/tmux-which-key/plugin/build.py --validate ~/.config/tmux/which-key/config.yaml
+```
+
+### tmux-sensible override trap
+
+tmux-sensible loads with TPM, i.e. *after* most of `tmux.conf`, and decides whether to apply its own default by checking whether an option still holds tmux's stock value. Setting an option to the stock value before TPM therefore reads as "untouched" and gets overwritten. This bit `status-interval`: setting it to `15` (tmux's default) caused sensible to override it to `5`. It is now asserted after the TPM run, next to `window-status-bell-style`. The other overlapping options (`escape-time 0`, `history-limit 50000`, `display-time 1500`) differ from the values sensible tests against, so they survive being set early.
 
 ## Version Notes
 
