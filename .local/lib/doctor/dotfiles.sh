@@ -158,8 +158,17 @@ run_dotfiles_doctor() {
 		rel="${record#"? "}"
 		dot_expected_untracked "$rel" || untracked+=("$rel")
 	done < <(
+		# Scoped rather than repo-wide: the work tree is $HOME, so an unscoped
+		# scan would walk every file in the home directory. Keep this list in
+		# step with what is actually tracked -- an area missing here is an area
+		# where a stray file is never reported (this is how a ghostty
+		# config.bak and an nvim pack lockfile went unnoticed).
 		dot_git status --porcelain=v2 -z --untracked-files=normal -- \
-			.config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git .local/bin .local/lib/doctor .local/lib/git-release .gitconfig .gitignore .tmux.conf 2>/dev/null
+			.config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git \
+			.config/tmux .config/nvim-v12 .config/ghostty .config/bat .config/fastfetch .config/ideavim \
+			.config/lazygit .config/mise .config/superfile .config/neovide .config/duti .config/delta \
+			.config/starship.toml .config/setup.sh .config/macos-defaults.sh \
+			.local/bin .local/lib/doctor .local/lib/git-release .gitignore README.md 2>/dev/null
 	)
 	if [[ "${#untracked[@]}" -gt 0 ]]; then
 		doctor_line warn untracked "${#untracked[@]} paths"
