@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+# tmux attention marker: flag the pane as blocked on an approval decision.
+#
+# Distinct from the `notification` handler's `input` state — this is the
+# "waiting on a permission prompt" case, so it gets the blocked glyph on the tab
+# and shows up in the Option-J attention queue with a reason attached.
+set -u
+script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+[ -x "$script" ] || exit 100
+exec "$script" event approval_required --source claude --reason permission_prompt >/dev/null 2>&1
