@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 # tmux attention marker: flag the pane as waiting for input.
+#
+# `input` is already the correct state and matches Claude: the plugin maps the
+# approval_required event to `input` too, and reserves `blocked` for genuine
+# failures (blocked/stop_failure/hook_failure). Setting it directly keeps the
+# one tmux call this needs.
 set -u
 script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
 [ -x "$script" ] || exit 100

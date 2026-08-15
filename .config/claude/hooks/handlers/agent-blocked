@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
-# tmux attention marker: flag the pane as blocked on an approval decision.
+# tmux attention marker: flag the pane as waiting on an approval decision.
 #
-# Distinct from the `notification` handler's `input` state — this is the
-# "waiting on a permission prompt" case, so it gets the blocked glyph on the tab
-# and shows up in the Option-J attention queue with a reason attached.
+# NOT the `blocked` state despite the name: the plugin maps approval_required to
+# `input`, reserving `blocked` for genuine failures
+# (blocked/stop_failure/hook_failure, the latter two already covered by
+# stop-failure). So this lands on the same state the `notification` handler
+# sets; what it adds is the source/reason metadata that fzf-jump renders dimmed
+# next to the pane.
+#
+# Notification (matcher permission_prompt|idle_prompt) is what has actually been
+# firing for permission prompts; if PermissionRequest fires too, both write the
+# same state and the richer one wins. Worth collapsing to one handler if that
+# overlap ever matters.
 set -u
 script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
 [ -x "$script" ] || exit 100
