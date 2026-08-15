@@ -15,7 +15,6 @@ A curated collection of tools and configs that power my daily workflow.
 #### 👻 Ghostty
 
  * My terminal of choice — modern, GPU-accelerated, and lightning fast.
- * Run `ghostty-help` for a searchable fzf picker of all Ghostty actions and their keybindings.
  * `⌘+click` any file path or URL in the terminal to open it — files open in Neovide, URLs open in the default browser. Inside tmux, use `⌘+shift+click` since tmux captures mouse events.
 
 #### 📟 Tmux
@@ -83,7 +82,7 @@ git release minor --dry-run   # preview, change nothing
 git release minor --push      # atomically push the release branch and exact tag
 ```
 
-Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and auto-detects the test runner (`tests/check.sh`, else `make test`, else `GIT_RELEASE_TEST_CMD`).
+Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`, `tmux-moshi`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and auto-detects the test runner (`tests/check.sh`, else `make test`, else `GIT_RELEASE_TEST_CMD`).
 
 ---
 

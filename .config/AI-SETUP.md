@@ -122,6 +122,13 @@ A `git clone` of the dotfiles restores tracked files; these are the steps it can
   machines without the target repo, and `doctor ai` reports them as such. Shared shims are tracked
   and self-check their own deps — see each tool's `hooks/handlers/` for the tracked shims.
 - No per-hook doctor edits needed — `doctor ai` enumerates both handler dirs automatically.
+- **Codex additionally requires trusting each hook** before it runs 🧑. A new event added to
+  `codex/hooks.json` stays inert until reviewed via `/hooks` inside Codex, and it fails *silently* —
+  nothing appears in `hooks/logs/hooks.log`, because an untrusted hook never reaches the dispatcher.
+  Trusted entries are recorded as `[hooks.state."…/hooks.json:<event>:N:M"]` in the gitignored
+  `codex/config.toml`, so comparing those keys against the events in `hooks.json` tells you what is
+  still untrusted. A *missing handler* looks different: the hook runs and the dispatcher logs
+  `skipped no-handler:<name>`. Claude has no equivalent trust step.
 
 **Codex profile** — add `[profiles.<name>]` to `config.shared.toml` + `config.toml`. Select with
 `codex -p <name>`. CLI flags override the profile; the profile overrides the top-level default.
