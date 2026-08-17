@@ -35,15 +35,14 @@ if status is-interactive
         zoxide init --cmd j fish | source
     end
 
-    # tmux-attention pane ownership. Defines tmux_attention_claim and
-    # tmux_attention_disown, which claude.fish and codex.fish compose into the
-    # wrappers they already have. Helpers only on purpose: naming commands here
-    # would emit `claude`/`codex` functions that replace those, losing the
-    # window-rename behavior. Guarded on the path rather than `command -q`
-    # because the CLI lives in the tmux plugin dir, not on PATH.
-    set -l tmux_attention ~/.config/tmux/plugins/tmux-attention/scripts/tmux-attention
-    if test -x $tmux_attention
-        $tmux_attention shell-init fish | source
+    # tmux-attention pane ownership: defines tmux_attention_claim/disown, which
+    # claude.fish and codex.fish compose into the wrappers they already have.
+    # Helpers only on purpose — naming commands here emits `claude`/`codex`
+    # functions that would replace those and drop the window rename.
+    # `command` is required: functions/tmux-attention.fish defines a function of
+    # the same name, and a fish function shadows the PATH binary it wraps.
+    if command -q tmux-attention
+        command tmux-attention shell-init fish | source
     end
 end
 
