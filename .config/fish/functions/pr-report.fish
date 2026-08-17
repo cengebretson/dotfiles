@@ -244,10 +244,18 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set -l draft_rank 1
         test "$p[13]" = true; and set draft_rank 0
 
+        # GitHub keeps reviewDecision=CHANGES_REQUESTED until the reviewer
+        # approves again. Once re-review is requested, resolved feedback is a
+        # reviewer task, not an author-attention item.
+        set -l changes_need_action 0
+        if test "$p[4]" = CHANGES_REQUESTED; and test -z "$p[14]"
+            set changes_need_action 1
+        end
+
         set -l status_rank 2
         if test "$p[15]" = CONFLICTING; or test "$p[16]" = DIRTY
             set status_rank 0
-        else if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test "$p[4]" = CHANGES_REQUESTED
+        else if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
             set status_rank 1
         else if test "$p[4]" = APPROVED; and test -z "$p[14]"
             set status_rank 3
@@ -322,17 +330,21 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         if test "$mergeable" = CONFLICTING; or test "$merge_state_status" = DIRTY
             set has_merge_conflicts 1
         end
+        set -l changes_need_action 0
+        if test "$review" = CHANGES_REQUESTED; and test -z "$requested_reviewers"
+            set changes_need_action 1
+        end
 
         # PR state drives the marker (computed before the filter so the filter can
         # match it):
         #   conflict  — branch has merge conflicts with its base
-        #   attention — needs YOUR action: open Copilot OR reviewer threads, failing CI, or changes requested
+        #   attention — needs YOUR action: open Copilot OR reviewer threads, failing CI, or unqueued changes requested
         #   approved  — clean and a reviewer approved
         #   waiting   — clean but still awaiting a reviewer (review required / no decision yet)
         set -l pr_state waiting
         if test $has_merge_conflicts -eq 1
             set pr_state conflict
-        else if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test "$review" = CHANGES_REQUESTED
+        else if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
             set pr_state attention
         else if test "$review" = APPROVED; and test -z "$requested_reviewers"
             set pr_state approved
