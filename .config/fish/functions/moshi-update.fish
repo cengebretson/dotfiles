@@ -24,7 +24,7 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew when it
         set archive $argv[1]
     end
 
-    for dependency in brew jq shasum
+    for dependency in brew jq shasum osascript
         if not command -q $dependency
             printf 'moshi-update: required command not found: %s\n' $dependency >&2
             return 1
@@ -62,7 +62,8 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew when it
     end
 
     set -l filename (string split -r -m 1 / -- $url)[-1]
-    set -l download_path "$HOME/Downloads/$filename"
+    set -l download_directory "$HOME/Downloads"
+    set -l download_path "$download_directory/$filename"
     set -l cache_path (brew --cache $formula)
     or return $status
 
@@ -76,13 +77,10 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew when it
         end
     end
 
-    if test -z "$archive"; and test -f "$download_path"
-        set -l downloaded_sha (_moshi_update_sha256 "$download_path")
-        if test "$downloaded_sha" = "$expected_sha"
-            set archive "$download_path"
-            echo '✓ Found the verified archive in Downloads'
-        else
-            printf 'moshi-update: %s exists but its checksum does not match the formula\n' "$download_path" >&2
+    if test -z "$archive"
+        set archive (_moshi_update_find_download "$download_directory" "$filename" "$expected_sha")
+        if test -n "$archive"
+            echo '✓ Found a verified archive in Downloads'
         end
     end
 
@@ -96,18 +94,21 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew when it
             return 2
         end
 
-        echo 'Opening the artifact in your default browser...'
-        open "$url"
-        or return $status
-
-        echo ''
-        printf 'Save the download as:\n  %s\n' "$download_path"
-        read -l -P "Archive path [$download_path]: " selected_archive
-        if test -n "$selected_archive"
-            set archive "$selected_archive"
-        else
-            set archive "$download_path"
+        echo '==> Downloading the artifact with Google Chrome'
+        osascript \
+            -e 'on run argv' \
+            -e 'tell application "Google Chrome" to open location (item 1 of argv)' \
+            -e 'end run' \
+            "$url"
+        or begin
+            echo 'moshi-update: Google Chrome could not be opened' >&2
+            return 1
         end
+
+        echo '    waiting up to 5 minutes for Chrome to finish the download'
+        set archive (_moshi_update_wait_for_download "$download_directory" "$filename" "$expected_sha" 300)
+        or return $status
+        printf '✓ Chrome download completed: %s\n' "$archive"
     end
 
     if not test -f "$archive"
@@ -140,17 +141,31 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew when it
     or return $status
 
     echo '==> Verifying moshi-hook'
-    moshi-hook version
+    set -l verified_metadata (brew info --json=v2 $formula)
     or return $status
-    moshi-hook status
-    set -l status_code $status
+    set -l verified_version (printf '%s\n' "$verified_metadata" | jq -r '.formulae[0].installed[-1].version // empty')
+
+    set -l services (env -u TMUX brew services list --json)
+    or return $status
+    set -l service_status (printf '%s\n' "$services" | jq -r '.[] | select(.name == "moshi-hook") | .status')
+
+    if test "$verified_version" != "$target_version"
+        printf 'moshi-update: expected version %s but Homebrew reports %s\n' "$target_version" "$verified_version" >&2
+        return 1
+    end
+    if test "$service_status" != started
+        printf 'moshi-update: moshi-hook service is not started (status: %s)\n' "$service_status" >&2
+        return 1
+    end
+
+    printf '✓ moshi-hook %s is installed and the service is started\n' "$verified_version"
 
     if functions -q __moshi_refresh_paired
         __moshi_refresh_paired
     end
     tmux refresh-client -S 2>/dev/null
 
-    return $status_code
+    return 0
 end
 
 function _moshi_update_sha256 --argument-names archive
@@ -159,12 +174,45 @@ function _moshi_update_sha256 --argument-names archive
     string match -r '^[0-9a-f]+' -- "$checksum_line"
 end
 
+function _moshi_update_find_download --argument-names download_directory filename expected_sha
+    set -l filename_prefix (string replace -r '\.tar\.gz$' '' -- "$filename")
+    set -l candidates (find "$download_directory" -maxdepth 1 -type f -name "$filename_prefix*.tar.gz" -print 2>/dev/null)
+
+    for candidate in $candidates
+        set -l candidate_sha (_moshi_update_sha256 "$candidate")
+        if test "$candidate_sha" = "$expected_sha"
+            echo "$candidate"
+            return 0
+        end
+    end
+
+    return 1
+end
+
+function _moshi_update_wait_for_download --argument-names download_directory filename expected_sha timeout_seconds
+    set -l elapsed 0
+
+    while test $elapsed -lt $timeout_seconds
+        set -l archive (_moshi_update_find_download "$download_directory" "$filename" "$expected_sha")
+        if test -n "$archive"
+            echo "$archive"
+            return 0
+        end
+
+        sleep 1
+        set elapsed (math $elapsed + 1)
+    end
+
+    printf 'moshi-update: timed out waiting for Chrome to download %s\n' "$filename" >&2
+    return 1
+end
+
 function _moshi_update_help
     echo 'Usage:'
     echo '  moshi-update [ARCHIVE]'
     echo '  moshi-update --archive ARCHIVE'
     echo ''
-    echo 'Refresh the Moshi Homebrew formula, obtain the current artifact in a browser when needed,'
+    echo 'Refresh the Moshi Homebrew formula, download the current artifact with Chrome when needed,'
     echo 'verify its formula checksum, seed Homebrew\'s cache, upgrade, restart, and verify the service.'
     echo ''
     echo 'Options:'
