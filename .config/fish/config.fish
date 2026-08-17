@@ -39,10 +39,8 @@ if status is-interactive
     # claude.fish and codex.fish compose into the wrappers they already have.
     # Helpers only on purpose — naming commands here emits `claude`/`codex`
     # functions that would replace those and drop the window rename.
-    # `command` is required: functions/tmux-attention.fish defines a function of
-    # the same name, and a fish function shadows the PATH binary it wraps.
     if command -q tmux-attention
-        command tmux-attention shell-init fish | source
+        tmux-attention shell-init fish | source
     end
 end
 
