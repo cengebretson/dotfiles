@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# Exits rather than returning. A fatal error should stop the release, and with
+# 14 call sites a returned status would only have to be missed once to carry on
+# past one. A caller that wants to observe the failure instead -- tests, mainly
+# -- has to subshell it, because calling this from an `if` condition ends the
+# caller rather than failing the condition.
 git_release_die() {
 	printf 'git-release: %s\n' "$*" >&2
 	exit 1

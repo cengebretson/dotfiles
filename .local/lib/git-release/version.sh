@@ -34,6 +34,11 @@ git_release_version_is_valid() {
 	[[ "$1" =~ ^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)$ ]]
 }
 
+# The 10# prefixes below are load-bearing, not decoration: bash reads a
+# component like 08 or 09 as invalid octal and aborts the arithmetic with
+# "value too great for base". version_is_valid rejects leading zeros, but this
+# is also reachable with a version that never passed through it -- one read from
+# a VERSION file or a git tag.
 git_release_version_is_greater() {
 	local candidate="$1" current="$2"
 	local candidate_major candidate_minor candidate_patch
