@@ -34,6 +34,17 @@ if status is-interactive
     if command -q zoxide
         zoxide init --cmd j fish | source
     end
+
+    # tmux-attention pane ownership. Defines tmux_attention_claim and
+    # tmux_attention_disown, which claude.fish and codex.fish compose into the
+    # wrappers they already have. Helpers only on purpose: naming commands here
+    # would emit `claude`/`codex` functions that replace those, losing the
+    # window-rename behavior. Guarded on the path rather than `command -q`
+    # because the CLI lives in the tmux plugin dir, not on PATH.
+    set -l tmux_attention ~/.config/tmux/plugins/tmux-attention/scripts/tmux-attention
+    if test -x $tmux_attention
+        $tmux_attention shell-init fish | source
+    end
 end
 
 # Added by OrbStack: command-line tools and integration
