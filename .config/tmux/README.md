@@ -20,6 +20,7 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
 | `C-k` | Which-key menu (also `prefix + Space`) |
 | `Option + j` / `Option + J` | fzf-jump: all panes / attention queue (also `prefix + j`) |
+| `prefix + F` | orc: attach to the ticket needing attention (see below) |
 
 Copy mode uses vi keys — `v` to select, `C-v` for rectangle, `y` to yank to system clipboard, `Escape` to exit. A `󰆏 COPY` indicator appears in the status bar while in copy mode. Search match highlights use Catppuccin mauve.
 
@@ -120,6 +121,25 @@ The menu is rebuilt from that YAML on every TPM init. Validate edits before relo
 ```sh
 python3 ~/.config/tmux/plugins/tmux-which-key/plugin/build.py --validate ~/.config/tmux/which-key/config.yaml
 ```
+
+### orc focus vs the fzf-jump attention queue
+
+`prefix + F` and `Option + J` sound alike and are not redundant:
+
+| | scope | needs |
+|---|---|---|
+| `Option + J` | every pane on the tmux server | nothing |
+| `prefix + F` | orc-managed sessions, ranked by workflow priority | `orc` on PATH, `ORC_WORKSPACE`, an `orc.yaml` |
+
+`Option + J` answers "which agent needs me" and stays the reflex key — it is
+prefix-less for that reason. `prefix + F` answers the narrower "which *ticket*
+needs me", which fzf-jump cannot, since it knows nothing about orc's stage
+priorities.
+
+None of orc's prerequisites are set up today, so `scripts/orc_focus.sh` reports
+what is missing rather than failing opaquely. The binding starts working the
+moment orc is installed and `ORC_WORKSPACE` points at a workspace; until then it
+tells you which of the three is absent.
 
 ### tmux-sensible override trap
 
