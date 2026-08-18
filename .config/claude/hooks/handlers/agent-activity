@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# Publish a coarse "what is it doing" verb to tmux for the current turn.
+#
+# Reads the PostToolUse hook payload on stdin and maps the tool to one short word, which
+# tmux-attention layers after the project label (opt-in via @tmux_attention_show_activity).
+# The verb is deliberately coarse: the status bar repaints on status-interval, so anything
+# finer-grained than this would just be a random sample of a fast-moving value.
+#
+# For Bash the first word of the command carries far more signal than "bash" does, so a small
+# allowlist of familiar commands is surfaced by name and everything else falls back to
+# "shell". The allowlist exists so an arbitrary command string can never reach the status bar.
+set -u
+
+script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+[ -x "$script" ] || exit 100
+
+payload="$(cat 2>/dev/null || printf '')"
+[ -n "$payload" ] || exit 0
+
+command -v jq >/dev/null 2>&1 || exit 0
+
+tool="$(printf '%s' "$payload" | jq -r '.tool_name // empty' 2>/dev/null || printf '')"
+[ -n "$tool" ] || exit 0
+
+verb=""
+case "$tool" in
+	Edit|Write|NotebookEdit) verb="editing" ;;
+	Read|Glob|Grep)          verb="reading" ;;
+	WebFetch|WebSearch)      verb="fetching" ;;
+	Task|Agent)              verb="delegating" ;;
+	Bash)
+		cmd="$(printf '%s' "$payload" | jq -r '.tool_input.command // empty' 2>/dev/null || printf '')"
+		# First bare word, skipping any leading VAR=value assignments.
+		first="$(printf '%s\n' "$cmd" | awk '{for (i=1; i<=NF; i++) if ($i !~ /=/) { print $i; exit } }')"
+		first="${first##*/}"
+		case "$first" in
+			git)                       verb="git" ;;
+			pytest|make|npm|npx|yarn)  verb="tests" ;;
+			docker|kubectl)            verb="docker" ;;
+			gh)                        verb="github" ;;
+			*)                         verb="shell" ;;
+		esac
+		;;
+	*) exit 0 ;;
+esac
+
+[ -n "$verb" ] || exit 0
+exec "$script" activity "$verb" >/dev/null 2>&1

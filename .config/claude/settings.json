@@ -84,6 +84,16 @@
     ],
     "PostToolUse": [
       {
+        "matcher": "Edit|Write|NotebookEdit|Read|Glob|Grep|WebFetch|WebSearch|Task|Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" agent-activity",
+            "async": true
+          }
+        ]
+      },
+      {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
           {
