@@ -13,7 +13,7 @@
 - Pause for genuinely consequential or ambiguous decisions: destructive actions, broad permission changes, public publishing, or choices where the user's answer changes the outcome.
 - Keep responses direct, pragmatic, and concise. Prefer concrete file paths, commands, and verification results over general explanation.
 - Do not add AI attribution, "Generated with..." footers, or `Co-Authored-By` lines to commits or PR text.
-- When working inside tmux on a Jira ticket, run `tmux-attention project set <KEY>` once after identifying the active ticket. Update it when switching tickets and run `tmux-attention project clear` only when the pane no longer belongs to a ticket, not at the end of each turn. If `tmux-attention` is unavailable or the session is outside tmux, continue without treating that as a task failure.
+- When working inside tmux on a Jira ticket, run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>` once after identifying the active ticket and its summary. Keep the slug concise and omit the repeated Jira key. Update the declaration when switching tickets and run `tmux-attention project clear` only when the pane no longer belongs to a ticket, not at the end of each turn. If `tmux-attention` is unavailable or the session is outside tmux, continue without treating that as a task failure.
 
 ## Tool Selection
 
