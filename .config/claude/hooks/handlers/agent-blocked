@@ -13,6 +13,6 @@
 # same state and the richer one wins. Worth collapsing to one handler if that
 # overlap ever matters.
 set -u
-script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
 [ -x "$script" ] || exit 100
 exec "$script" event approval_required --source claude --reason permission_prompt >/dev/null 2>&1

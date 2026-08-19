@@ -2,6 +2,6 @@
 # Restore Codex working context when activity continues after an intermediate
 # Stop hook. turn-active is idempotent, so normal tool calls stay cheap.
 set -u
-script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
 [ -x "$script" ] || exit 100
 exec "$script" turn-active >/dev/null 2>&1

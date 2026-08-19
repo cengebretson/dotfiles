@@ -11,7 +11,7 @@
 # "shell". The allowlist exists so an arbitrary command string can never reach the status bar.
 set -u
 
-script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
 [ -x "$script" ] || exit 100
 
 payload="$(cat 2>/dev/null || printf '')"

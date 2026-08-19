@@ -7,6 +7,6 @@
 # is in fact still running. turn-active is idempotent: an already-active pane is
 # left untouched, an inactive one transitions as if turn-start had run.
 set -u
-script="${TMUX_ATTENTION_CLI:-$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention}"
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
 [ -x "$script" ] || exit 100
 exec "$script" turn-active >/dev/null 2>&1

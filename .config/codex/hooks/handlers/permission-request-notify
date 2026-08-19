@@ -6,6 +6,6 @@
 # failures (blocked/stop_failure/hook_failure). Setting it directly keeps the
 # one tmux call this needs.
 set -u
-script="$HOME/.config/tmux/plugins/tmux-attention/scripts/tmux-attention"
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
 [ -x "$script" ] || exit 100
 exec "$script" input >/dev/null 2>&1
