@@ -42,7 +42,7 @@ When asked about a PR's status ("is it green", "why yellow", checks, what's left
 
 ## Session Startup
 
-Run `/health-check` when first starting real work in a repo this session, or whenever the user asks, and report results as a table covering repository tools, issue-tracker tools, context-mode, and SSH agent status. Surface anything red immediately so it can be fixed before it blocks work. This is advisory, not a hard gate on every session or conversational turn.
+Run `/health-check` when first starting real work in a repo this session, or whenever the user asks. The normal check covers context-mode, live GitHub access through `gh`, and live Jira access through `acli` when it is installed. A missing `acli` is an optional skipped probe, not a startup failure. Run the broader deep check only when explicitly requested or when a required probe fails. Surface anything red immediately so it can be fixed before it blocks work. This is advisory, not a hard gate on every session or conversational turn.
 
 ## Environment
 
@@ -120,7 +120,7 @@ Load the SSH key from the macOS keychain:
 ssh-add --apple-use-keychain
 ```
 
-`--apple-use-keychain` with no path loads only default-named keys (`id_ed25519`, `id_rsa`). If `ssh-add -l` still reports no identities, the key has a non-default name: pass its path explicitly (the `IdentityFile` from `~/.ssh/config`, e.g. `ssh-add --apple-use-keychain ~/.ssh/<key>`). A passphrase prompt cannot be answered from a non-interactive tool shell, so ask the user to run it via `! ssh-add ...`. If the agent has no identities at session start, the `/health-check` skill will surface it.
+`--apple-use-keychain` with no path loads only default-named keys (`id_ed25519`, `id_rsa`). If `ssh-add -l` still reports no identities, the key has a non-default name: pass its path explicitly (the `IdentityFile` from `~/.ssh/config`, e.g. `ssh-add --apple-use-keychain ~/.ssh/<key>`). A passphrase prompt cannot be answered from a non-interactive tool shell, so ask the user to run it via `! ssh-add ...`. SSH is checked only by the explicit deep health check.
 
 ## Claude Settings Scope
 

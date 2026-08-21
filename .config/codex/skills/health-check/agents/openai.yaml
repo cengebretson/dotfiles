@@ -1,7 +1,7 @@
 interface:
   display_name: "Health Check"
-  short_description: "Pretty startup environment checklist"
-  default_prompt: "Use $health-check to verify this session's repository, tools, MCP connectors, GitHub auth, Docker, and SSH agent status."
+  short_description: "Verify context-mode, GitHub, and optional Jira access"
+  default_prompt: "Use $health-check to verify context-mode and GitHub access, plus Jira through acli when available."
 
 policy:
   allow_implicit_invocation: true

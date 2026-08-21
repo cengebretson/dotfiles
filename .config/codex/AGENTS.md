@@ -6,7 +6,7 @@
 
 ## Working Style
 
-- At the start of a new session, use `$health-check` before substantive repo, GitHub, Jira, Docker, or MCP work and report the result. For tiny local-machine questions, use a local-only check instead and say what was skipped.
+- At the start of a new session, use `$health-check` before substantive work and report context-mode, live GitHub access through `gh`, and live Jira access through `acli` when it is installed. A missing `acli` is an optional skipped probe, not a startup failure. Run the broader deep health check only when explicitly requested or when a required probe fails. For tiny local-machine questions, use a local-only check instead and say what was skipped.
 - For a quick coding handoff or resume, use `$fast-loop` to gather only the repo status, nearest instructions, obvious local task context, and command entrypoints before choosing the next action.
 - For familiar implementation work, start from the nearest relevant instructions and task files; defer broad architecture docs, full rulebooks, and remote lookups until the touched files or user request make them relevant.
 - Bias toward action. When the next step is obvious and already within the user's request, do it and report what happened.

@@ -1,103 +1,98 @@
 ---
 name: health-check
-description: Run a fast, pretty startup health check at the start of a Codex session or when the user asks for "health check", "$health-check", "startup check", "check tools", or "verify environment". Delegates the static environment audit (dependencies, gh auth, plugins, hooks, config syntax, skills parity) to `doctor ai` and live-probes session-scoped surfaces - repository state, context-mode, GitHub MCP/app auth, Jira MCP, and SSH agent.
+description: "Verify the portable startup dependencies for Codex: context-mode and GitHub access through `gh`, plus Jira access through `acli` when it is installed. Use at the start of a substantive session or when the user asks for a health check, startup check, tool check, or environment verification. Run the broader machine audit only for an explicitly requested deep check or to diagnose a failed required probe."
 ---
 
 # Health Check
 
-Run this at the start of a new session before substantive work, or whenever the
-user asks for a health check. Default to the fast path. The fast path still performs lightweight plugin discovery for context-mode and GitHub MCP/app surfaces before reporting them unavailable. Use the deep path only
-when the user asks for "deep", "full", "debug", or when a fast check fails and the extra detail changes the next action.
-
-When the user asks for a quick coding loop, resume, or `$fast-loop` rather than
-a health check, do not run remote auth probes from this skill. Let `$fast-loop`
-orient locally first, then run the relevant GitHub, Jira, Slack, or other remote
-probe only if the next action needs that surface.
+Run the fast path before substantive work. Keep it small: verify the two
+portable dependencies plus optional Jira access and report one row per service.
 
 ## Fast Path
 
-Run these checks, parallelizing independent shell commands when possible.
+Run the independent probes in parallel.
 
-### 1. Static environment audit — `doctor ai`
+### context-mode
 
-Run `~/.local/bin/doctor ai` (read-only). It owns the static checks — dependencies, `gh` auth, plugins, hook plumbing (dispatcher and `hooks/handlers/`), config syntax, and skills parity — so do not re-check any of those individually here (no `command -v` sweeps, no `gh auth status`, no `acli jira auth status`, no Docker daemon probe). Surface every failing or warning line it prints; if everything passes, report a single all-green row.
+- Discover `ctx_doctor` if it is deferred, then call it.
+- Pass when the tool responds and reports no failing checks. Report its version.
+- Surface only warnings that affect normal use; do not turn harmless discovery
+  metadata into a blocker.
+- If the tool is missing or fails, suggest restarting the client and running the
+  full context-mode doctor.
 
-### 2. Session probes
+### Jira through `acli`
 
-These must be probed live from inside the running session; `doctor ai` cannot see them from outside.
+First check whether `acli` is installed:
 
-- **Repo**: `git rev-parse --show-toplevel`, `git status --short --branch`, and `git log -1 --format=%h%x09%D%x09%s`.
-- **GitHub MCP/app**: if no GitHub MCP/app tool is already available, call `tool_search` for GitHub tools, then run a minimal authenticated-user probe when discovered. Report the authenticated username on success.
-- **Jira / Atlassian MCP (optional)**: only applies when a Jira/Atlassian MCP tool is available (discover via `tool_search` if deferred). If none exists in this session, report it as skipped — not as a failure. If it exists, run its authenticated-user probe and report the authenticated email.
-- **context-mode**: if `ctx_doctor` is not already available, call `tool_search` for context-mode tools, then run `ctx_doctor` when discovered. Report the version. If an upgrade is available, note it with the version.
-- **SSH agent**: run `ssh-add -l`.
-  - Keys listed → PASS, show key count.
-  - "The agent has no identities" → FAIL. The user loads the key themselves interactively (a passphrase prompt cannot be answered from a tool shell): suggest `! ssh-add --apple-use-keychain`.
-  - ssh-agent not running → FAIL, suggest `eval (ssh-agent -c)`.
+```bash
+command -v acli
+```
 
-## Coding-Loop Path
+- If it is absent, report Jira as optional and skipped. This is not a startup
+  failure and does not trigger the deep path.
+- If it is present, run this read-only live API probe:
 
-Use this only when a coding loop asks for health context indirectly and a full
-startup health check has already been satisfied in the session:
+```bash
+acli jira workitem search --jql "assignee = currentUser()" --count
+```
 
-- Repo: `git status --short --branch` and `git log -1 --format=%h%x09%D%x09%s`.
-- Core tools: `command -v rg git make`.
-- context-mode: run `ctx_doctor` only if context-mode tools are already loaded
-  or if the next step will process potentially large output.
-- Docker: check Docker only when the repo's normal commands need Docker.
+- Pass on exit code 0. The count itself does not matter.
+- On failure, run `acli jira auth status` for diagnosis.
+- If unauthenticated, suggest `acli jira auth login --web`.
+- Do not substitute the Atlassian MCP/plugin for this check; routine Jira work
+  uses the machine OAuth profile through `acli`.
 
-Do not check GitHub, Jira, Slack, SSH agent, or other remote/auth surfaces in
-the coding-loop path unless the next action needs them.
+### GitHub through `gh`
+
+Run this read-only live API probe:
+
+```bash
+gh api user --jq .login
+```
+
+- Pass on exit code 0 and report the login.
+- On failure, run `gh auth status` for diagnosis.
+- If credentials look invalid, check only whether `GH_TOKEN` or `GITHUB_TOKEN`
+  is present; never print either value. A stale environment override can mask a
+  healthy keyring login, so advise unsetting the override and restarting the
+  client before re-authenticating.
+- If no override is involved and authentication is invalid, suggest
+  `gh auth login --web --git-protocol https`.
+
+## Sandbox Failures
+
+If an installed `acli` or `gh` probe fails because network or keychain access is
+sandboxed, retry that exact read-only probe with narrow escalation before
+reporting it broken. If escalation is unavailable, report `sandbox-limited`,
+not a confirmed host failure.
 
 ## Deep Path
 
-For a deep/full/debug health check, also run:
+Run a deep check only when the user asks for `deep`, `full`, or `debug`, or when
+a failed required probe or installed `acli` needs broader diagnosis. Add only
+the relevant checks from:
 
-- Additional capability discovery for task-specific MCPs requested by the user or implied by the work, such as Slack, Datadog, or Sentry.
-- Expanded MCP diagnostics only when a fast-path probe fails or returns an ambiguous authentication/authorization error.
-- Docker daemon detail (`docker version`) only when the upcoming work needs Docker or the user asks for it.
+- `~/.local/bin/doctor ai`
+- repository status and latest commit
+- SSH agent
+- Docker
+- plugin, hook, and config diagnostics
 
-## Sandbox-Sensitive Checks
+Do not include these in the normal startup check.
 
-`ssh-add -l` and `~/.local/bin/doctor ai` may fail inside the Codex sandbox even
-when the host shell is healthy. If either fails with permission, keychain,
-socket, or token-looking errors, rerun the same check with escalated
-permissions before reporting a failure.
+## Output
 
-If escalation is unavailable or denied, report the check as `⚠️ Sandbox-limited`,
-not broken.
-
-## Output Style
-
-Report a single markdown table with columns Area, Status, Detail — one row for the repo, one each for repository tools, issue-tracker tools, context-mode, SSH agent, and the doctor-ai findings. Status markers:
-
-- `✅` healthy
-- `❌` confirmed broken outside the sandbox
-- `⚠️` unavailable, degraded, or sandbox-limited
+Return only this compact table, plus one blocker sentence when a row is red:
 
 ```markdown
-**Health Check**
-
-| Area | Status | Detail |
+| Dependency | Status | Detail |
 |---|---|---|
-| Repo | ✅ | clean on `branch-name`, last commit `abc1234` |
-| Repository tools (GitHub MCP) | ✅ | authenticated as your-gh-username |
-| Issue-tracker tools (Jira MCP) | ✅ | you@example.com |
 | context-mode | ✅ | healthy, vX.Y.Z |
-| SSH agent | ✅ | 1 key loaded |
-| doctor ai | ✅ | all static checks pass |
+| Jira (`acli`) | ➖ | optional; not installed on this machine |
+| GitHub (`gh`) | ✅ | authenticated as username |
 ```
 
-- On failure, put the remediation in the Detail cell (e.g. `run: ! ssh-add --apple-use-keychain`).
-- If the Jira MCP is not installed, use `⏭️` with `not installed (skipped)`.
-- If `doctor ai` reported failures or warnings, add one row per failing section with its detail instead of the all-green row.
-- Keep it concise: no trailing summary beyond the table, except a one-line blocker note when something is red.
-
-## Reporting Rules
-
-- Keep the final report short enough to scan.
-- Redact all token values, secrets, credentials, private keys, URLs with embedded credentials, and env var values.
-- Distinguish confirmed host failures from sandbox false negatives.
-- Mention unrelated dirty work only as repo status, never alter or revert it.
-- Do not report context-mode or GitHub MCP/app as skipped merely because tools were lazy-loaded; discover them first.
-- If a check is not applicable in the current task after discovery, report it as `⚠️ Not loaded` or omit it if the user asked for a narrower check.
+Use `✅` for healthy, `❌` for a confirmed failure, `⚠️` for degraded or
+sandbox-limited, and `➖` for an optional skipped probe. Never print secrets or
+token values.

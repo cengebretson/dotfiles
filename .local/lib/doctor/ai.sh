@@ -235,7 +235,7 @@ PY
 	done < <(printf '%s\n' "$plugins_enabled")
 	while IFS= read -r plugin; do
 		[[ -n "$plugin" ]] || continue
-		if [[ "$plugin" = atlassian-rovo ]]; then doctor_line note "$plugin" "disabled; acli is primary"; else doctor_line warn "$plugin" "plugin disabled"; fi
+		if [[ "$plugin" = atlassian-rovo ]]; then doctor_line note "$plugin" "disabled; acli preferred when available"; else doctor_line warn "$plugin" "plugin disabled"; fi
 	done < <(printf '%s\n' "$plugins_disabled")
 
 	if doctor_have moshi-hook; then
@@ -277,7 +277,7 @@ PY
 			doctor_line warn "$component" "plugin/mcp missing"
 		fi
 	done
-	doctor_line note browser "session-scoped; checked by health-check"
+	doctor_line note browser "session-scoped; probe only when browser work needs it"
 
 	doctor_summary
 }
