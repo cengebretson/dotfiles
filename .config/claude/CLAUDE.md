@@ -42,6 +42,12 @@ When asked about a PR's status ("is it green", "why yellow", checks, what's left
 - The `copilot-pull-request-reviewer` check goes `in_progress` and makes the rollup pending; requesting a Copilot review re-introduces that transient pending/yellow, so do not re-request on trivial/comment-only commits.
 - Prefer the normal authenticated `gh` session. If `gh` returns 401 "Bad credentials", check for a stale `GH_TOKEN` or `GITHUB_TOKEN` environment override before re-authenticating.
 
+## Writing Jira Issues And Comments
+
+- **Route every Jira write through `los-scripts jira`** (`create --description-adf FILE`, `description-set KEY FILE`, `comment-add`, `comment-update`, `transition`, `link`). Reads can go through `los-scripts jira read ...`. Do NOT call `acli jira workitem create/edit` directly: the helper validates ADF, rejects markdown, and read-back-verifies the stored structure, and calling acli bypasses all three.
+- **Descriptions and comments must be ADF JSON** (`{"version":1,"type":"doc","content":[...]}`) with real `heading`, `bulletList`, `orderedList`, `table`, and `codeBlock` nodes. acli passes plain text straight through as paragraphs, so `h3.`/`||` wiki markup and `#`/`|` markdown are stored and rendered as literal characters. Build the document, do not hand-write markup.
+- **Verify rendering, not just the API result.** After a write, re-read the issue as JSON and assert the node types you intended (`heading`, `table`, `codeBlock`) are present and that no literal `h3. ` or `|| ` text remains. "Successfully edited" says nothing about how the page looks.
+
 ## Session Startup
 
 Run `/health-check` when first starting real work in a repo this session, or whenever the user asks. The normal check covers context-mode, live GitHub access through `gh`, and live Jira access through `acli` when it is installed. A missing `acli` is an optional skipped probe, not a startup failure. Run the broader deep check only when explicitly requested or when a required probe fails. Surface anything red immediately so it can be fixed before it blocks work. This is advisory, not a hard gate on every session or conversational turn.
