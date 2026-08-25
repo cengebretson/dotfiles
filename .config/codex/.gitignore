@@ -11,6 +11,7 @@ tmp/
 .tmp/
 cache/
 context-mode/
+thread-writer-locks/
 backups/
 # Installed plugin artifacts, never dotfiles. Ignored wholesale (as claude/
 # does) because Codex keeps adding new staging subdirs — .plugin-appserver,

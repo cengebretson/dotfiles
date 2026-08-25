@@ -29,5 +29,10 @@
 # lua/plugins/init.lua, so this lockfile is derived state, not the pin.
 /.config/nvim-v12/nvim-pack-lock.json
 
+# Superfile installs its stock hotkeys and bundled themes alongside the tracked
+# portable config. Keep those generated defaults machine-local.
+/.config/superfile/hotkeys.toml
+/.config/superfile/theme/
+
 # Editor/tool backups (e.g. ghostty config.bak, claude settings.json.bak).
 *.bak

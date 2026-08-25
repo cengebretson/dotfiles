@@ -36,6 +36,7 @@ session-env/
 claude-powerline.json
 policy-limits.json
 context-mode/
+chrome/
 # Claude writes timestamped backups (settings.json.bak.20260615221755), so the
 # glob must extend past .bak or they show up as untracked noise forever.
 *.bak*
