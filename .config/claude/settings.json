@@ -14,9 +14,7 @@
       "Bash(nvim --headless *)",
       "Bash(open *)",
       "Bash(bun *)",
-      "Bash(bunx *)",
       "Bash(uv *)",
-      "Bash(python3 *)",
       "Bash(prettier *)",
       "Bash(stylua *)",
       "Bash(mise *)",
@@ -280,5 +278,43 @@
   "effortLevel": "high",
   "tui": "fullscreen",
   "theme": "dark-ansi",
-  "editorMode": "vim"
+  "editorMode": "vim",
+  "autoMode": {
+    "allow": [
+      "$defaults",
+      "Bash(acli jira read *)",
+      "Bash(los-scripts review *)"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push* origin develop*)",
+      "Bash(*stgcore-app-ulp*)"
+    ],
+    "environment": [
+      "### Org-wide",
+      "**Organization**: thesummitgrp / Lenders-Cooperative (GitHub orgs); Jira/Confluence at venturesgo.atlassian.net",
+      "**Cloud provider(s)**: AWS (ECR registry 813755454003.dkr.ecr.us-east-2.amazonaws.com)",
+      "**Repository visibility**: private (thesummitgrp/los-app-los-django, confirmed via gh)",
+      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
+      "**Secrets management**: CredentialsManager (los/integrations/credentials.py and related migrations); CI secrets referenced by name only (A_GH_TOKEN, E2E_BORROWER2_PASSWORD, E2E_BORROWER2_USERNAME, E2E_BORROWER_PASSWORD, E2E_BORROWER_USERNAME, E2E_LENDER_PASSWORD, E2E_LENDER_USERNAME, GH_TOKEN, GITHUB_TOKEN, JIRA_API_TOKEN, LC_GH_TOKEN, SLACK_ALERT_KEY_GH_ACTIONS_BOT, SLACK_BOT_TOKEN) — values never gathered",
+      "**Default / protected branches**: default branch develop; develop and numerous hotfix/release branches protected via rulesets (Auto-imported tag create/delete protections, Copilot review for branches, Required CI status checks, Required CI status checks - main/release/hotfix) — treat rulesets as protection even where classic branch-protection list is empty",
+      "**CI/CD deploy targets**: None configured",
+      "**Network posture**: lrtcapital.localtest.me (local dev host, 12×); no other deploy/network posture confirmed",
+      "**Source control**: origin github.com:thesummitgrp/los-app-los-django.git (this repo's only configured remote)",
+      "**Trusted internal domains**: venturesgo.atlassian.net (Jira/Confluence root per repo rules); npm.pkg.github.com (internal package registry host)",
+      "**Trusted cloud buckets**: None configured",
+      "**Key internal services**: rulesengine.beta2.los.lenderscooperative.com (dev Rules Engine, per README)",
+      "**Internal package registry**: npm.pkg.github.com (GitHub Packages, thesummitgrp org — GH_TOKEN with read:packages per .env.sample)",
+      "**Sensitive data locations & audiences**: CredentialsManager and integration credential files (los/integrations/credentials.py, credential_testing.py, secret_rotation.py, migrations under los/integrations/migrations/*credentialsmanager*), PII helpers (los/mart_etl/etl/_pii.py), SBA e-tran credentials (los/configuration_manager/sba_etran_credentials.py), .env/.env.sample/.secrets.baseline, keys/ and keys-test*/ gitignored dirs — share only with cleared engineering audiences",
+      "**Data retention / declassification**: None configured",
+      "**Sensitive remote targets**: any host/namespace containing prod or production as a whole segment; stgcore-app-ulp explicitly flagged as a no-auto-action area in global CLAUDE.md",
+      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
+      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries prod or production as a whole word or name segment",
+      "### User-specific",
+      "**Primary use of Claude Code**: software development on the LOS Django platform (loan origination system)",
+      "**Trusted repo**: this repo (los-app-los-django) and its origin remote at github.com:thesummitgrp/los-app-los-django.git — private, so confidential material is fine here but secrets/personal data are never cleared by visibility alone",
+      "**Org-specific CLIs**: acli (Atlassian CLI, 58× in-project / 14× shell history), los-scripts (referenced in global CLAUDE.md for PR/CI status and Jira writes), tmux-attention (Jira context helper), git-release",
+      "**routine under this project prefix**: git, gh, acli, los-scripts, and rg/fd/bat/eza-style read tools scoped to this repo's working tree are routine"
+    ]
+  }
 }
