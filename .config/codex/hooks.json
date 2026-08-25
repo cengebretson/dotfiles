@@ -9,6 +9,15 @@
           }
         ],
         "matcher": ".*"
+      },
+      {
+        "matcher": "local_shell|shell|shell_command|exec_command|Bash|Shell|apply_patch|Edit|Write|grep_files|ctx_execute|ctx_execute_file|ctx_batch_execute|ctx_fetch_and_index|ctx_search|ctx_index|mcp__",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex pretooluse"
+          }
+        ]
       }
     ],
     "PermissionRequest": [
@@ -42,6 +51,15 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex sessionstart"
+          }
+        ]
       }
     ],
     "Stop": [
@@ -56,6 +74,15 @@
             "type": "command"
           }
         ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex stop"
+          }
+        ]
       }
     ],
     "UserPromptSubmit": [
@@ -68,6 +95,37 @@
           {
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
             "type": "command"
+          }
+        ]
+      },
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex userpromptsubmit"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex posttooluse"
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "context-mode hook codex precompact"
           }
         ]
       }

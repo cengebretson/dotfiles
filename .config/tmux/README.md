@@ -17,6 +17,7 @@ A customized tmux setup built around [Catppuccin](https://github.com/catppuccin/
 | `prefix + S` | New session (with name prompt) |
 | `prefix + N` | Toggle Moshi notifications (daemon off/on) |
 | `Option + h/l` | Previous / next window |
+| `Shift + Option + h/l` | Previous / next session |
 | `Ctrl + h/j/k/l` | Navigate panes (vim-tmux-navigator) |
 | `C-k` | Which-key menu (also `prefix + Space`) |
 | `Option + j` / `Option + J` | fzf-jump: all panes / attention queue (also `prefix + j`) |
