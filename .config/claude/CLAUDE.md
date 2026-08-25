@@ -1,171 +1,71 @@
 # Global Claude Instructions
 
-> Machine setup, bootstrap, and how to add plugins / MCP servers / hooks live in
-> `~/.config/AI-SETUP.md` (the cross-tool runbook for Claude + Codex). This file is behavior plus the
-> few environment facts needed in any repo — keep deep setup steps in AI-SETUP.md, not here.
+> Machine setup, bootstrap, plugins, MCP servers, hooks, and configuration layout live in
+> `~/.config/AI-SETUP.md`. This file contains portable behavior only.
 
-## Autonomy and Confirmation
+## Working Style
 
-Default to acting, not asking. When the next step is clear from the request, the code, or sensible defaults, do it and report what you did afterward, instead of asking "want me to...?" first. This applies across all projects.
+- At the start of substantive work, use `/health-check`. Keep the normal check lightweight; run deep diagnostics only when requested or when a required probe fails. For tiny local questions, use local-only checks and say what was skipped.
+- For a quick coding handoff or resume, inspect repository status, nearest instructions, obvious task artifacts, and the project command router before choosing the next action.
+- For familiar implementation work, start from the nearest relevant instructions and touched files. Load broad architecture or workflow documentation only when the task makes it relevant.
+- Bias toward action when the next step is clear and within scope. Pause for destructive actions, broad permission changes, public publishing, or decisions where reasonable choices materially diverge.
+- Preserve user changes and unrelated dirty work. Never revert, delete, or rewrite them without explicit authorization.
+- Keep communication direct and concise. Prefer concrete paths, commands, findings, and verification results.
+- When working inside tmux, whenever a Jira key becomes known from the user, Jira, the branch, worktree metadata, or task artifacts, immediately reconcile the current pane's tmux-attention project. Keep automatic context when it matches; otherwise run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`, then verify it with `tmux-attention get`. Update the declaration when switching tickets and clear it only when the pane returns to non-ticket work. Do not infer Jira keys from window names or arbitrary prompt text. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
 
-- Proceed without pre-confirmation on: implementation work, rebases and conflict resolution, commits, pushes (including `--force-with-lease`), branch creation, replying to and resolving PR review threads, requesting reviews, opening or transitioning tickets, running quality gates, and opening local files or URLs.
-- Still stop and ask only when the action is genuinely irreversible or ambiguous: a force-push that could clobber someone else's commits, deletes of tracked work, history rewrites on shared base branches, anything touching `stgcore-app-ulp`, or a decision where reasonable choices diverge and the wrong one is costly to undo.
-- Batch independent confirmations into one question rather than asking serially. Prefer reporting outcomes over narrating intentions.
-- tmux-attention normally derives Jira context from worktree metadata or the current branch. When working inside tmux on a Jira ticket, check that automatic context first; only if it is missing or wrong, run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`. Keep the slug concise and omit the repeated Jira key. Update an explicit declaration when switching tickets and run `tmux-attention project clear` only when the pane should return to automatic context, not at the end of each turn. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
+## Tool Routing
 
-## STOP — MCP-First Rule (read before every tool call)
+- Follow the nearest repository instructions and established command surface. Prefer, in order: a repository helper or skill that encodes workflow safeguards, a suitable app or MCP connector, an authenticated CLI, then raw REST or `curl`.
+- Use tool discovery when a connector could materially help and its availability is unknown. Do not run discovery before routine local commands.
+- For Jira, prefer `acli` when installed unless repository guidance provides a safer helper. Use MCP when explicitly requested or when the CLI cannot cover the operation.
+- For GitHub, prefer an available app or MCP connector when it covers the operation. If it is unavailable or fails, say that you are falling back before using `gh`.
+- Use `rg` and `rg --files` for text and file search. Prefer structured parsers such as `jq` or `yq` for structured data.
+- Use context-mode for large or unpredictable output so raw bytes do not consume the conversation context.
 
-**Never use `gh`, `curl`, or any CLI/API equivalent when an MCP tool exists for the operation.** Check for an MCP tool first, every time, no exceptions.
+## Permission and Shell Hygiene
 
-| Operation | Use this | Never this |
-|---|---|---|
-| GitHub (PRs, issues, files, search) | `mcp__github__*` | `gh`, `curl` |
-| Issue trackers / docs | available MCP tools | `curl`, REST |
-| Large output processing | `mcp__plugin_context-mode_context-mode__*` | raw pipe into context |
-
-Fall back to CLI **only** when no MCP tool covers the specific operation — and say so explicitly when you do.
-
-**GitHub specifically:** Before reaching for `gh`, run `ToolSearch` to confirm no `mcp__github__*` tool covers the operation. If MCP is unreachable or the tool errors, say "GitHub MCP unavailable, falling back to `gh`" before running the command. Never use `gh` silently as a convenience shortcut.
-
-**Any other CLI tool:** Before reaching for any CLI or REST equivalent (`curl`, `aws`, `gcloud`, etc.), run `ToolSearch` to check for an MCP alternative. Only proceed with CLI if the search confirms no MCP tool covers the operation.
-
-## Checking PR / CI Status
-
-When asked about a PR's status ("is it green", "why yellow", checks, what's left):
-
-- **For LOS, use `los-scripts review` instead of hand-rolled `gh` polling.** `los-scripts review status|checks|comments|latest-sha|watch|wait-copilot|request-copilot|ready-label|reply-resolve <PR>` (JSON on stdout, diagnostics on stderr) already implements the rules below, and `request-copilot` carries the GraphQL Bot ID that REST `requested_reviewers` silently drops. Run `los-scripts help` before writing any bespoke `gh`/`acli`/`docker` loop; this applies inside worktrees, where project memory does not load.
-- **Never treat empty or failed tool output as a terminal state.** A poll loop that falls back to `[]` on a failed `gh` call reads zero pending checks as "all green". Re-read state independently before reporting a result to the user.
-- **For CI, use the checks rollup, never the legacy status endpoint.** Use GraphQL `statusCheckRollup` (handle both `CheckRun.conclusion` and `StatusContext.state`) or `/commits/{sha}/check-runs?per_page=100`. NEVER judge CI from `/commits/{sha}/status` — it returns `state=pending` with `total_count=0` when a commit has only check-runs, a false yellow.
-- **Paginate before claiming green.** `/check-runs` defaults to 30; a failing check can be on a later page. Never say "all checks pass" from an unpaginated call — confirm against the rollup (`first:100`). This exact miss caused a wrong "all green" call.
-- **Report status as separate axes, do not conflate:** (1) CI checks pass/fail/pending, (2) `reviewDecision` (REVIEW_REQUIRED needs a human approval; Copilot's and my approvals do not count), (3) unresolved review threads, (4) `mergeStateStatus`. "Yellow" is usually pending CI or REVIEW_REQUIRED, not necessarily an unaddressed comment.
-- **A green run plus yellow PR usually means REVIEW_REQUIRED**, not a CI or comment problem. Say so instead of hunting for comments.
-- The `copilot-pull-request-reviewer` check goes `in_progress` and makes the rollup pending; requesting a Copilot review re-introduces that transient pending/yellow, so do not re-request on trivial/comment-only commits.
-- Prefer the normal authenticated `gh` session. If `gh` returns 401 "Bad credentials", check for a stale `GH_TOKEN` or `GITHUB_TOKEN` environment override before re-authenticating.
-
-## Writing Jira Issues And Comments
-
-- **Route every Jira write through `los-scripts jira`** (`create --description-adf FILE`, `description-set KEY FILE`, `comment-add`, `comment-update`, `transition`, `link`). Reads can go through `los-scripts jira read ...`. Do NOT call `acli jira workitem create/edit` directly: the helper validates ADF, rejects markdown, and read-back-verifies the stored structure, and calling acli bypasses all three.
-- **Descriptions and comments must be ADF JSON** (`{"version":1,"type":"doc","content":[...]}`) with real `heading`, `bulletList`, `orderedList`, `table`, and `codeBlock` nodes. acli passes plain text straight through as paragraphs, so `h3.`/`||` wiki markup and `#`/`|` markdown are stored and rendered as literal characters. Build the document, do not hand-write markup.
-- **Verify rendering, not just the API result.** After a write, re-read the issue as JSON and assert the node types you intended (`heading`, `table`, `codeBlock`) are present and that no literal `h3. ` or `|| ` text remains. "Successfully edited" says nothing about how the page looks.
-
-## Session Startup
-
-Run `/health-check` when first starting real work in a repo this session, or whenever the user asks. The normal check covers context-mode, live GitHub access through `gh`, and live Jira access through `acli` when it is installed. A missing `acli` is an optional skipped probe, not a startup failure. Run the broader deep check only when explicitly requested or when a required probe fails. Surface anything red immediately so it can be fixed before it blocks work. This is advisory, not a hard gate on every session or conversational turn.
+- Keep shell commands simple and task-shaped. Use the tool working directory instead of prefixing commands with `cd`, and avoid wrappers or compound commands that only make approval matching harder.
+- Request narrow persistent approvals for repeatable operations. Use one-off approval for unusual writes, destructive actions, broad environment changes, or compound commands.
+- Do not request approval solely for local, read-only searches.
+- Write scratch scripts, generated logs, and one-off artifacts under `/tmp` or `/private/tmp`.
+- On macOS, keep normal work sandboxed and escalate only the browser or GUI command that requires OS services.
 
 ## Environment
 
-- **Shell:** Fish (interactive), but all scripts must use `#!/usr/bin/env bash` — hooks and non-interactive contexts run bash
-- **Editor:** nvim
-- **Terminal:** Ghostty + tmux
-- **Color scheme:** Catppuccin Mocha throughout (tmux, delta, statusline, starship)
+- Interactive shell: Fish.
+- Shell scripts, hooks, and non-interactive shell commands should use Bash with `#!/usr/bin/env bash` unless the project says otherwise.
+- Editor: nvim.
+- Terminal: Ghostty with tmux.
+- Color scheme preference: Catppuccin Mocha.
 
-### Shell command hygiene (avoid needless permission prompts)
+## Dotfiles and Config
 
-The Bash sandbox (`sandbox.autoAllowBashIfSandboxed` in `settings.json`) auto-approves commands
-that are read-only or only write inside the repo/`/tmp` — those never prompt. Prompts come from
-commands the sandbox can't cover (network access, writes outside the repo), which go through the
-small `permissions.allow` prefix list instead (e.g. `Bash(git push*)`, `Bash(gh pr view*)`,
-`Bash(git --git-dir=$HOME/.dotfiles --work-tree=$HOME *)`). Those rules match the **literal command
-prefix**, so any wrapper that changes how the command string *starts* defeats an otherwise-matching
-rule and forces a prompt. Construct the simplest form that starts with the allowlisted token:
+- Dotfiles use a bare Git repository:
+  ```bash
+  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
+  ```
+- `dots` is a Fish abbreviation, not a command. Use the full Git form in scripts and tool calls.
+- Because the dotfiles repository hides untracked files by default, explicitly include `--untracked-files=all` or use the local status helpers before assuming a new file is tracked.
+- Never commit or hardcode machine-local identity, secrets, auth, or trust state. Important local files include `~/.config/git/config.local`, `~/.config/fish/secrets.fish`, `~/.config/claude/.claude.json`, and `~/.config/codex/config.toml`.
+- Prefer canonical paths under `~/.config`; `~/.claude` and `~/.codex` resolve there on configured machines.
+- When changing Fish files, run `fish -n`. Do not commit generated Fisher files unless they are intentional custom dotfiles.
 
-- **Never prefix a Bash call with `cd <dir>`.** The cwd persists and starts at the project root. A leading `cd` (especially `cd … && …`) makes a compound that no rule matches. Run the command directly.
-- **Never prefix with an env-var assignment** (`PATH=… cmd`, `FOO=bar cmd`) when avoidable — it makes the command start with `PATH=` instead of the tool name, so no prefix rule matches.
-- **Avoid `git -C <dir>`** when the cwd already works — it starts with `git -C`, not `git push`/`git fetch`, so the `git push*`/`git fetch*` rules miss. Run git from the repo-root cwd instead. Use `--prefix`/`-C`/`--config` path flags only when the target really is a different directory.
-- **Avoid multi-statement scripts** (`VAR=$(...)`, `for`/`while` loops, `;`-chains) when separate single-purpose calls work — loops and command substitution can never be allowlisted and always prompt. Reserve them for genuine one-off polling/aggregation, and expect a prompt there.
-- Prefer an MCP tool over a shell equivalent when one exists (GitHub, Atlassian, etc.) — MCP servers are allowlisted by wildcard and don't go through Bash prefix-matching at all.
-- For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
+## Git and Remote Work
 
-## Claude Config
+- Never run destructive Git commands such as `git reset --hard` or `git checkout --` without explicit authorization.
+- Use `core.editor=true` or `GIT_EDITOR=true` for non-interactive Git operations that may open an editor.
+- Keep commits focused and authored solely by the user. Never add AI attribution, `Co-Authored-By`, or generated-by footers to commits, PRs, or notes.
+- After mutating GitHub, Jira, documentation, or generated agent files, independently read back the changed state before reporting success.
+- When reporting PR readiness, separate CI results, review decision, unresolved threads, and merge state. Verify the current head and paginate checks before claiming green.
+- After renaming a branch that backs an open PR, verify the PR and head branch immediately.
+- For Copilot review requests, use the supported bot-review API path and verify the request. A later clean review does not replace resolving relevant existing review threads.
 
-- Canonical config directory: `~/.config/claude/` — `~/.claude` is a symlink to it
-- Global skills: `~/.config/claude/skills/<skill-name>/SKILL.md`
-- Project memories: `~/.config/claude/projects/<project-slug>/memory/`
-- `CLAUDE_CONFIG_DIR=~/.config/claude` is set in fish config — all sessions (terminal and desktop app) resolve to the same location via the symlink
+## Validation
 
-## Dotfiles Git
-
-Config files are tracked in a bare git repo. Always use these flags for dotfiles git operations:
-
-```bash
-git --git-dir=$HOME/.dotfiles --work-tree=$HOME <command>
-```
-
-`dots` is a fish **abbreviation** — it expands inline when typing in the terminal but is not a real command. Always use the full `git --git-dir=...` form in scripts, tool calls, and non-interactive contexts. Paths in the index are relative to `~` (e.g. `.config/tmux/tmux.conf`). Run git commands from `~` to get full paths, or from `~/.config` where paths appear without the `.config/` prefix.
-
-## Machine-Local Files (never commit, never hardcode)
-
-The dotfiles are shared across machines (e.g. personal + work). Per-machine identity and secrets live in gitignored local files — never hardcode their values into tracked configs, and never `git add` them:
-
-- `~/.config/git/config.local` — git `user.name` / `user.email` for this machine. The tracked `~/.config/git/config` deliberately has **no** `[user]` identity and sets `user.useConfigOnly = true`, so a missing `config.local` hard-fails commits ("Author identity unknown") instead of guessing `username@hostname`. To set identity, edit `config.local`, not the tracked config.
-- `~/.config/fish/secrets.fish` — secret env vars / tokens (e.g. `GH_TOKEN`), sourced by `conf.d/local-secrets.fish`.
-- `~/.config/claude/.claude.json` — Claude account/auth, per machine (personal = gmail, work = work SSO). Determines which subscription a session bills against.
-
-## Fish Config
-
-- Validate changed Fish files with `fish -n` before finishing.
-- Don't commit Fisher-generated files under `functions/`, `conf.d/`, `completions/` unless they're custom dotfiles (`fish_plugins` is the plugin source of truth). Custom functions live in `~/.config/fish/functions/`, documented in `~/.config/fish/README.md`. (`secrets.fish` machine-local rule is in *Machine-Local Files* above.)
-
-## Tmux
-
-- tmux 3.7b (`tmux -V` to confirm) — on 3.6, `display-popup` height percentages (`-h 10%`) did not render and fixed line counts (`-h 3`) were required; not retested on 3.7b, so fixed line counts remain the safe default
-- Width percentages (`-w 40%`) work fine
+- Run targeted checks that match the changed files and project conventions.
+- Validate shell scripts with `shellcheck` when available, Fish with `fish -n`, and Lua with `luac -p`.
+- Treat sandbox cache-permission warnings as environment constraints, not project failures. Prefer project-local ignored caches or one-off caches under `/private/tmp`.
 
 ## context-mode
 
-context-mode is installed globally and active in every session. It keeps large tool outputs out of the context window and captures session state for resumption. The plugin auto-injects its routing guidance (Think-in-Code, tool-selection hierarchy, session memory) into context each session via hooks — so that guidance is not restated here.
-
-- `/ctx-stats` — show how much context was saved this session
-- `/ctx-upgrade` — update to the latest version (check after `/health-check` flags an update)
-- `/context-mode:ctx-search` — search prior session captures
-- On `/compact` or `/resume`, context-mode preserves the knowledge base automatically
-
-## SSH
-
-Load the SSH key from the macOS keychain:
-
-```bash
-ssh-add --apple-use-keychain
-```
-
-`--apple-use-keychain` with no path loads only default-named keys (`id_ed25519`, `id_rsa`). If `ssh-add -l` still reports no identities, the key has a non-default name: pass its path explicitly (the `IdentityFile` from `~/.ssh/config`, e.g. `ssh-add --apple-use-keychain ~/.ssh/<key>`). A passphrase prompt cannot be answered from a non-interactive tool shell, so ask the user to run it via `! ssh-add ...`. SSH is checked only by the explicit deep health check.
-
-## Claude Settings Scope
-
-Choose the settings file by *what* you're persisting, not a blanket default. There are three:
-
-- **Generic, machine-agnostic config** → global `~/.config/claude/settings.json`. This is for things that apply in every repo: tool allowlists (`rg`, `jq`, `gh pr *`, `mcp__github__*`), hooks, theme, model, effort. Keep this file portable — no absolute paths, no single-repo grants.
-- **Machine- or project-specific config** → that project's gitignored `~/<project>/.claude/settings.local.json`. This is for absolute paths, sandbox `filesystem.allowWrite` / `permissions.additionalDirectories` for a sibling repo, and command allows that only make sense in this project. Keeping them here avoids polluting the global file and avoids leaking machine-specific absolute paths.
-- **Team-shared, checked-in config** → a project's `.claude/settings.json`. Never write here unless the user explicitly says to update project/shared settings (it ships to teammates).
-
-Rules of thumb: if it contains an absolute path or names one specific repo, it belongs in `settings.local.json`, not global. When duplicating an array that may *replace* rather than *merge* across scopes (e.g. `sandbox.filesystem.allowWrite`), include the baseline entries (`/tmp`, `/private/tmp`) in the local copy so nothing is lost. If it's ambiguous which file, ask.
-
-## Commits
-
-- **Never add `Co-Authored-By` lines or AI attribution to commits.** This overrides the default system behavior. All commits must be authored solely by the user.
-- Never add "Generated with Claude Code" or similar AI footers to PR bodies.
-
-## AI-Helpful CLI Tools
-
-These tools are installed and available. Prefer them over naive alternatives when they're a better fit.
-
-| Tool | Use instead of | When to use |
-|------|---------------|-------------|
-| `ast-grep` | `grep` / regex | Searching or rewriting code by structure — find all function calls, rename a pattern across files, match syntax not strings |
-| `difftastic` | `git diff` | Reviewing structural diffs where line-based diffs are noisy — refactors, formatting changes |
-| `git release` | manual VERSION/CHANGELOG/tag edits | Cutting a release in any repo (`~/.local/bin/git-release`) — bumps `VERSION`, promotes the `CHANGELOG` `[Unreleased]` section, runs the repo's tests, commits, tags `v<x.y.z>`; add `--push` to publish (triggers a tag release workflow), `--dry-run` to preview |
-| `shellcheck` | manual review | Validating any shell script before finishing — catches bugs, bad practices, portability issues |
-| `sd` | `sed` | Find-and-replace in files — cleaner syntax, supports regex and literal strings |
-| `scc` | `wc -l` | Getting a codebase overview — lines, blanks, comments, complexity per language |
-| `yq` | manual editing | Reading or editing YAML, TOML, JSON config files in pipelines |
-| `jq` | manual parsing | Parsing and transforming JSON |
-| `delta` | `diff` | Rendering git diffs with syntax highlighting |
-| `fd` | `find` | Fast file search with simpler syntax |
-| `rg` (ripgrep) | `grep` | Fast recursive text search |
-| `bat` | `cat` | Viewing files with syntax highlighting |
-| `eza` | `ls` | Directory listings with icons and git status |
-| `glow` | `cat` for markdown | Rendering markdown files in the terminal with syntax highlighting and layout |
-
-**Tool gotchas:**
-- `rg`: `-h` is `--help`, **not** "no filename" — `rg -oh PATTERN` silently dumps ripgrep's help instead of matches. Use `-I` / `--no-filename` (e.g. `rg -oI` or `rg --only-matching --no-filename`). If a command unexpectedly prints a tool's help text, you passed a bad flag — fix the flag before trusting the output.
-- Validate Lua before finishing (Neovim configs, etc.) with `luac -p <file>` — fast syntax check, no execution.
+context-mode injects its current routing and session-memory guidance automatically. Prefer its gather, processing, and search tools for large outputs, and search preserved session memory before asking the user to reconstruct prior work.

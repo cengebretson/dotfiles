@@ -1,114 +1,73 @@
 # Global Codex Instructions
 
-> Machine setup, bootstrap, and how to add MCP servers / hooks / profiles live in
-> `../AI-SETUP.md` (the cross-tool runbook for Claude + Codex) — not here. This file is
-> behavior only.
+> Machine setup, bootstrap, MCP servers, hooks, profiles, and configuration layout live in
+> `../AI-SETUP.md`. This file contains portable behavior only.
 
 ## Working Style
 
-- At the start of a new session, use `$health-check` before substantive work and report context-mode, live GitHub access through `gh`, and live Jira access through `acli` when it is installed. A missing `acli` is an optional skipped probe, not a startup failure. Run the broader deep health check only when explicitly requested or when a required probe fails. For tiny local-machine questions, use a local-only check instead and say what was skipped.
-- For a quick coding handoff or resume, use `$fast-loop` to gather only the repo status, nearest instructions, obvious local task context, and command entrypoints before choosing the next action.
-- For familiar implementation work, start from the nearest relevant instructions and task files; defer broad architecture docs, full rulebooks, and remote lookups until the touched files or user request make them relevant.
-- Bias toward action. When the next step is obvious and already within the user's request, do it and report what happened.
-- Pause for genuinely consequential or ambiguous decisions: destructive actions, broad permission changes, public publishing, or choices where the user's answer changes the outcome.
-- Keep responses direct, pragmatic, and concise. Prefer concrete file paths, commands, and verification results over general explanation.
-- Do not add AI attribution, "Generated with..." footers, or `Co-Authored-By` lines to commits or PR text.
-- tmux-attention normally derives Jira context from worktree metadata or the current branch. When working inside tmux on a Jira ticket, check that automatic context first; only if it is missing or wrong, run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`. Keep the slug concise and omit the repeated Jira key. Update an explicit declaration when switching tickets and run `tmux-attention project clear` only when the pane should return to automatic context, not at the end of each turn. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
+- At the start of substantive work, use `$health-check`. Keep the normal check lightweight; run deep diagnostics only when requested or when a required probe fails. For tiny local questions, use local-only checks and say what was skipped.
+- For a quick coding handoff or resume, use `$fast-loop` to gather repository status, nearest instructions, obvious task artifacts, and the project command router before choosing the next action.
+- For familiar implementation work, start from the nearest relevant instructions and touched files. Load broad architecture or workflow documentation only when the task makes it relevant.
+- Bias toward action when the next step is clear and within scope. Pause for destructive actions, broad permission changes, public publishing, or decisions where reasonable choices materially diverge.
+- Preserve user changes and unrelated dirty work. Never revert, delete, or rewrite them without explicit authorization.
+- Keep communication direct and concise. Prefer concrete paths, commands, findings, and verification results.
+- When working inside tmux, whenever a Jira key becomes known from the user, Jira, the branch, worktree metadata, or task artifacts, immediately reconcile the current pane's tmux-attention project. Keep automatic context when it matches; otherwise run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`, then verify it with `tmux-attention get`. Update the declaration when switching tickets and clear it only when the pane returns to non-ticket work. Do not infer Jira keys from window names or arbitrary prompt text. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
 
-## Tool Selection
+## Tool Routing
 
-- Prefer MCP/app/plugin tools over raw CLI or REST when an available tool covers the operation.
-- For Jira work, prefer Atlassian CLI `acli` over the Atlassian Rovo MCP/plugin. `acli` is authenticated through the machine OAuth profile and supports useful comment operations such as list, create, update, and delete. Use MCP only when explicitly requested or when `acli` cannot cover the operation.
-- For GitHub work, check for a GitHub MCP/app tool before using `gh` or `curl`. If no suitable tool is available or the tool fails, say that you are falling back to CLI before using it.
-- Use `rg` for text search and `rg --files` for file search before slower alternatives.
-- When searching local Codex, tmux, or Fish config, exclude generated caches and sessions such as `~/.config/codex/plugins/cache`, `~/.config/codex/sessions`, `~/.config/codex/context-mode`, and `~/.config/codex/.tmp` unless the task is specifically about those files.
-- Prefer structured tools/parsers for structured data. Use `jq` for JSON and `yq` for YAML/TOML/JSON when appropriate.
-- Prefer installed higher-signal CLI tools when they fit:
-  - `ast-grep` for syntax-aware code search or rewrites.
-  - `difftastic` for structural diffs.
-  - `shellcheck` for shell scripts.
-  - `sd` for simple find-and-replace.
-  - `scc` for codebase line/complexity overviews.
-  - `fd` for ergonomic file search.
-  - `bat`, `eza`, and `glow` for human-facing display when useful.
+- Follow the nearest repository instructions and established command surface. Prefer, in order: a repository helper or skill that encodes workflow safeguards, a suitable app or MCP connector, an authenticated CLI, then raw REST or `curl`.
+- Use tool discovery when a connector could materially help and its availability is unknown. Do not run discovery before routine local commands.
+- For Jira, prefer `acli` when installed unless repository guidance provides a safer helper. Use MCP when explicitly requested or when the CLI cannot cover the operation.
+- For GitHub, prefer an available app or MCP connector when it covers the operation. If it is unavailable or fails, say that you are falling back before using `gh`.
+- Use `rg` and `rg --files` for text and file search. Prefer structured parsers such as `jq` or `yq` for structured data.
+- Use context-mode for large or unpredictable output so raw bytes do not consume the conversation context.
 
 ## Permission Hygiene
 
-- When requesting a persistent command approval, keep `prefix_rule` narrow and task-shaped, such as `["make", "test"]` or `["gh", "pr", "view"]`.
-- Never request escalation or persistent approval solely for standalone, local, read-only `rg` or `jq` commands.
-- When filtering output from a remote or otherwise approval-requiring command, do not combine that command with `rg` or `jq` in one shell pipeline or compound command. Prefer the remote tool's native filtering option, such as `gh --jq`, or run the remote command and local filtering as separate tool calls so the approval prompt identifies the operation that actually needs access.
-- For routine Jira CLI work, prefer narrow `acli` approval prefixes such as `["acli", "jira", "auth", "status"]`, `["acli", "jira", "workitem", "view"]`, `["acli", "jira", "workitem", "search"]`, or `["acli", "jira", "workitem", "comment", "list"]`; request mutating prefixes like `comment create/update/delete`, `workitem edit`, or `transition` only when the task needs them.
-- Do not request broad persistent approvals for shells, interpreters, package managers, or generic CLIs unless the exact subcommand is constrained enough to be safe.
-- Prefer one-off approval for unusual writes, destructive actions, broad environment changes, or commands that combine several operations.
-- If an approval rule was clearly a one-off workaround, do not reuse it as evidence that similar future commands should be allowed.
-- Read-only tmux probes such as `tmux show-options`, `tmux show-window-options`, and `tmux display-message` are safe candidates for narrow persistent approval when debugging terminal behavior.
-- On macOS, browser or GUI automation can fail inside the Codex `workspace-write` sandbox because the app process needs OS services outside the file sandbox. Do not switch the whole session to `danger-full-access` for this. Keep normal work sandboxed, then rerun only the browser or GUI command with explicit approval using a narrow, task-shaped `prefix_rule`, such as `["npx", "playwright", "test"]`, `["npm", "test"]`, or a project-defined test command.
-- For scratch files, temporary scripts, generated logs, or one-off artifacts that do not belong in the repo, write under `/tmp` or `/private/tmp` rather than inside project directories or home-directory caches.
+- Keep persistent `prefix_rule` approvals narrow and task-shaped. Do not request persistent approval for broad shells, interpreters, package managers, or destructive commands.
+- Do not request escalation solely for local, read-only searches.
+- Keep remote commands and local output filtering separate when that makes the approval target clearer; prefer native filters such as `gh --jq`.
+- Use one-off approval for unusual writes, destructive actions, broad environment changes, or compound commands.
+- Write scratch scripts, generated logs, and one-off artifacts under `/tmp` or `/private/tmp`.
+- On macOS, keep normal work sandboxed and escalate only the browser or GUI command that requires OS services.
 
 ## Environment
 
-- Interactive shell preference: Fish.
-- Scripts, hooks, and non-interactive commands should use Bash with `#!/usr/bin/env bash` unless the project says otherwise.
+- Interactive shell: Fish.
+- Shell scripts, hooks, and non-interactive shell commands should use Bash with `#!/usr/bin/env bash` unless the project says otherwise.
 - Editor: nvim.
-- Terminal: Ghostty + tmux.
+- Terminal: Ghostty with tmux.
 - Color scheme preference: Catppuccin Mocha.
 
-## Dotfiles
+## Dotfiles and Config
 
-- Dotfiles are tracked in a bare git repository. Use this form for dotfiles git operations:
+- Dotfiles use a bare Git repository:
+  ```bash
+  git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
+  ```
+- `dots` is a Fish abbreviation, not a command. Use the full Git form in scripts and tool calls.
+- Because the dotfiles repository hides untracked files by default, explicitly include `--untracked-files=all` or use the local status helpers before assuming a new file is tracked.
+- Never commit or hardcode machine-local identity, secrets, auth, or trust state. Important local files include `~/.config/git/config.local`, `~/.config/fish/secrets.fish`, `~/.config/claude/.claude.json`, and `~/.config/codex/config.toml`.
+- Use `~/.config/codex/config.shared.toml` as the portable reference for Codex settings and ask before copying shared settings into the live `config.toml`.
+- Prefer canonical paths under `~/.config`; `~/.claude` and `~/.codex` resolve there on configured machines.
+- When changing Fish files, run `fish -n`. Do not commit generated Fisher files unless they are intentional custom dotfiles.
 
-```bash
-git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" <command>
-```
+## Git and Remote Work
 
-- `dots` is a Fish abbreviation, not a real command. Do not use it in scripts, tool calls, or non-interactive commands.
-- The dotfiles repo uses `status.showUntrackedFiles=no`; use `dots-status`, `dots-untracked`, or `git --git-dir="$HOME/.dotfiles" --work-tree="$HOME" status --short --untracked-files=all` before assuming a new file is tracked.
-- Machine-local files must not be committed or hardcoded:
-  - `~/.config/git/config.local`
-  - `~/.config/fish/secrets.fish`
-  - `~/.config/claude/.claude.json`
-- For Codex settings, keep `~/.config/codex/config.toml` untracked because it contains machine-local trust state, absolute paths, and hook hashes. Use `~/.config/codex/config.shared.toml` as the tracked reference for portable settings, and ask before copying any shared setting into the live `config.toml`.
-- The dotfiles setup script makes `~/.codex` a symlink to `~/.config/codex`; treat those paths as the same Codex home. Prefer editing the canonical `~/.config/codex/...` path, and do not make separate divergent changes under `~/.codex/...`.
-- If changing Fish config, validate changed Fish files with `fish -n` before finishing.
-- Fisher-generated files under `functions/`, `conf.d/`, or `completions/` should not be committed unless they are intentional custom dotfiles.
-
-## Git And Commits
-
-- Never run destructive git commands such as `git reset --hard` or `git checkout --` without explicit user authorization.
-- For non-interactive Git operations that may open an editor, use `core.editor=true` or `GIT_EDITOR=true` so rebases and commits do not block on an interactive editor.
-- Do not revert user changes unless the user explicitly asks.
-- Keep commits focused and authored solely by the user.
-- Never add AI attribution to commits, PR descriptions, or generated notes.
-
-## GitHub PR Workflow
-
-- After renaming a branch that backs an open GitHub PR, immediately verify the PR state and head branch. GitHub can close the PR instead of moving the head branch cleanly. If that happens, recreate the PR from the renamed branch and update any related issue links.
-- For Copilot review requests, use GraphQL `requestReviews` with `botIds`, then verify through `requested_reviewers` or PR events. Do not rely on `gh pr edit --add-reviewer` or REST reviewer shortcuts for Copilot because they can appear successful without starting a bot review.
-- For PR review cleanup, a clean later review is not enough. Always query unresolved `reviewThreads`, reply to fixed threads with the commit SHA, resolve them, and re-check unresolved thread count before declaring the PR clean.
-- Keep PR label changes on the GitHub app/MCP path when available; use `gh` only when the connector does not expose the needed operation.
+- Never run destructive Git commands such as `git reset --hard` or `git checkout --` without explicit authorization.
+- Use `core.editor=true` or `GIT_EDITOR=true` for non-interactive Git operations that may open an editor.
+- Keep commits focused and authored solely by the user. Never add AI attribution, `Co-Authored-By`, or generated-by footers to commits, PRs, or notes.
+- After mutating GitHub, Jira, documentation, or generated agent files, independently read back the changed state before reporting success.
+- When reporting PR readiness, separate CI results, review decision, unresolved threads, and merge state. Verify the current head and paginate checks before claiming green.
+- After renaming a branch that backs an open PR, verify the PR and head branch immediately.
+- For Copilot review requests, use the supported bot-review API path and verify the request. A later clean review does not replace resolving relevant existing review threads.
 
 ## Validation
 
 - Run targeted checks that match the changed files and project conventions.
-- If sandboxed commands warn that they cannot write under `~/Library/Caches` for `mise` or Go build cache, prefer adding or using a project-local ignored cache path such as `.cache/mise` and `.cache/go-build` through the repo's Makefile or test wrapper. For one-off commands, rerun with temp cache dirs such as `MISE_CACHE_DIR=/private/tmp/mise-cache GOCACHE=/private/tmp/go-build-cache`. Do not treat cache permission warnings as project failures.
-- Validate Lua changes with `luac -p <file>` when working on Neovim/Lua config.
-- Validate shell scripts with `shellcheck` when available.
-- For Fish files, run `fish -n <file>`.
-
-## Tool Gotchas
-
-- `rg`: `-h` means `--help`, not "no filename". Use `--no-filename` or `-I` for no-filename output.
-- If a command unexpectedly prints a tool's help text, assume a bad flag and fix the command before trusting the output.
+- Validate shell scripts with `shellcheck` when available, Fish with `fish -n`, and Lua with `luac -p`.
+- Treat sandbox cache-permission warnings as environment constraints, not project failures. Prefer project-local ignored caches or one-off caches under `/private/tmp`.
 
 ## context-mode
 
-The context-mode plugin **auto-injects** its full routing guidance (Think-in-Code, the
-tool-selection hierarchy, `ctx` commands, session-memory rules) into context at session start via
-its hooks — a single source of truth the plugin keeps current and platform-correct, so it is **not**
-duplicated here. This relies on `plugin_hooks = true` / `[features].hooks = true` in `config.toml`
-(see `../AI-SETUP.md`).
-
-Durable intent if that injected guidance is ever absent: prefer context-mode tools to keep raw bytes
-out of context — program the analysis with `ctx_execute`, gather/search with `ctx_batch_execute` and
-`ctx_search` instead of reading large raw output into the conversation, and on resume search session
-memory before asking the user what you were doing.
+context-mode injects its current routing and session-memory guidance automatically. Prefer its gather, processing, and search tools for large outputs, and search preserved session memory before asking the user to reconstruct prior work.
