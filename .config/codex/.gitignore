@@ -54,11 +54,20 @@ vendor_imports/
 # Installed macOS computer-use app bundle (binary, not config)
 computer-use/
 
+# Per-machine state markers and generated runtime artifacts that previously
+# leaked through as untracked candidates
+.sandbox_migration
+generated_images/
+mcp-oauth-locks/
+
 # Memories live in their own nested git repo, not in dotfiles
 memories/
 
 # Live execpolicy rules auto-grow per machine/repo (auto_review learns them) —
-# keep machine-local; share curated rules via a *.dotfiles-reference-* snapshot instead.
+# keep machine-local. The shareable baseline is rules/curated.rules, which IS
+# tracked: seed a new machine's default.rules from it, and fold genuinely
+# reusable rules back into it instead of tracking the live file. Keep one-shot
+# approvals (hardcoded PR/run ids, /tmp paths) out of curated.rules.
 rules/default.rules
 # Local rules backups / reference snapshots
 rules/*.backup-*
@@ -66,6 +75,8 @@ rules/*.dotfiles-reference-*
 
 # Installed/vendored skills are managed by Codex, not personal dotfiles
 skills/.system/
-skills/playwright/
+# No trailing slash: playwright is a symlink into ~/workspace/scripts/skills,
+# and git sees a symlink as a file, so a dir-only pattern never matches it.
+skills/playwright
 # Note: AGENTS.md and config.shared.toml are intentionally trackable.
 # Keep secrets out of shared config — use env vars, never hardcoded keys.
