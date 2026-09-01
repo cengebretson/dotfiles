@@ -282,11 +282,7 @@
       "Bash(acli jira read *)",
       "Bash(los-scripts review *)"
     ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(git push* origin develop*)",
-      "Bash(*stgcore-app-ulp*)"
-    ],
+    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"],
     "environment": [
       "### Org-wide",
       "**Organization**: Lenders-Cooperative is the primary GitHub org; thesummitgrp is a legacy/shared org that still hosts some repos, and thesummitgrp-repo hosts shared reusable GitHub Actions. Both are internal. Jira/Confluence at venturesgo.atlassian.net",
