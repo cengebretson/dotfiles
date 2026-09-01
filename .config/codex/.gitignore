@@ -60,7 +60,9 @@ computer-use/
 generated_images/
 mcp-oauth-locks/
 
-# Memories live in their own nested git repo, not in dotfiles
+# Machine-local agent memory: project-scoped, churny, and not generic, so it is
+# deliberately unversioned and out of dotfiles. (It was briefly its own nested
+# git repo; that was removed 2026-09-01.)
 memories/
 
 # Live execpolicy rules auto-grow per machine/repo (auto_review learns them) —
