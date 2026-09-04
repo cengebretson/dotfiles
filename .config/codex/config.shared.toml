@@ -5,6 +5,11 @@
 sandbox_mode = "workspace-write"
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
+model_verbosity = "low"
+developer_instructions = """
+Keep work-in-progress updates extremely brief: one sentence when possible.
+Only report meaningful findings, blockers, or completed milestones.
+"""
 
 [sandbox_workspace_write]
 writable_roots = ["/tmp", "/private/tmp"]
