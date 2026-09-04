@@ -33,6 +33,14 @@ then make test. An executable .release-sync can update other tracked files.
 EOF
 }
 
+git_release_run_tests() {
+	local test_cmd="$1"
+	printf 'Running tests: %s\n' "$test_cmd"
+	bash -c "$test_cmd"
+	[[ -z "$(git status --porcelain)" ]] ||
+		git_release_die "tests modified the working tree; changes were preserved"
+}
+
 git_release_main() {
 	local spec='' dry_run=false show_current=false push=false
 	local allow_empty_changelog=false allow_branch=false allow_no_tests=false no_fetch=false
@@ -149,8 +157,7 @@ EOF
 	fi
 
 	if [[ -n "$test_cmd" ]]; then
-		printf 'Running tests: %s\n' "$test_cmd"
-		bash -c "$test_cmd"
+		git_release_run_tests "$test_cmd"
 	else
 		printf '%s\n' 'git-release: no test runner detected; skipping tests (--allow-no-tests)' >&2
 	fi

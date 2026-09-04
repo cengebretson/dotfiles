@@ -9,7 +9,7 @@
 set -uo pipefail
 
 lib_dir="${GIT_RELEASE_LIB_DIR:-$HOME/.local/lib/git-release}"
-for module in common version changelog; do
+for module in common version changelog workflow; do
 	# shellcheck source=/dev/null
 	source "$lib_dir/$module.sh"
 done
@@ -165,6 +165,33 @@ if (
 else
 	fail "no runner resolves empty"
 fi
+
+# A successful test command must not be allowed to smuggle unrelated tracked
+# changes into the release commit.
+mkdir -p "$work/test-cleanliness"
+if (
+		cd "$work/test-cleanliness" || exit 1
+		git init -q
+		git config user.name test
+		git config user.email test@example.invalid
+		printf 'original\n' >tracked.txt
+		git add tracked.txt
+		git commit -qm initial
+		git_release_run_tests true >/dev/null
+); then
+	ok "clean tests allow the release to continue"
+else
+	fail "clean tests allow the release to continue"
+fi
+if (
+		cd "$work/test-cleanliness" || exit 1
+		git_release_run_tests "printf 'changed by tests\\n' >tracked.txt" >/dev/null 2>&1
+); then
+	fail "tests cannot modify tracked release content"
+else
+	ok "tests cannot modify tracked release content"
+fi
+assert_eq "changed by tests" "$(cat "$work/test-cleanliness/tracked.txt")" "test changes are preserved for inspection"
 # --- changelog action detection -------------------------------------------
 
 mkdir -p "$work/cl"
