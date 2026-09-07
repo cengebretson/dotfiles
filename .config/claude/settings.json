@@ -53,7 +53,6 @@
     "additionalDirectories": []
   },
   "model": "opus[1m]",
-  "outputStyle": "Concise",
   "hooks": {
     "Notification": [
       {
@@ -266,14 +265,18 @@
       }
     }
   },
+  "outputStyle": "Concise",
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
-      "allowWrite": ["/tmp", "/private/tmp"]
+      "allowWrite": [
+        "/tmp",
+        "/private/tmp"
+      ]
     }
   },
-  "effortLevel": "high",
+  "effortLevel": "medium",
   "tui": "fullscreen",
   "theme": "dark-ansi",
   "editorMode": "vim",
@@ -283,7 +286,10 @@
       "Bash(acli jira read *)",
       "Bash(los-scripts review *)"
     ],
-    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"],
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push* origin develop*)"
+    ],
     "environment": [
       "### Org-wide",
       "**Organization**: Lenders-Cooperative is the primary GitHub org; thesummitgrp is a legacy/shared org that still hosts some repos, and thesummitgrp-repo hosts shared reusable GitHub Actions. Both are internal. Jira/Confluence at venturesgo.atlassian.net",
