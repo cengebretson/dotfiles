@@ -10,7 +10,8 @@
 - For familiar implementation work, start from the nearest relevant instructions and touched files. Load broad architecture or workflow documentation only when the task makes it relevant.
 - Bias toward action when the next step is clear and within scope. Pause for destructive actions, broad permission changes, public publishing, or decisions where reasonable choices materially diverge.
 - Preserve user changes and unrelated dirty work. Never revert, delete, or rewrite them without explicit authorization.
-- Keep communication direct and concise. Prefer concrete paths, commands, findings, and verification results.
+- Default to concise, milestone-only communication for everyday work. Give a brief initial action statement, then report material findings, decisions, blockers, and completion. Skip narration of routine reads, commands, retries, and polling.
+- Honor runtime-required progress updates with the shortest useful update. Answer direct questions promptly. Keep final replies focused on the result, verification, and remaining work; expand when the user asks or the task requires it.
 - When working inside tmux, whenever a Jira key becomes known from the user, Jira, the branch, worktree metadata, or task artifacts, immediately reconcile the current pane's tmux-attention project. Keep automatic context when it matches; otherwise run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`, then verify it with `tmux-attention get`. Update the declaration when switching tickets and clear it only when the pane returns to non-ticket work. Do not infer Jira keys from window names or arbitrary prompt text. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
 
 ## Tool Routing
