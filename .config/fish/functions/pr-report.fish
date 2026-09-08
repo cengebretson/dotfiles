@@ -53,6 +53,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira status/links are optional — they appear only when acli is authenticated"
         echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
+        echo "    • Slack skips Jira; --short keeps issue links without fetching statuses."
         echo "    • PR search is paginated; nested GitHub collections are capped at 100 items per PR."
         return 0
     end
@@ -75,6 +76,12 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     set -l mode pretty
     set -q _flag_json; and set mode json
     set -q _flag_slack; and set mode slack
+
+    # Slack uses no Jira data. Short output needs links, but not statuses.
+    set -l jira_status_needed 0
+    if test "$mode" = json; or begin; test "$mode" = pretty; and not set -q _flag_short; end
+        set jira_status_needed 1
+    end
 
     # Dim-but-readable grey for secondary text (Catppuccin Mocha subtext0).
     # brblack maps to a near-invisible surface colour on this theme.
@@ -101,10 +108,12 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     set -l jira_ok 0
     set -l jira_auth_file ""
     set -l jira_auth_pid ""
-    if not set -q _flag_no_jira; and command -q acli
+    if test "$mode" != slack; and not set -q _flag_no_jira; and command -q acli
         set jira_auth_file (mktemp /private/tmp/pr-report-jira-auth.XXXXXX 2>/dev/null)
         if test -n "$jira_auth_file"
-            acli jira auth status >$jira_auth_file 2>/dev/null &
+            # Fish wait reports whether it waited, not the child's exit code.
+            # Record the actual auth result in the same private output file.
+            fish --no-config -c 'acli jira auth status; printf "\n__pr_report_auth_status=%s\n" $status' >$jira_auth_file 2>/dev/null &
             set jira_auth_pid $last_pid
         end
     end
@@ -141,7 +150,9 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # 14 requested_reviewers(csv)  15 mergeable  16 merge_state_status
     # copilot_count = unresolved threads with a Copilot comment; comment_count =
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
-    set -l pr_lines (gh api graphql --paginate -f q="repo:$repo is:pr is:open author:@me" \
+    set -l search_query "repo:$repo is:pr is:open author:@me"
+    set -q _flag_all; or set search_query "$search_query draft:false"
+    set -l pr_lines (gh api graphql --paginate -f q="$search_query" \
         -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{databaseId name status conclusion} ... on StatusContext{context createdAt state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
         --jq '
             def cls:
@@ -192,7 +203,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # replacing the previous second, serial `acli jira auth status` call.
     if test -n "$jira_auth_pid"
         wait $jira_auth_pid
-        if test $status -eq 0
+        if string match -q '__pr_report_auth_status=0' <$jira_auth_file
             set jira_ok 1
             set -l site (string match -rg 'Site:\s*(\S+)' <$jira_auth_file)
             test -n "$site"; and set jira_server "https://$site"
@@ -232,68 +243,114 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         return 0
     end
 
-    # Universal sort for every output mode:
-    #   1. draft before open
-    #   2. merge conflicts before needs-attention before waiting before approved
-    #   3. title, then PR number for a stable tie-breaker
-    # Fields: 2 title · 3 branch · 4 review · 6 ci_fail · 9 copilot ·
-    # 12 comments · 13 draft · 14 requested reviewers · 15 mergeable · 16 merge state.
+    # Classify and filter before sorting or fetching Jira statuses. Carry the
+    # derived state into rendering so sorting, filtering, and markers agree.
+    # Appended fields: 17 state, 18 review text, 19 review colour, 20 conflicts.
     set -l sortable_lines
     for line in $pr_lines
-        set -l p (string split \t $line)
-        set -l draft_rank 1
-        test "$p[13]" = true; and set draft_rank 0
+        set -l parts (string split \t $line)
+        set -l review $parts[4]
+        set -l requested_reviewers $parts[14]
+        set -l has_merge_conflicts 0
+        if test "$parts[15]" = CONFLICTING; or test "$parts[16]" = DIRTY
+            set has_merge_conflicts 1
+        end
 
         # GitHub keeps reviewDecision=CHANGES_REQUESTED until the reviewer
         # approves again. Once re-review is requested, resolved feedback is a
         # reviewer task, not an author-attention item.
         set -l changes_need_action 0
-        if test "$p[4]" = CHANGES_REQUESTED; and test -z "$p[14]"
+        if test "$review" = CHANGES_REQUESTED; and test -z "$requested_reviewers"
             set changes_need_action 1
         end
 
         set -l status_rank 2
-        if test "$p[15]" = CONFLICTING; or test "$p[16]" = DIRTY
+        set -l pr_state waiting
+        if test $has_merge_conflicts -eq 1
             set status_rank 0
-        else if test "$p[9]" -gt 0 2>/dev/null; or test "$p[12]" -gt 0 2>/dev/null; or test "$p[6]" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
+            set pr_state conflict
+        else if test "$parts[9]" -gt 0 2>/dev/null; or test "$parts[12]" -gt 0 2>/dev/null; or test "$parts[6]" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
             set status_rank 1
-        else if test "$p[4]" = APPROVED; and test -z "$p[14]"
+            set pr_state attention
+        else if test "$review" = APPROVED; and test -z "$requested_reviewers"
             set status_rank 3
+            set pr_state approved
+        end
+        set -l draft_rank 1
+        if test "$parts[13]" = true
+            set draft_rank 0
+            test $has_merge_conflicts -eq 0; and set pr_state draft
         end
 
-        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$p[2]") $p[1] $line)
+        set -l review_text
+        set -l review_color
+        switch $review
+            case APPROVED
+                set review_text approved
+                set review_color green
+            case CHANGES_REQUESTED
+                set review_text "changes requested"
+                set review_color red
+            case '*'
+                set review_text "review required"
+                set review_color yellow
+        end
+        if test -n "$requested_reviewers"; and test "$parts[13]" != true
+            set review_text "re-review requested"
+            set review_color yellow
+        end
+
+        set -l merge_conflict_text ""
+        test $has_merge_conflicts -eq 1; and set merge_conflict_text "merge conflict"
+
+        # Preserve the existing substring/glob filter and its AND/exclusion rules.
+        if test -n "$filter"
+            set -l haystack (string lower -- "$parts[2] $parts[3] $parts[8] $review_text $pr_state $merge_conflict_text $parts[15] $parts[16]")
+            set -l skip 0
+            for term in $filter_inc
+                string match -q -- "*$term*" $haystack; or set skip 1
+            end
+            for term in $filter_exc
+                string match -q -- "*$term*" $haystack; and set skip 1
+            end
+            test $skip -eq 1; and continue
+        end
+
+        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$parts[2]") $parts[1] $line $pr_state $review_text $review_color $has_merge_conflicts)
     end
+    if test (count $sortable_lines) -eq 0
+        _pr_report_none $mode "No open PRs match \"$filter\" in $repo." "No open PRs match \"$filter\"."
+        return 0
+    end
+    # Drafts first, then conflict/attention/waiting/approved, then title/number.
     set pr_lines (printf '%s\n' $sortable_lines | sort -t \t -k1,1n -k2,2n -k3,3 -k4,4 | cut -f5-)
 
-    # Batch every branch's Jira key into ONE search query, then look statuses up in
-    # the render loop — instead of one acli view per PR. Parallel arrays
+    # Batch unique Jira keys from the visible PRs, then look up their statuses.
+    # Pagination covers reports with more than 100 distinct issues. Parallel arrays
     # (jira_keys[i] -> jira_vals[i]) act as the lookup table.
     set -l jira_keys
     set -l jira_vals
-    if test $jira_ok -eq 1
+    if test $jira_ok -eq 1; and test $jira_status_needed -eq 1
         set -l keys
         for line in $pr_lines
             set -l k (string match -r '[A-Z][A-Z0-9]+-[0-9]+' -- (string split \t $line)[3])
-            test -n "$k"; and set -a keys $k
+            if test -n "$k"; and not contains -- $k $keys
+                set -a keys $k
+            end
         end
         if test (count $keys) -gt 0
-            set -l rows (acli jira workitem search --jql "key in ("(string join , $keys)")" \
-                --fields "key,status" --limit 100 --json 2>/dev/null \
-                | jq -r '.[]? | [.key, (.fields.status.name // "")] | @tsv' 2>/dev/null)
-            for r in $rows
-                set -l p (string split \t $r)
-                set -a jira_keys $p[1]
-                set -a jira_vals $p[2]
-            end
-            # Safety net: one nonexistent key can make the JQL query fail. If the
-            # batch came back empty despite having keys, fall back to resilient
-            # per-key views so a single bad branch doesn't blank out every status.
-            if test (count $jira_keys) -eq 0
-                for k in $keys
-                    set -l st (acli jira workitem view $k --fields "key,status" --json 2>/dev/null \
-                        | jq -r '.fields.status.name // empty' 2>/dev/null)
-                    set -a jira_keys $k
-                    set -a jira_vals "$st" # quote: keep arrays aligned even when status is empty
+            # Search returns accessible keys even when other keys are missing.
+            # On failure, leave statuses unknown instead of retrying every key.
+            set -l jira_result (acli jira workitem search --jql "key in ("(string join , $keys)")" \
+                --fields "key,status" --paginate --json 2>/dev/null)
+            if test $status -eq 0
+                set -l rows (printf '%s\n' $jira_result | jq -r '.[]? | [.key, (.fields.status.name // "")] | @tsv' 2>/dev/null)
+                if test $status -eq 0
+                    for r in $rows
+                        set -l p (string split \t $r)
+                        set -a jira_keys $p[1]
+                        set -a jira_vals "$p[2]"
+                    end
                 end
             end
         end
@@ -326,68 +383,10 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set -l requested_reviewers $parts[14]
         set -l mergeable $parts[15]
         set -l merge_state_status $parts[16]
-        set -l has_merge_conflicts 0
-        if test "$mergeable" = CONFLICTING; or test "$merge_state_status" = DIRTY
-            set has_merge_conflicts 1
-        end
-        set -l changes_need_action 0
-        if test "$review" = CHANGES_REQUESTED; and test -z "$requested_reviewers"
-            set changes_need_action 1
-        end
-
-        # PR state drives the marker (computed before the filter so the filter can
-        # match it):
-        #   conflict  — branch has merge conflicts with its base
-        #   attention — needs YOUR action: open Copilot OR reviewer threads, failing CI, or unqueued changes requested
-        #   approved  — clean and a reviewer approved
-        #   waiting   — clean but still awaiting a reviewer (review required / no decision yet)
-        set -l pr_state waiting
-        if test $has_merge_conflicts -eq 1
-            set pr_state conflict
-        else if test "$count" -gt 0 2>/dev/null; or test "$comments" -gt 0 2>/dev/null; or test "$ci_fail" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
-            set pr_state attention
-        else if test "$review" = APPROVED; and test -z "$requested_reviewers"
-            set pr_state approved
-        end
-        if test "$is_draft" = true; and test $has_merge_conflicts -eq 0
-            set pr_state draft
-        end
-
-        # Review label + colour, reused by pretty/slack and searchable by the filter.
-        set -l review_text
-        set -l review_color
-        switch $review
-            case APPROVED
-                set review_text approved
-                set review_color green
-            case CHANGES_REQUESTED
-                set review_text "changes requested"
-                set review_color red
-            case '*'
-                set review_text "review required"
-                set review_color yellow
-        end
-        if test -n "$requested_reviewers"; and test "$is_draft" != true
-            set review_text "re-review requested"
-            set review_color yellow
-        end
-
-        set -l merge_conflict_text ""
-        test $has_merge_conflicts -eq 1; and set merge_conflict_text "merge conflict"
-
-        # Filter: every include term must match and no exclude term may match,
-        # against title + branch + labels + review status + state word.
-        if test -n "$filter"
-            set -l haystack (string lower -- "$pr_title $pr_branch $parts[8] $review_text $pr_state $merge_conflict_text $mergeable $merge_state_status")
-            set -l skip 0
-            for term in $filter_inc
-                string match -q -- "*$term*" $haystack; or set skip 1
-            end
-            for term in $filter_exc
-                string match -q -- "*$term*" $haystack; and set skip 1
-            end
-            test $skip -eq 1; and continue
-        end
+        set -l pr_state $parts[17]
+        set -l review_text $parts[18]
+        set -l review_color $parts[19]
+        set -l has_merge_conflicts $parts[20]
 
         # Count toward the summary only once a PR has passed the filter.
         set -l needs 0
