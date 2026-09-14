@@ -6,6 +6,8 @@ sandbox_mode = "workspace-write"
 approval_policy = "on-request"
 approvals_reviewer = "auto_review"
 model_verbosity = "low"
+hide_agent_reasoning = true
+show_raw_agent_reasoning = false
 developer_instructions = """
 Keep work-in-progress updates extremely brief: one sentence when possible.
 Only report meaningful findings, blockers, or completed milestones.

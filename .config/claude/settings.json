@@ -1,4 +1,8 @@
 {
+  "verbose": false,
+  "showThinkingSummaries": false,
+  "spinnerTipsEnabled": false,
+  "showTurnDuration": false,
   "permissions": {
     "allow": [
       "mcp__plugin_context-mode_context-mode__*",
@@ -31,6 +35,8 @@
       "Bash(gh run list*)",
       "mcp__github__*",
       "Bash(pr-report*)",
+      "Bash(los-scripts *)",
+      "Bash(/Users/cengebretson/workspace/scripts/bin/los-scripts *)",
       "Bash(git push*)",
       "Bash(git fetch*)",
       "Bash(git pull*)",

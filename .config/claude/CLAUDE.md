@@ -5,6 +5,10 @@
 
 ## Working Style
 
+- Default to quiet execution: one short sentence per meaningful milestone or required progress update, with no routine tool narration. Do not announce context-mode, ctx_* calls, indexing, or token savings unless asked or a failure needs attention. Continue using the tools needed for the task.
+- Keep verbose command output in logs or process it before returning it; show a short result or actionable error excerpt. Do not repeat successful tool output in prose or dump tool code, raw JSON, or full logs into the conversation.
+- Default final responses to one short paragraph or at most three short bullets: result, verification, and any remaining blocker. Expand when asked or when a review or explanation requires detail. Always surface failures, necessary approvals, and incomplete work.
+
 - At the start of substantive work, use `/health-check`. Keep the normal check lightweight; run deep diagnostics only when requested or when a required probe fails. For tiny local questions, use local-only checks and say what was skipped.
 - For a quick coding handoff or resume, inspect repository status, nearest instructions, obvious task artifacts, and the project command router before choosing the next action.
 - For familiar implementation work, start from the nearest relevant instructions and touched files. Load broad architecture or workflow documentation only when the task makes it relevant.
@@ -15,6 +19,8 @@
 - When working inside tmux, whenever a Jira key becomes known from the user, Jira, the branch, worktree metadata, or task artifacts, immediately reconcile the current pane's tmux-attention project. Keep automatic context when it matches; otherwise run `tmux-attention project set <KEY> --slug <short-kebab-case-summary>`, then verify it with `tmux-attention get`. Update the declaration when switching tickets and clear it only when the pane returns to non-ticket work. Do not infer Jira keys from window names or arbitrary prompt text. If tmux-attention is unavailable or the session is outside tmux, continue without treating that as a task failure.
 
 ## Tool Routing
+
+- The user authorizes running all `los-scripts` subcommands without repeated permission questions within the requested task. Prefer direct `los-scripts` invocations or its canonical executable path so the command allowance can match; avoid unnecessary shell wrappers. This does not authorize unrelated actions or override enforced runtime restrictions.
 
 - Follow the nearest repository instructions and established command surface. Prefer, in order: a repository helper or skill that encodes workflow safeguards, a suitable app or MCP connector, an authenticated CLI, then raw REST or `curl`.
 - Use tool discovery when a connector could materially help and its availability is unknown. Do not run discovery before routine local commands.
