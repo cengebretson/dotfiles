@@ -1,8 +1,4 @@
 {
-  "verbose": false,
-  "showThinkingSummaries": false,
-  "spinnerTipsEnabled": false,
-  "showTurnDuration": false,
   "permissions": {
     "allow": [
       "mcp__plugin_context-mode_context-mode__*",
@@ -282,10 +278,14 @@
       ]
     }
   },
+  "spinnerTipsEnabled": false,
   "effortLevel": "medium",
   "tui": "fullscreen",
+  "showThinkingSummaries": false,
   "theme": "dark-ansi",
   "editorMode": "vim",
+  "verbose": false,
+  "showTurnDuration": false,
   "autoMode": {
     "allow": [
       "$defaults",
