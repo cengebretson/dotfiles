@@ -13,7 +13,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set_color --bold white
         echo USAGE
         set_color normal
-        echo "    pr-report [--all] [--no-jira] [--slack | --json] [FILTER...]"
+        echo "    pr-report [--all] [--no-jira] [--short | --slack | --json] [FILTER...]"
         echo
         set_color --bold white
         echo OPTIONS
@@ -51,9 +51,11 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         set_color normal
         printf '    • Marker: ◆ draft · \ue727 merge conflict · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
-        echo "    • Jira status/links are optional — they appear only when acli is authenticated"
-        echo "      (run 'acli jira auth login'). The Jira segment is a click-to-open link in supporting terminals."
+        echo "    • Jira statuses require authenticated acli (run 'acli jira auth login')."
+        echo "      Short output links directly to VenturesGo Jira without authenticating."
         echo "    • Slack skips Jira; --short keeps issue links without fetching statuses."
+        echo "    • Non-drafts sort first, then drafts, each by ascending PR number."
+        echo "    • Unfiltered --short uses mergeable for conflicts; filtered and JSON reports retain full merge state."
         echo "    • PR search is paginated; nested GitHub collections are capped at 100 items per PR."
         return 0
     end
@@ -108,7 +110,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     set -l jira_ok 0
     set -l jira_auth_file ""
     set -l jira_auth_pid ""
-    if test "$mode" != slack; and not set -q _flag_no_jira; and command -q acli
+    if test $jira_status_needed -eq 1; and not set -q _flag_no_jira; and command -q acli
         set jira_auth_file (mktemp /private/tmp/pr-report-jira-auth.XXXXXX 2>/dev/null)
         if test -n "$jira_auth_file"
             # Fish wait reports whether it waited, not the child's exit code.
@@ -119,6 +121,10 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     end
 
     set -l jira_server ""
+    # Short output only needs public issue URLs, not an authenticated Jira session.
+    if test "$mode" = pretty; and set -q _flag_short; and not set -q _flag_no_jira
+        set jira_server "https://venturesgo.atlassian.net"
+    end
 
     # Print the human header before network work so the command responds
     # immediately. Machine-readable modes remain free of decorative output.
@@ -152,8 +158,15 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     # unresolved threads with NO Copilot comment (human-only). They don't overlap.
     set -l search_query "repo:$repo is:pr is:open author:@me"
     set -q _flag_all; or set search_query "$search_query draft:false"
-    set -l pr_lines (gh api graphql --paginate -f q="$search_query" \
-        -f query='query($q:String!,$endCursor:String){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{databaseId name status conclusion} ... on StatusContext{context createdAt state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
+    # Full merge state is expensive and is not displayed by short output.
+    # Retain it for JSON consumers and all filters, including raw state terms.
+    # mergeable still detects conflicts in the unfiltered short report.
+    set -l include_merge_state true
+    if test "$mode" = pretty; and set -q _flag_short; and test -z "$filter"
+        set include_merge_state false
+    end
+    set -l pr_lines (gh api graphql --paginate -f q="$search_query" -F includeMergeState=$include_merge_state \
+        -f query='query($q:String!,$endCursor:String,$includeMergeState:Boolean!){search(query:$q,type:ISSUE,first:100,after:$endCursor){nodes{... on PullRequest{number title url headRefName reviewDecision mergeable mergeStateStatus @include(if:$includeMergeState) updatedAt isDraft labels(first:100){nodes{name}} reviewRequests(first:100){nodes{requestedReviewer{__typename ... on User{login} ... on Bot{login} ... on Team{slug}}}} commits(last:1){nodes{commit{statusCheckRollup{contexts(first:100){nodes{__typename ... on CheckRun{databaseId name status conclusion} ... on StatusContext{context createdAt state}}}}}}} reviewThreads(first:100){nodes{isResolved comments(first:5){nodes{author{login}}}}}}}pageInfo{hasNextPage endCursor}}}' \
         --jq '
             def cls:
               if .__typename == "CheckRun" then
@@ -218,7 +231,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         return 1
     end
 
-    if test "$mode" = pretty; and not set -q _flag_no_jira; and test $jira_ok -eq 0
+    if test "$mode" = pretty; and test $jira_status_needed -eq 1; and not set -q _flag_no_jira; and test $jira_ok -eq 0
         set_color $dim
         echo "   jira: not authenticated — run 'acli jira auth login' to add issue status"
         set_color normal
@@ -264,21 +277,17 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             set changes_need_action 1
         end
 
-        set -l status_rank 2
         set -l pr_state waiting
         if test $has_merge_conflicts -eq 1
-            set status_rank 0
             set pr_state conflict
         else if test "$parts[9]" -gt 0 2>/dev/null; or test "$parts[12]" -gt 0 2>/dev/null; or test "$parts[6]" -gt 0 2>/dev/null; or test $changes_need_action -eq 1
-            set status_rank 1
             set pr_state attention
         else if test "$review" = APPROVED; and test -z "$requested_reviewers"
-            set status_rank 3
             set pr_state approved
         end
-        set -l draft_rank 1
+        set -l draft_rank 0
         if test "$parts[13]" = true
-            set draft_rank 0
+            set draft_rank 1
             test $has_merge_conflicts -eq 0; and set pr_state draft
         end
 
@@ -316,14 +325,14 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
             test $skip -eq 1; and continue
         end
 
-        set -a sortable_lines (string join \t -- $draft_rank $status_rank (string lower -- "$parts[2]") $parts[1] $line $pr_state $review_text $review_color $has_merge_conflicts)
+        set -a sortable_lines (string join \t -- $draft_rank $parts[1] $line $pr_state $review_text $review_color $has_merge_conflicts)
     end
     if test (count $sortable_lines) -eq 0
         _pr_report_none $mode "No open PRs match \"$filter\" in $repo." "No open PRs match \"$filter\"."
         return 0
     end
-    # Drafts first, then conflict/attention/waiting/approved, then title/number.
-    set pr_lines (printf '%s\n' $sortable_lines | sort -t \t -k1,1n -k2,2n -k3,3 -k4,4 | cut -f5-)
+    # Non-drafts first, then drafts; numeric PR order within each group.
+    set pr_lines (printf '%s\n' $sortable_lines | sort -t \t -k1,1n -k2,2n | cut -f3-)
 
     # Batch unique Jira keys from the visible PRs, then look up their statuses.
     # Pagination covers reports with more than 100 distinct issues. Parallel arrays
