@@ -54,7 +54,7 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "opus[1m]",
+  "model": "opus",
   "hooks": {
     "Notification": [
       {
@@ -278,13 +278,20 @@
       ]
     }
   },
+  "feedbackDrafts": "off",
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
+  "modelSettings": {
+    "claude-opus-5-5": {
+      "effortLevel": "medium"
+    }
+  },
   "tui": "fullscreen",
   "showThinkingSummaries": false,
   "theme": "dark-ansi",
   "editorMode": "vim",
   "verbose": false,
+  "autoCompactEnabled": true,
   "showTurnDuration": false,
   "autoMode": {
     "allow": [

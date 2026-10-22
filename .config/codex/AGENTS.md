@@ -31,6 +31,11 @@
 
 ## Permission Hygiene
 
+- Run routine commands directly with the tool's working-directory argument. Keep approved command prefixes recognizable; do not wrap them in `bash -lc`, `zsh -lc`, or `sh -c` just to change directory or capture output.
+- Do not add shell redirection (`>`, `2>&1`, `<`), assignments, substitutions, or shell control flow to routine approved commands merely for logging. These can make the approval target the entire shell script instead of the approved command. Use tool output limits, context-mode for large output, or the command's native output-file option. Keep helper JSON stdout separate from diagnostic stderr.
+- For noninteractive Git writes, prefer `git commit -m ...` and `git merge --no-edit ...` when applicable. Reserve `core.editor=true` for operations that can actually open an editor, rather than changing every approved Git command's prefix.
+- Prefer the existing local QA-session helper (`los-scripts stack qa-session`) over hand-written Django login scripts and Docker session-file copies. Check `~/workspace/scripts/AGENTS.md` and the helper's documented syntax before introducing another authentication path.
+- Do not compensate for command-shape problems with broad shell/interpreter allowances, arbitrary-command runner wrappers, or repeated exact-script approvals. Fix command construction first. A skill or user instruction cannot override the active sandbox or approval policy.
 - Keep persistent `prefix_rule` approvals narrow and task-shaped. Do not request persistent approval for broad shells, interpreters, package managers, or destructive commands.
 - Do not request escalation solely for local, read-only searches.
 - Keep remote commands and local output filtering separate when that makes the approval target clearer; prefer native filters such as `gh --jq`.
