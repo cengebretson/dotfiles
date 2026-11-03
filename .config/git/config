@@ -1,5 +1,7 @@
 [core]
-	editor = true
+	# nvim for interactive use; agent sessions export GIT_EDITOR=true (Claude
+	# settings env, Codex shell_environment_policy) so they never block on it.
+	editor = nvim
 	abbrev = 7
   pager = delta
 [include]

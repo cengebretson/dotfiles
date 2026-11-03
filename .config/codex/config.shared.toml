@@ -65,3 +65,10 @@ sandbox_mode = "workspace-write"
 #   [profiles.yolo]
 #   approval_policy = "never"
 #   sandbox_mode = "danger-full-access"
+
+# Agent shells get a no-op git editor so commit/merge/rebase never block on nvim;
+# the user's own terminal keeps core.editor = nvim from git/config. Machine-local
+# cache paths belong in the live config.toml.
+[shell_environment_policy]
+inherit = "all"
+set = { GIT_EDITOR = "true" }
