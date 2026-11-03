@@ -173,6 +173,11 @@
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
             "async": true
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" session-end-summary",
+            "async": true
           }
         ]
       }
@@ -235,6 +240,10 @@
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" prompt-clear"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" summary-reminder"
           }
         ]
       },
@@ -272,10 +281,7 @@
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
-      "allowWrite": [
-        "/tmp",
-        "/private/tmp"
-      ]
+      "allowWrite": ["/tmp", "/private/tmp"]
     }
   },
   "feedbackDrafts": "off",
@@ -299,10 +305,7 @@
       "Bash(acli jira read *)",
       "Bash(los-scripts review *)"
     ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(git push* origin develop*)"
-    ],
+    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"],
     "environment": [
       "### Org-wide",
       "**Organization**: Lenders-Cooperative is the primary GitHub org; thesummitgrp is a legacy/shared org that still hosts some repos, and thesummitgrp-repo hosts shared reusable GitHub Actions. Both are internal. Jira/Confluence at venturesgo.atlassian.net",

@@ -66,6 +66,10 @@
             "type": "command"
           },
           {
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" summary-reminder",
+            "type": "command"
+          },
+          {
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
             "type": "command"
           }

@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Clear this pane's tmux summary when the agent session ends, so a closed
+# session never leaves a stale phrase in the status bar or fzf-jump.
+set -u
+[ -n "${TMUX_PANE:-}" ] || exit 100
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
+[ -x "$script" ] || exit 100
+exec "$script" summary clear --target "$TMUX_PANE" >/dev/null 2>&1
