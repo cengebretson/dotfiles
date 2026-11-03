@@ -71,7 +71,6 @@
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "opus",
   "env": {
     "GIT_EDITOR": "true"
   },
@@ -261,7 +260,8 @@
   "enabledPlugins": {
     "context-mode@context-mode": true,
     "playwright@claude-plugins-official": true,
-    "rust-analyzer-lsp@claude-plugins-official": true
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "clangd-lsp@claude-plugins-official": true
   },
   "extraKnownMarketplaces": {
     "context-mode": {
