@@ -15,7 +15,7 @@ set -u
 
 # Hooks may run with a minimal PATH that lacks the mise shims, so tools like
 # prettier/stylua/npx won't resolve. Prepend the shims dir to guarantee
-# resolution (mirrors the pre-commit python3.11 PATH workaround). Python
+# resolution. Python
 # formatting (black/isort) only runs if those are installed; on this host they
 # live in Docker/pre-commit, so the py branch is a harmless no-op until then.
 export PATH="$HOME/.local/share/mise/shims:$PATH"

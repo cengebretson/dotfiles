@@ -26,7 +26,7 @@
 - Follow the nearest repository instructions and established command surface. Prefer, in order: a repository helper or skill that encodes workflow safeguards, a suitable app or MCP connector, an authenticated CLI, then raw REST or `curl`.
 - Use tool discovery when a connector could materially help and its availability is unknown. Do not run discovery before routine local commands.
 - For Jira, prefer `acli` when installed unless repository guidance provides a safer helper. Use MCP when explicitly requested or when the CLI cannot cover the operation.
-- For GitHub, prefer an available app or MCP connector when it covers the operation. If it is unavailable or fails, say that you are falling back before using `gh`.
+- For GitHub, use `gh` directly. Claude has no GitHub MCP server configured (Codex does; see `~/.config/AI-SETUP.md`).
 - Use `rg` and `rg --files` for text and file search. Prefer structured parsers such as `jq` or `yq` for structured data.
 - Use context-mode for large or unpredictable output so raw bytes do not consume the conversation context.
 

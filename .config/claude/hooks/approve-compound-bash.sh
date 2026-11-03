@@ -18,8 +18,9 @@
 # Vendored: 2026-06-25 — frozen copy. To update: diff against upstream HEAD,
 #           re-read, then bump this Commit line. Do NOT auto-pull (it can
 #           auto-approve shell commands; changes must be reviewed by hand).
-# Registered directly under PreToolUse (matcher "Bash"), NOT via dispatch.sh —
-# this hook signals its decision on stdout, which dispatch.sh discards.
+# Registered directly under PreToolUse (matcher "Bash"), not via dispatch.sh, so
+# it keeps its own 5s timeout and the vendored layout stays untouched. It signals
+# its decision on stdout.
 # ────────────────────────────────────────────────────────────────────────────
 
 set -uo pipefail

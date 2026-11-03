@@ -82,3 +82,11 @@ skills/.system/
 skills/playwright
 # Note: AGENTS.md and config.shared.toml are intentionally trackable.
 # Keep secrets out of shared config — use env vars, never hardcoded keys.
+
+# Runtime sockets, daemons, bundled binaries and lock files.
+.hook-trust/
+app-server-control/
+app-server-daemon/
+packages/
+tui-thread-reference-capabilities/
+*.lock

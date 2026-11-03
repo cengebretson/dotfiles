@@ -48,7 +48,7 @@ git --git-dir=$HOME/.dotfiles --work-tree=$HOME <cmd>
 | `.local/bin/doctor`                               | health/audit entrypoint (`doctor ai` = hooks, integrations, deps, skills)                                                                                                                                                         | ✅            |
 | `.local/bin/ai-hook-dispatch`                     | shared hook dispatcher; each tool's `hooks/dispatch.sh` symlinks to it                                                                                                                                                            | ✅            |
 | `claude/hooks/handlers/`, `codex/hooks/handlers/` | per-tool hook handlers (shims tracked; machine-local symlinks like `domain-docs` 🚫 untracked)                                                                                                                                    | ✅/🚫         |
-| `~/.agents/skills/`                               | **cross-agent** skills shared by both tools; each tool's `skills/<name>` is a symlink into here (e.g. the `voltra-*` set). `doctor ai` treats anything present here as shared, so it is exempt from the Claude↔Codex parity check | 🚫 untracked  |
+| `~/.agents/skills/`                               | **cross-agent** skills shared by both tools; each tool's `skills/<name>` is a symlink into here (currently empty). `doctor ai` treats anything present here as shared, so it is exempt from the Claude↔Codex parity check | 🚫 untracked  |
 
 Rule of thumb for _every_ config: **share the reference, never the secret or the machine-specific bit.**
 
