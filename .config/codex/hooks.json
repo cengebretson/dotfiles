@@ -19,7 +19,7 @@
             "type": "command"
           },
           {
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi-permission",
             "type": "command"
           }
         ],

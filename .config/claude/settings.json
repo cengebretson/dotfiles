@@ -90,7 +90,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi-permission",
             "async": false
           }
         ]
