@@ -68,6 +68,7 @@ brew "rjyo/moshi/moshi-hook"
 # ── Apps ───────────────────────────────────────────────────────────────────────
 cask "orbstack"   # container/VM runtime (Docker-compatible)
 cask "qlmarkdown" # QuickLook markdown preview
+cask "neovide"    # GUI front end for nvim; duti maps source files to it
 
 # ── Fonts ──────────────────────────────────────────────────────────────────────
 cask "font-jetbrains-mono-nerd-font"

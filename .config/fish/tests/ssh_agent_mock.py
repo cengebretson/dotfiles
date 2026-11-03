@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Command doubles used only by cleanup_test.py in a temporary PATH."""
+"""Command doubles used only by ssh_agent_test.py in a temporary PATH."""
 import hashlib
 import json
 import os

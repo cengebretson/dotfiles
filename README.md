@@ -49,7 +49,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 💻 Fastfetch
 
- * For showing off system info in style — with random ASCII art and a pacman color row.
+ * For showing off system info in style, with a pacman color row.
 
 ---
 
@@ -82,7 +82,7 @@ git release minor --dry-run   # preview, change nothing
 git release minor --push      # atomically push the release branch and exact tag
 ```
 
-Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`, `tmux-moshi`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and auto-detects the test runner (`tests/check.sh`, else `make test`, else `GIT_RELEASE_TEST_CMD`).
+Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`, `tmux-moshi`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and picks the test runner from `GIT_RELEASE_TEST_CMD`, else `git config release.test-command`, else `tests/check.sh`, else `make test`.
 
 ---
 

@@ -165,7 +165,7 @@ run_dotfiles_doctor() {
 		# config.bak and an nvim pack lockfile went unnoticed).
 		dot_git status --porcelain=v2 -z --untracked-files=normal -- \
 			.config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git \
-			.config/tmux .config/nvim-v12 .config/ghostty .config/bat .config/fastfetch .config/ideavim \
+			.config/tmux .config/nvim-v12 .config/ghostty .config/bat .config/fastfetch \
 			.config/lazygit .config/mise .config/superfile .config/neovide .config/duti .config/delta \
 			.config/starship.toml .config/setup.sh .config/macos-defaults.sh \
 			.local/bin .local/lib/doctor .local/lib/git-release .gitignore README.md 2>/dev/null

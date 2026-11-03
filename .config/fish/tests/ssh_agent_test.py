@@ -1,4 +1,4 @@
-"""Run with python3 ~/.config/fish/tests/cleanup_test.py. No live services mutate."""
+"""Run with python3 ~/.config/fish/tests/ssh_agent_test.py. No live services mutate."""
 import json
 import os
 from pathlib import Path
@@ -19,7 +19,7 @@ class CleanupTests(unittest.TestCase):
         self.bin = self.root / 'bin'
         self.bin.mkdir()
         mock = self.bin / 'mock'
-        shutil.copyfile(CONFIG / 'tests/cleanup_mock.py', mock)
+        shutil.copyfile(CONFIG / 'tests/ssh_agent_mock.py', mock)
         mock.chmod(0o700)
         for name in ['ssh-add', 'ssh-agent', 'tmux', 'brew', 'moshi-hook',
                      'pgrep', 'claude', 'codex']:

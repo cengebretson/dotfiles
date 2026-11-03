@@ -81,7 +81,9 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
 
     # Slack uses no Jira data. Short output needs links, but not statuses.
     set -l jira_status_needed 0
-    if test "$mode" = json; or begin; test "$mode" = pretty; and not set -q _flag_short; end
+    if test "$mode" = json; or begin
+            test "$mode" = pretty; and not set -q _flag_short
+        end
         set jira_status_needed 1
     end
 

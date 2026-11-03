@@ -42,17 +42,15 @@
 	springclean = for-each-ref --sort=-committerdate --format='%(refname:short) %(committerdate:short)'
 [push]
 	default = current
-[difftool "Kaleidoscope"]
-	cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 [diff]
-	tool = Kaleidoscope
+	tool = nvimdiff
 [difftool]
 	prompt = false
-[mergetool "Kaleidoscope"]
-	cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
-	trustExitCode = true
+[mergetool]
+	prompt = false
+	keepBackup = false
 [merge]
-	tool = Kaleidoscope
+	tool = nvimdiff
 	conflictStyle = zdiff3
 [filter "lfs"]
 	clean = git-lfs clean %f
