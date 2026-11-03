@@ -295,32 +295,6 @@
   "showTurnDuration": false,
   "autoMode": {
     "allow": ["$defaults", "Bash(acli jira read *)"],
-    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"],
-    "environment": [
-      "### Org-wide",
-      "**Organization**: Lenders-Cooperative is the primary GitHub org; thesummitgrp is a legacy/shared org that still hosts some repos, and thesummitgrp-repo hosts shared reusable GitHub Actions. Both are internal. Jira/Confluence at venturesgo.atlassian.net",
-      "**Cloud provider(s)**: AWS (ECR registry 813755454003.dkr.ecr.us-east-2.amazonaws.com)",
-      "**Repository visibility**: repositories in the internal orgs are private by default; confirm a specific repo with gh rather than assuming",
-      "**Internal sharing / snippet hosting**: None configured — treat public paste/gist services as outside the trust boundary",
-      "**Secrets management**: application secrets live in per-repo credential modules and .env files; CI secrets are referenced by name only and their values are never gathered (GH_TOKEN, GITHUB_TOKEN, RW_GH_TOKEN, LC_GH_TOKEN, A_GH_TOKEN, JIRA_API_TOKEN, SLACK_BOT_TOKEN, SLACK_ALERT_KEY_GH_ACTIONS_BOT, and E2E_* test credentials)",
-      "**Default / protected branches**: treat the repository default branch plus main, develop, release/* and hotfix/* as protected; rulesets count as protection even where the classic branch-protection list is empty",
-      "**CI/CD deploy targets**: None configured",
-      "**Network posture**: *.localtest.me resolves to the local machine and is development only; assume no deploy or network posture beyond what the active repo documents",
-      "**Source control**: derive the trusted remote from `git remote -v` in the active checkout; do not assume an org from a path, ticket, or doc reference",
-      "**Trusted internal domains**: venturesgo.atlassian.net (Jira/Confluence root per repo rules); npm.pkg.github.com (internal package registry host)",
-      "**Trusted cloud buckets**: None configured",
-      "**Key internal services**: hosts under lenderscooperative.com are internal; non-prod subdomains are lower environments",
-      "**Internal package registry**: npm.pkg.github.com (GitHub Packages, @lenders-cooperative scope; LC_GH_TOKEN with read:packages)",
-      "**Sensitive data locations & audiences**: per-repo credential modules and integration credential files, PII helpers, vendor credential config, .env/.env.sample/.secrets.baseline, and gitignored keys*/ directories; share only with cleared engineering audiences",
-      "**Data retention / declassification**: None configured",
-      "**Sensitive remote targets**: any host or namespace containing prod or production as a whole segment, plus any submodule or path the active repo's own instructions flag as no-auto-action",
-      "**Protected deployment namespaces / environments**: None configured — fall back to the Sensitive remote targets heuristic",
-      "**Protected IaC scopes**: IAM, RBAC, networking, quota, and node-pool resources; anything whose name or tag carries prod or production as a whole word or name segment",
-      "### User-specific",
-      "**Primary use of Claude Code**: software development across the organization's application repositories, mainly Python/Django backends and Vue frontends",
-      "**Trusted repo**: the active checkout and its configured origin remote when that remote is in a known-internal org; private visibility permits confidential material but never clears secrets or personal data on its own",
-      "**Org-specific CLIs**: acli (Atlassian CLI), los-scripts (PR/CI status and Jira writes), tmux-attention (ticket context helper), git-release",
-      "**routine under this project prefix**: git, gh, acli, los-scripts, and rg/fd/bat/eza-style read tools scoped to the active repo working tree are routine"
-    ]
+    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"]
   }
 }
