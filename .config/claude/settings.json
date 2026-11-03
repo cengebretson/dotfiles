@@ -72,6 +72,9 @@
     "additionalDirectories": []
   },
   "model": "opus",
+  "env": {
+    "GIT_EDITOR": "true"
+  },
   "hooks": {
     "Notification": [
       {
