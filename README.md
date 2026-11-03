@@ -90,7 +90,7 @@ Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-whic
 
 Note to future self.....
 
-- Run the following command — it handles everything (Xcode tools, Homebrew, dotfiles, packages, fish, mise runtimes, and macOS defaults)
+- Run the following command. It handles Xcode tools, Homebrew, dotfiles, CLI packages, fish, mise runtimes, tmux plugins and macOS defaults
 
 ```bash
 curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setup.sh | bash
@@ -98,9 +98,16 @@ curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setu
 
 - Open Neovim — plugins, LSP servers, and tools all install automatically on first launch
 
+#### Apps installed by hand
+
+GUI apps are not in the Brewfile: most are installed from their own sites, and
+`brew bundle` fails on an app that already exists outside Homebrew. Install
+these yourself: Ghostty (the terminal), Raycast, Karabiner-Elements, Tower, Slack, Google Chrome, Firefox Developer Edition and Claude. Neovide and
+OrbStack are the exceptions: they are casks in the Brewfile.
+
 #### Machine-local files
 
-The setup script installs configs but **not** per-machine identity or secrets (git identity, fish secrets, Claude login). The canonical list lives in [claude/CLAUDE.md](.config/claude/CLAUDE.md) under *Machine-Local Files*, and the step-by-step creation is in the [AI-SETUP.md](.config/AI-SETUP.md) bootstrap.
+The setup script installs configs but **not** per-machine identity or secrets (git identity, fish secrets, Claude login). The canonical list is the file table in [AI-SETUP.md](.config/AI-SETUP.md), which also has the step-by-step bootstrap.
 
 ---
 
