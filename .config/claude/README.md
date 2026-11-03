@@ -43,7 +43,7 @@ Tool routing guidance (which tool to reach for first) lives in the Tool Routing 
 
 ```
 ~/.config/claude/
-├── CLAUDE.md                       # portable agent behavior (machine setup lives in ../AI-SETUP.md)
+├── CLAUDE.md                       # imports ../agents/AGENTS.md plus Claude-only rules (setup lives in ../AI-SETUP.md)
 ├── settings.json                   # theme, vim mode, statusline, hooks, permissions, autoMode, sandbox, plugins
 ├── statusline.sh                   # custom status bar script
 ├── hooks/

@@ -4,6 +4,7 @@
 .config/fish/secrets.fish
 .config/claude/.claude.json
 .config/codex/config.toml
+.config/agents/local.md
 /.config/claude/hooks/handlers/domain-docs
 /.config/codex/hooks/handlers/domain-docs
 /.config/codex/skills/ctx-browser-debug/
