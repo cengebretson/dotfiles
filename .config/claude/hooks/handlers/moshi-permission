@@ -1,18 +1,1 @@
-#!/usr/bin/env bash
-# moshi approval bridge for PermissionRequest: payload arrives on stdin, and
-# moshi-hook answers on stdout with the decision made on the phone. Unlike the
-# `moshi` handler, stdout must reach the agent, so it is not discarded.
-# Shared by Claude and Codex: the Codex handler symlinks here and the hook
-# flavor comes from the dispatcher path that invoked it.
-set -u
-case "$0" in
-	*/codex/*) flavor=codex-hook ;;
-	*) flavor=claude-hook ;;
-esac
-if command -v moshi-hook >/dev/null 2>&1; then
-	exec moshi-hook "$flavor" 2>/dev/null
-fi
-if [ -x /opt/homebrew/bin/moshi-hook ]; then
-	exec /opt/homebrew/bin/moshi-hook "$flavor" 2>/dev/null
-fi
-exit 100
+../../../agents/hooks/moshi

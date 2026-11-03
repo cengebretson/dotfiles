@@ -1,6 +1,1 @@
-#!/usr/bin/env bash
-# Clear the waiting marker and show this Claude turn's project in tmux.
-set -u
-script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
-[ -x "$script" ] || exit 100
-exec "$script" turn-start >/dev/null 2>&1
+../../../agents/hooks/tmux-attention-event
