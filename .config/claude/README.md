@@ -32,7 +32,7 @@ Configured in `settings.json`:
 
 ## AI-Helpful CLI Tools
 
-The canonical tool table (what each tool replaces and when to reach for it) lives in [`CLAUDE.md`](CLAUDE.md) in this directory; the install list is the Brewfile.
+Tool routing guidance (which tool to reach for first) lives in the Tool Routing section of [`CLAUDE.md`](CLAUDE.md); the install list is the Brewfile.
 
 ## Dependencies
 
@@ -43,7 +43,7 @@ The canonical tool table (what each tool replaces and when to reach for it) live
 
 ```
 ~/.config/claude/
-├── CLAUDE.md                       # portable agent behavior (machine setup lives in ../AI-SETUP.md)
+├── CLAUDE.md                       # imports ../agents/AGENTS.md plus Claude-only rules (setup lives in ../AI-SETUP.md)
 ├── settings.json                   # theme, vim mode, statusline, hooks, permissions, autoMode, sandbox, plugins
 ├── statusline.sh                   # custom status bar script
 ├── hooks/

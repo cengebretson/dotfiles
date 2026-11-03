@@ -57,10 +57,15 @@ echo "✓ Brew bundle complete"
 
 # ── Tmux plugins ───────────────────────────────────────────────────────────────
 echo "Installing tmux plugins..."
-if [ -x "$HOME/.config/tmux/plugins/tpm/bin/install_plugins" ]; then
-  "$HOME/.config/tmux/plugins/tpm/bin/install_plugins" || true
-else
-  echo "tmux plugin manager not found; skipping tmux plugin install"
+TPM_DIR="$HOME/.config/tmux/plugins/tpm"
+if [ ! -d "$TPM_DIR" ]; then
+  git clone --depth 1 https://github.com/tmux-plugins/tpm "$TPM_DIR" || echo "could not clone TPM; tmux will retry on first start"
+fi
+if [ -x "$TPM_DIR/bin/install_plugins" ]; then
+  # install_plugins reads the plugin list from a running server's config, so
+  # start a throwaway server on the real config just for the install.
+  tmux -L setup -f "$HOME/.config/tmux/tmux.conf" start-server \; \
+    run-shell "$TPM_DIR/bin/install_plugins" \; kill-server 2>/dev/null || true
 fi
 echo "✓ Tmux plugins"
 

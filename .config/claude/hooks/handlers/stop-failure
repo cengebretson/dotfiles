@@ -1,6 +1,1 @@
-#!/usr/bin/env bash
-# tmux attention marker: flag the pane as blocked on a failure.
-set -u
-script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
-[ -x "$script" ] || exit 100
-exec "$script" blocked >/dev/null 2>&1
+../../../agents/hooks/tmux-attention-event

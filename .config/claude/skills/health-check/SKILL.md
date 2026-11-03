@@ -1,3 +1,8 @@
+---
+name: health-check
+description: "Verify the portable startup dependencies for Claude: context-mode and GitHub access through `gh`, plus Jira access through `acli` when it is installed. Use at the start of a substantive session or when the user asks for a health check, startup check, tool check, or environment verification. Run the broader machine audit only for an explicitly requested deep check or to diagnose a failed required probe."
+---
+
 # Health Check
 
 Verify the portable startup dependencies: context-mode and GitHub through `gh`,
@@ -54,6 +59,13 @@ gh api user --jq .login
 - If no override is involved, suggest
   `gh auth login --web --git-protocol https`.
 
+## Sandbox Failures
+
+If an installed `acli` or `gh` probe fails because network or keychain access is
+sandboxed, retry that exact read-only probe with narrow escalation before
+reporting it broken. If escalation is unavailable, report `sandbox-limited`,
+not a confirmed host failure.
+
 ## Deep Path
 
 Only when the user asks for `deep`, `full`, or `debug`, or a failed required
@@ -65,11 +77,11 @@ probe or installed `acli` needs broader diagnosis, add the relevant checks from
 Return only this table, plus one blocker sentence when a row is red:
 
 ```markdown
-| Dependency | Status | Detail |
-|---|---|---|
-| context-mode | ✅ | healthy, vX.Y.Z |
-| Jira (`acli`) | ➖ | optional; not installed on this machine |
-| GitHub (`gh`) | ✅ | authenticated as username |
+| Dependency    | Status | Detail                                  |
+| ------------- | ------ | --------------------------------------- |
+| context-mode  | ✅     | healthy, vX.Y.Z                         |
+| Jira (`acli`) | ➖     | optional; not installed on this machine |
+| GitHub (`gh`) | ✅     | authenticated as username               |
 ```
 
 Use `✅` for healthy, `❌` for a confirmed failure, `⚠️` for degraded or

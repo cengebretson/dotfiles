@@ -70,10 +70,12 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew using a
     set -l cache_path (brew --cache $formula)
     or return $status
 
+    set -l cache_verified 0
     if test -f "$cache_path"
         set -l cached_sha (_moshi_update_sha256 "$cache_path")
         if test "$cached_sha" = "$expected_sha"
             set archive "$cache_path"
+            set cache_verified 1
             echo '✓ Homebrew cache already contains the verified archive'
         else
             echo 'moshi-update: ignoring an invalid cached archive' >&2
@@ -86,20 +88,22 @@ function moshi-update --description 'Upgrade moshi-hook through Homebrew using a
         return 1
     end
 
-    echo '==> Verifying the downloaded archive'
-    set -l actual_sha (_moshi_update_sha256 "$archive")
-    if test "$actual_sha" != "$expected_sha"
-        printf 'moshi-update: checksum mismatch\n  expected: %s\n  actual:   %s\n' "$expected_sha" "$actual_sha" >&2
-        return 1
-    end
-    echo '✓ checksum matches the Homebrew formula'
+    if test $cache_verified -eq 0
+        echo '==> Verifying the downloaded archive'
+        set -l actual_sha (_moshi_update_sha256 "$archive")
+        if test "$actual_sha" != "$expected_sha"
+            printf 'moshi-update: checksum mismatch\n  expected: %s\n  actual:   %s\n' "$expected_sha" "$actual_sha" >&2
+            return 1
+        end
+        echo '✓ checksum matches the Homebrew formula'
 
-    set -l cache_directory (dirname "$cache_path")
-    mkdir -p "$cache_directory"
-    or return $status
-    cp "$archive" "$cache_path"
-    or return $status
-    echo '✓ seeded the Homebrew download cache'
+        set -l cache_directory (dirname "$cache_path")
+        mkdir -p "$cache_directory"
+        or return $status
+        cp "$archive" "$cache_path"
+        or return $status
+        echo '✓ seeded the Homebrew download cache'
+    end
 
     echo '==> Upgrading moshi-hook'
     brew upgrade $formula

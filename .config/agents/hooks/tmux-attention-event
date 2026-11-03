@@ -1,0 +1,31 @@
+#!/usr/bin/env bash
+# Shared tmux-attention hook for Claude and Codex. Each tool's handlers/ dir
+# symlinks an event name here; the name picks the tmux-attention call and the
+# invoking path (…/claude/… or …/codex/…) picks the source label.
+#
+#   prompt-clear                turn-start (clear the marker, show the project)
+#   agent-turn-active           turn-active (restore a missing active turn)
+#   agent-turn-stop             turn-done (response ready)
+#   notification                input (permission or idle prompt)
+#   permission-request-notify   input (Codex permission request)
+#   stop-failure                blocked (the turn ended on an API error)
+set -u
+script="${TMUX_ATTENTION_CLI:-$HOME/.local/bin/tmux-attention}"
+[ -x "$script" ] || exit 100
+
+case "$0" in
+	*/codex/*) agent=codex ;;
+	*) agent=claude ;;
+esac
+
+case "${0##*/}" in
+	prompt-clear) exec "$script" turn-start >/dev/null 2>&1 ;;
+	agent-turn-active) exec "$script" turn-active >/dev/null 2>&1 ;;
+	agent-turn-stop) exec "$script" turn-done --source "$agent" --reason response_ready >/dev/null 2>&1 ;;
+	notification | permission-request-notify) exec "$script" input >/dev/null 2>&1 ;;
+	stop-failure) exec "$script" blocked >/dev/null 2>&1 ;;
+	*)
+		printf 'tmux-attention-event: unknown event name: %s\n' "${0##*/}" >&2
+		exit 1
+		;;
+esac

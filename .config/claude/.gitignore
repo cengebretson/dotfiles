@@ -5,12 +5,11 @@
 
 # Per-machine settings overrides (absolute paths, local-only grants)
 settings.local.json
-rules/local.md
 
 # Per-machine runtime/state markers
 .last-cleanup
 .last-update-result.json
-remote-settings.json
+remote-settings.json*
 tasks/
 
 # Runtime and session data
@@ -34,9 +33,19 @@ mcp-needs-auth-cache.json
 powerline/
 session-env/
 claude-powerline.json
-policy-limits.json
+policy-limits.json*
 context-mode/
 chrome/
 # Claude writes timestamped backups (settings.json.bak.20260615221755), so the
 # glob must extend past .bak or they show up as untracked noise forever.
 *.bak*
+
+# Claude-managed skill copies and runtime state.
+skills/.trash/
+skills/synced/
+state/
+feedback/
+
+# Deployed and rewritten by the context-mode plugin on every start; tracking it
+# only turned plugin upgrades into dotfile diffs. The handler skips it when absent.
+hooks/context-mode-cache-heal.mjs

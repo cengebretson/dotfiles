@@ -49,7 +49,7 @@ A curated collection of tools and configs that power my daily workflow.
 
 #### 💻 Fastfetch
 
- * For showing off system info in style — with random ASCII art and a pacman color row.
+ * For showing off system info in style, with a pacman color row.
 
 ---
 
@@ -82,7 +82,7 @@ git release minor --dry-run   # preview, change nothing
 git release minor --push      # atomically push the release branch and exact tag
 ```
 
-Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`, `tmux-moshi`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and auto-detects the test runner (`tests/check.sh`, else `make test`, else `GIT_RELEASE_TEST_CMD`).
+Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-which-key`, `tmux-moshi`), each paired with a tag-triggered GitHub release workflow. Repo-agnostic: it derives the URL from `origin` and picks the test runner from `GIT_RELEASE_TEST_CMD`, else `git config release.test-command`, else `tests/check.sh`, else `make test`.
 
 ---
 
@@ -90,7 +90,7 @@ Used across the tmux plugin repos (`tmux-fzf-jump`, `tmux-attention`, `tmux-whic
 
 Note to future self.....
 
-- Run the following command — it handles everything (Xcode tools, Homebrew, dotfiles, packages, fish, mise runtimes, and macOS defaults)
+- Run the following command. It handles Xcode tools, Homebrew, dotfiles, CLI packages, fish, mise runtimes, tmux plugins and macOS defaults
 
 ```bash
 curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setup.sh | bash
@@ -98,9 +98,16 @@ curl https://raw.githubusercontent.com/cengebretson/dotfiles/master/.config/setu
 
 - Open Neovim — plugins, LSP servers, and tools all install automatically on first launch
 
+#### Apps installed by hand
+
+GUI apps are not in the Brewfile: most are installed from their own sites, and
+`brew bundle` fails on an app that already exists outside Homebrew. Install
+these yourself: Ghostty (the terminal), Raycast, Karabiner-Elements, Tower, Slack, Google Chrome, Firefox Developer Edition and Claude. Neovide and
+OrbStack are the exceptions: they are casks in the Brewfile.
+
 #### Machine-local files
 
-The setup script installs configs but **not** per-machine identity or secrets (git identity, fish secrets, Claude login). The canonical list lives in [claude/CLAUDE.md](.config/claude/CLAUDE.md) under *Machine-Local Files*, and the step-by-step creation is in the [AI-SETUP.md](.config/AI-SETUP.md) bootstrap.
+The setup script installs configs but **not** per-machine identity or secrets (git identity, fish secrets, Claude login). The canonical list is the file table in [AI-SETUP.md](.config/AI-SETUP.md), which also has the step-by-step bootstrap.
 
 ---
 

@@ -80,5 +80,15 @@ skills/.system/
 # No trailing slash: playwright is a symlink into ~/workspace/scripts/skills,
 # and git sees a symlink as a file, so a dir-only pattern never matches it.
 skills/playwright
+# Same for reconcile-merged-jira: an LOS skill that lives in ~/workspace/scripts.
+skills/reconcile-merged-jira
 # Note: AGENTS.md and config.shared.toml are intentionally trackable.
 # Keep secrets out of shared config — use env vars, never hardcoded keys.
+
+# Runtime sockets, daemons, bundled binaries and lock files.
+.hook-trust/
+app-server-control/
+app-server-daemon/
+packages/
+tui-thread-reference-capabilities/
+*.lock

@@ -2,23 +2,24 @@
   "permissions": {
     "allow": [
       "mcp__plugin_context-mode_context-mode__*",
-      "Bash(mkdir -p *)",
-      "Bash(cp *)",
-      "Bash(mv *)",
-      "Bash(docker exec *)",
       "Bash(ssh-add -l)",
-      "Bash(echo *)",
-      "Bash(ast-grep *)",
-      "Bash(yq *)",
-      "Bash(go *)",
-      "Bash(nvim --headless *)",
       "Bash(open *)",
-      "Bash(bun *)",
-      "Bash(uv *)",
-      "Bash(prettier *)",
-      "Bash(stylua *)",
-      "Bash(mise *)",
-      "Bash(gh api*)",
+      "Bash(go test *)",
+      "Bash(go build *)",
+      "Bash(go vet *)",
+      "Bash(go version)",
+      "Bash(bun test*)",
+      "Bash(bun install*)",
+      "Bash(uv sync*)",
+      "Bash(uv lock*)",
+      "Bash(uv tool list*)",
+      "Bash(uv python list*)",
+      "Bash(mise ls*)",
+      "Bash(mise current*)",
+      "Bash(mise which *)",
+      "Bash(mise install*)",
+      "Bash(mise doctor*)",
+      "Bash(gh api user*)",
       "Bash(gh pr view*)",
       "Bash(gh pr list*)",
       "Bash(gh pr diff*)",
@@ -29,30 +30,51 @@
       "Bash(gh pr comment*)",
       "Bash(gh run view*)",
       "Bash(gh run list*)",
-      "mcp__github__*",
-      "Bash(pr-report*)",
+      "Bash(los-scripts *)",
+      "Bash(/Users/cengebretson/workspace/scripts/bin/los-scripts *)",
       "Bash(git push*)",
       "Bash(git fetch*)",
       "Bash(git pull*)",
       "Bash(git ls-remote*)",
-      "Bash(git remote*)",
+      "Bash(git remote -v)",
+      "Bash(git remote get-url *)",
+      "Bash(git remote show *)",
       "Bash(git release*)",
-      "Bash(git --git-dir=$HOME/.dotfiles --work-tree=$HOME *)",
+      "Bash(git --git-dir=\"$HOME/.dotfiles\" --work-tree=\"$HOME\" status*)",
+      "Bash(git --git-dir=\"$HOME/.dotfiles\" --work-tree=\"$HOME\" diff*)",
+      "Bash(git --git-dir=\"$HOME/.dotfiles\" --work-tree=\"$HOME\" log*)",
+      "Bash(git --git-dir=\"$HOME/.dotfiles\" --work-tree=\"$HOME\" show*)",
+      "Bash(git --git-dir=\"$HOME/.dotfiles\" --work-tree=\"$HOME\" ls-files*)",
       "WebFetch(domain:claude.ai)"
     ],
     "deny": [
       "Bash(git clean -f*)",
+      "Bash(git * clean -f*)",
       "Bash(git push --force *)",
       "Bash(git push --force)",
       "Bash(git push -f*)",
+      "Bash(git push --force-with-lease*)",
+      "Bash(git push --delete*)",
+      "Bash(git push -d *)",
+      "Bash(git push * --force*)",
+      "Bash(git push * -f*)",
+      "Bash(git push * --delete*)",
+      "Bash(git push * -d *)",
+      "Bash(git push * +*)",
+      "Bash(git * push --force*)",
+      "Bash(git * push -f*)",
       "Bash(git reset --hard*)",
+      "Bash(git * reset --hard*)",
       "Bash(rm -rf *)",
       "Bash(docker compose * down -v*)"
     ],
     "defaultMode": "auto",
     "additionalDirectories": []
   },
-  "model": "opus[1m]",
+  "model": "opus",
+  "env": {
+    "GIT_EDITOR": "true"
+  },
   "hooks": {
     "Notification": [
       {
@@ -70,20 +92,15 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi-permission",
             "async": false
-          },
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" agent-blocked",
-            "async": true
           }
         ]
       }
     ],
     "PostToolUse": [
       {
-        "matcher": "Edit|Write|NotebookEdit|Read|Glob|Grep|WebFetch|WebSearch|Task|Bash",
+        "matcher": "Edit|Write|NotebookEdit|Read|Glob|Grep|WebFetch|WebSearch|Task|Agent|Bash",
         "hooks": [
           {
             "type": "command",
@@ -93,7 +110,7 @@
         ]
       },
       {
-        "matcher": "Edit|Write|MultiEdit",
+        "matcher": "Edit|Write",
         "hooks": [
           {
             "type": "command",
@@ -102,17 +119,7 @@
         ]
       },
       {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "ExitPlanMode",
+        "matcher": "AskUserQuestion|ExitPlanMode",
         "hooks": [
           {
             "type": "command",
@@ -144,17 +151,7 @@
         ]
       },
       {
-        "matcher": "AskUserQuestion",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
-            "async": true
-          }
-        ]
-      },
-      {
-        "matcher": "ExitPlanMode",
+        "matcher": "AskUserQuestion|ExitPlanMode",
         "hooks": [
           {
             "type": "command",
@@ -170,6 +167,11 @@
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" moshi",
+            "async": true
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" session-end-summary",
             "async": true
           }
         ]
@@ -233,6 +235,10 @@
           {
             "type": "command",
             "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" prompt-clear"
+          },
+          {
+            "type": "command",
+            "command": "\"$HOME/.config/claude/hooks/dispatch.sh\" summary-reminder"
           }
         ]
       },
@@ -270,26 +276,26 @@
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
-      "allowWrite": [
-        "/tmp",
-        "/private/tmp"
-      ]
+      "allowWrite": ["/tmp", "/private/tmp"]
     }
   },
+  "feedbackDrafts": "off",
+  "spinnerTipsEnabled": false,
   "effortLevel": "medium",
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "tui": "fullscreen",
+  "showThinkingSummaries": false,
   "theme": "dark-ansi",
   "editorMode": "vim",
+  "verbose": false,
+  "autoCompactEnabled": true,
+  "showTurnDuration": false,
   "autoMode": {
-    "allow": [
-      "$defaults",
-      "Bash(acli jira read *)",
-      "Bash(los-scripts review *)"
-    ],
-    "soft_deny": [
-      "$defaults",
-      "Bash(git push* origin develop*)"
-    ],
+    "allow": ["$defaults", "Bash(acli jira read *)"],
+    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"],
     "environment": [
       "### Org-wide",
       "**Organization**: Lenders-Cooperative is the primary GitHub org; thesummitgrp is a legacy/shared org that still hosts some repos, and thesummitgrp-repo hosts shared reusable GitHub Actions. Both are internal. Jira/Confluence at venturesgo.atlassian.net",

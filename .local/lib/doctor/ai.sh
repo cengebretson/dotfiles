@@ -251,14 +251,16 @@ PY
 	fi
 
 	doctor_section "Skills parity"
+	# Documented exemptions (AI-SETUP.md): Codex-only helpers, plus Claude's
+	# own skills/synced/ copy dir, which is managed state rather than a skill.
 	local parity_warns skill
 	parity_warns=$DOCTOR_WARNS
 	while IFS= read -r skill; do
-		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright) continue ;; esac
+		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | reconcile-merged-jira | synced) continue ;; esac
 		[[ -n "$skill" ]] && { ai_skill_has "$codex_dir/skills" "$skill" || ai_skill_is_shared "$skill" || doctor_line warn skills "Claude-only: $skill"; }
 	done < <(ai_list_skills "$claude_dir/skills")
 	while IFS= read -r skill; do
-		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright) continue ;; esac
+		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | reconcile-merged-jira | synced) continue ;; esac
 		[[ -n "$skill" ]] && { ai_skill_has "$claude_dir/skills" "$skill" || ai_skill_is_shared "$skill" || doctor_line warn skills "Codex-only: $skill"; }
 	done < <(ai_list_skills "$codex_dir/skills")
 	[[ "$DOCTOR_WARNS" -eq "$parity_warns" ]] && doctor_line ok skills "in sync (documented exemptions ignored)"

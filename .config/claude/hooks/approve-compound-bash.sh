@@ -18,8 +18,11 @@
 # Vendored: 2026-06-25 — frozen copy. To update: diff against upstream HEAD,
 #           re-read, then bump this Commit line. Do NOT auto-pull (it can
 #           auto-approve shell commands; changes must be reviewed by hand).
-# Registered directly under PreToolUse (matcher "Bash"), NOT via dispatch.sh —
-# this hook signals its decision on stdout, which dispatch.sh discards.
+# Registered directly under PreToolUse (matcher "Bash"), not via dispatch.sh, so
+# it keeps its own 5s timeout and the vendored layout stays untouched. It signals
+# its decision on stdout.
+# Local patch: settings and the log resolve through CLAUDE_CONFIG_DIR (else
+# ~/.config/claude, else ~/.claude) instead of assuming the ~/.claude symlink.
 # ────────────────────────────────────────────────────────────────────────────
 
 set -uo pipefail
@@ -36,7 +39,15 @@ fi
 
 DEBUG=false
 readonly ALLOW_JSON='{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
-readonly LOG_FILE="$HOME/.config/claude/hooks/logs/approve-compound.log"
+if [[ -n "${CLAUDE_CONFIG_DIR:-}" ]]; then
+  CLAUDE_DIR="$CLAUDE_CONFIG_DIR"
+elif [[ -d "$HOME/.config/claude" ]]; then
+  CLAUDE_DIR="$HOME/.config/claude"
+else
+  CLAUDE_DIR="$HOME/.claude"
+fi
+readonly CLAUDE_DIR
+readonly LOG_FILE="$CLAUDE_DIR/hooks/logs/approve-compound.log"
 
 debug() { if $DEBUG; then printf '[approve-compound] %s\n' "$*" >&2; fi; }
 
@@ -84,8 +95,8 @@ load_prefixes() {
   git_root=$(find_git_root 2>/dev/null || true)
 
   local files=(
-    "$HOME/.claude/settings.json"
-    "$HOME/.claude/settings.local.json"
+    "$CLAUDE_DIR/settings.json"
+    "$CLAUDE_DIR/settings.local.json"
   )
   if [[ -n "$git_root" ]]; then
     files+=("$git_root/.claude/settings.json" "$git_root/.claude/settings.local.json")

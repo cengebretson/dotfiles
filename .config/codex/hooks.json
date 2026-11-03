@@ -19,7 +19,7 @@
             "type": "command"
           },
           {
-            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi",
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" moshi-permission",
             "type": "command"
           }
         ],
@@ -63,6 +63,10 @@
         "hooks": [
           {
             "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" prompt-clear",
+            "type": "command"
+          },
+          {
+            "command": "\"$HOME/.config/codex/hooks/dispatch.sh\" summary-reminder",
             "type": "command"
           },
           {

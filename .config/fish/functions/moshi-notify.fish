@@ -1,4 +1,6 @@
 function __moshi_set_paired --argument-names pairing --description 'Update the cached @moshi_paired tmux option'
+    # A failed inspection should not erase the last known pairing state.
+    test "$pairing" = unknown; and return 0
     if test "$pairing" = paired
         tmux set -g @moshi_paired yes 2>/dev/null
     else
@@ -10,8 +12,29 @@ function __moshi_refresh_paired --description 'Refresh the cached @moshi_paired 
     # moshi-hook status touches Keychain (slow), so the tmux status script reads
     # this cached option instead of querying every 15s refresh. Refresh it here
     # whenever daemon/pairing state might have changed.
-    set -l pairing (moshi-hook status 2>/dev/null | string replace -rf '^status:[[:space:]]*' '')
+    set -l snap (moshi-hook status 2>/dev/null)
+    or return $status
+    set -l pairing (string replace -rf '^status:[[:space:]]*' '' -- $snap)
+    test -n "$pairing"; or return 1
     __moshi_set_paired "$pairing"
+end
+
+function __moshi_daemon_state --description 'Inspect the current user daemon without invoking Homebrew'
+    set -l uid (id -u)
+    or begin
+        echo unknown
+        return 1
+    end
+    pgrep -u "$uid" -f '(^|/)moshi-hook[[:space:]]+serve([[:space:]]|$)' >/dev/null 2>&1
+    switch $status
+        case 0
+            echo running
+        case 1
+            echo stopped
+        case '*'
+            echo unknown
+            return 1
+    end
 end
 
 function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
@@ -37,12 +60,21 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             tmux refresh-client -S 2>/dev/null
             return $service_status
         case toggle
-            # Flip based on whether the daemon is currently running (pgrep is instant).
-            if pgrep -f "moshi-hook serve" >/dev/null 2>&1
+            set -l daemon_state (__moshi_daemon_state)
+            or begin
+                echo 'moshi-notify: unable to inspect the daemon; leaving it unchanged' >&2
+                return 1
+            end
+            if test "$daemon_state" = running
                 moshi-notify off
             else
                 moshi-notify on
             end
+        case doctor --doctor
+            # Explicit registration diagnostics, separate from the fast status view.
+            env -u TMUX brew services list
+            or return $status
+            moshi-notify status
         case -h --help help
             set -l acc cba6f7
             set -l dim 6c7086
@@ -57,6 +89,7 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             printf '    %soff%s | %squiet%s    stop the daemon\n' (set_color $txt) (set_color normal) (set_color $sub) (set_color normal)
             printf '    %stoggle%s         flip the daemon on/off\n' (set_color $txt) (set_color normal)
             printf '    %sstatus%s         show daemon + pairing + hook health %s(default)%s\n' (set_color $txt) (set_color normal) (set_color $dim) (set_color normal)
+            printf '    %sdoctor%s         also inspect Homebrew service registration\n' (set_color $txt) (set_color normal)
             printf '    %s-h%s, %s--help%s     show this help\n' (set_color $txt) (set_color normal) (set_color $txt) (set_color normal)
             echo ''
         case status ''
@@ -68,13 +101,15 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             set -l sub a6adc8
             set -l acc cba6f7
 
-            set -l daemon_on 0
-            if env -u TMUX brew services list | grep -q '^moshi-hook.*started'
-                set daemon_on 1
-            end
+            set -l daemon_state (__moshi_daemon_state)
+            set -l inspection_status $status
 
             # One status snapshot; pull pairing + device name out of it.
             set -l snap (moshi-hook status 2>/dev/null)
+            if test $status -ne 0
+                set inspection_status 1
+                set snap
+            end
             set -l pairing (printf '%s\n' $snap | string replace -rf '^status:[[:space:]]*' '')
             set -l device (printf '%s\n' $snap | string replace -rf '^display name:[[:space:]]*' '')
             test -z "$pairing"; and set pairing unknown
@@ -85,14 +120,18 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
                 (set_color $acc) (set_color normal) (set_color --bold $txt) (set_color normal)
             printf '  %s────────────────────%s\n' (set_color $dim) (set_color normal)
 
-            if test $daemon_on -eq 1
+            if test "$daemon_state" = running
                 printf '   %s●%s  %sdaemon%s    %sON%s  %srunning%s\n' \
                     (set_color $grn) (set_color normal) (set_color $sub) (set_color normal) \
                     (set_color $grn) (set_color normal) (set_color $dim) (set_color normal)
-            else
+            else if test "$daemon_state" = stopped
                 printf '   %s●%s  %sdaemon%s    %sOFF%s %sstopped%s\n' \
                     (set_color $dim) (set_color normal) (set_color $sub) (set_color normal) \
                     (set_color $dim) (set_color normal) (set_color $dim) (set_color normal)
+            else
+                printf '   %s●%s  %sdaemon%s    %sUNKNOWN%s  inspection failed\n' \
+                    (set_color $amb) (set_color normal) (set_color $sub) (set_color normal) \
+                    (set_color $amb) (set_color normal)
             end
 
             set -l pcol $amb
@@ -142,6 +181,7 @@ function moshi-notify --description 'Toggle/inspect Moshi agent-hook pushes'
             echo ''
 
             __moshi_set_paired "$pairing"
+            return $inspection_status
         case '*'
             printf 'moshi-notify: unknown command: %s\n' "$argv[1]" >&2
             printf "Run 'moshi-notify --help' for usage.\n" >&2

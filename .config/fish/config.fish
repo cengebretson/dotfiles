@@ -30,10 +30,8 @@ if status is-interactive
         starship init fish | source
     end
 
-    # zoxide integration to use j and ji keys
-    if command -q zoxide
-        zoxide init --cmd j fish | source
-    end
+    # Initialize after PATH setup, with one hook for cd/j/ji/z/zi.
+    _local_zoxide_init
 
     # tmux-attention pane ownership: defines tmux_attention_claim/disown, which
     # claude.fish and codex.fish compose into the wrappers they already have.

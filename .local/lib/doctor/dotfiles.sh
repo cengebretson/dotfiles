@@ -165,7 +165,7 @@ run_dotfiles_doctor() {
 		# config.bak and an nvim pack lockfile went unnoticed).
 		dot_git status --porcelain=v2 -z --untracked-files=normal -- \
 			.config/AI-SETUP.md .config/Brewfile .config/claude .config/codex .config/fish .config/git \
-			.config/tmux .config/nvim-v12 .config/ghostty .config/bat .config/fastfetch .config/ideavim \
+			.config/tmux .config/nvim-v12 .config/ghostty .config/bat .config/fastfetch \
 			.config/lazygit .config/mise .config/superfile .config/neovide .config/duti .config/delta \
 			.config/starship.toml .config/setup.sh .config/macos-defaults.sh \
 			.local/bin .local/lib/doctor .local/lib/git-release .gitignore README.md 2>/dev/null
@@ -237,6 +237,7 @@ run_dotfiles_doctor() {
 		'.local/bin/*' '.local/lib/doctor/*.sh' '.local/lib/git-release/*.sh' \
 		'.config/*.sh' '.config/claude/*.sh' '.config/claude/hooks/*.sh' \
 		'.config/claude/hooks/handlers/*' '.config/codex/hooks/handlers/*' \
+		'.config/agents/hooks/*' '.local/lib/tests/*.sh' \
 		'.config/tmux/scripts/*' 2>/dev/null)"
 	file_count=0
 	fails_before=$DOCTOR_FAILS
@@ -260,6 +261,22 @@ run_dotfiles_doctor() {
 		dot_check_lua "$rel"
 	done < <(printf '%s\n' "$files")
 	dot_group_summary lua "$file_count files, syntax" "$fails_before" "$warns_before"
+
+	# Helper tests: the dispatcher every agent hook runs through and the
+	# git-release library behind every plugin release. Both are fast and
+	# self-contained (temp dirs only), so run them on every doctor pass.
+	doctor_section "Helper tests"
+	local test_file test_log
+	for test_file in "$HOME"/.local/lib/tests/*.test.sh; do
+		[[ -f "$test_file" ]] || continue
+		test_log="$(mktemp "${TMPDIR:-/tmp}/doctor-test.XXXXXX")"
+		if bash "$test_file" >"$test_log" 2>&1; then
+			doctor_line ok "${test_file##*/}" "$(grep -c '^ok' "$test_log" 2>/dev/null || true) checks"
+		else
+			doctor_line fail "${test_file##*/}" "$(grep -m1 'not ok' "$test_log" || tail -1 "$test_log")"
+		fi
+		rm -f "$test_log"
+	done
 
 	doctor_summary
 }

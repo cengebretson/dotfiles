@@ -1,10 +1,10 @@
-/.config/fastfetch/ascii.txt
 /.config/tmux/appearance.conf
 .config/fish/fish_variables
 .config/git/config.local
 .config/fish/secrets.fish
 .config/claude/.claude.json
 .config/codex/config.toml
+.config/agents/local.md
 /.config/claude/hooks/handlers/domain-docs
 /.config/codex/hooks/handlers/domain-docs
 /.config/codex/skills/ctx-browser-debug/
@@ -36,3 +36,22 @@
 
 # Editor/tool backups (e.g. ghostty config.bak, claude settings.json.bak).
 *.bak
+
+# SSH: only the shared config is tracked. Keys, known_hosts and the agent
+# environment stay machine-local, so a broad `dots add .ssh` can never stage
+# a private key.
+/.ssh/*
+!/.ssh/config
+
+# gh stores its OAuth token here.
+/.config/gh/hosts.yml
+
+# Installer-managed symlinks into apps, uv tools and plugin checkouts.
+/.local/bin/los-scripts
+/.local/bin/paseo
+/.local/bin/pre-commit
+/.local/bin/python3.12
+/.local/bin/tmux-attention
+
+# Dated backups (config.toml.bak-20260910) that *.bak does not match.
+*.bak-*

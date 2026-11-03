@@ -1,6 +1,17 @@
 #!/usr/bin/env bash
-# Inject machine-local Codex instructions; context passes via stdout.
+# Inject the Codex-only and machine-local instructions that AGENTS.md (a symlink
+# to the shared ~/.config/agents/AGENTS.md) cannot carry. Context passes via
+# stdout, in order: Codex-specific rules (tracked), this machine's work rules
+# shared with Claude (gitignored), then Codex-only machine rules (gitignored).
 set -u
-file="$HOME/.config/codex/local.md"
-[ -r "$file" ] || exit 100
-exec cat "$file"
+found=0
+for file in \
+	"$HOME/.config/codex/codex.md" \
+	"$HOME/.config/agents/local.md" \
+	"$HOME/.config/codex/local.md"; do
+	[ -r "$file" ] || continue
+	[ "$found" = 1 ] && printf '\n'
+	cat "$file"
+	found=1
+done
+[ "$found" = 1 ] || exit 100

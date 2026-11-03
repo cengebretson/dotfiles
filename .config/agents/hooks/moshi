@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Shared Moshi bridge for Claude and Codex; the hook payload arrives on stdin.
+# The invoking path (…/claude/… or …/codex/…) picks the moshi-hook flavor, and
+# the name picks the output handling:
+#   moshi             notifications: output is discarded so nothing extra lands
+#                     in the agent's context
+#   moshi-permission  PermissionRequest: stdout carries the decision made on the
+#                     phone and must reach the agent
+set -u
+case "$0" in
+	*/codex/*) flavor=codex-hook ;;
+	*) flavor=claude-hook ;;
+esac
+
+bin="$(command -v moshi-hook 2>/dev/null || printf '')"
+[ -n "$bin" ] || [ ! -x /opt/homebrew/bin/moshi-hook ] || bin=/opt/homebrew/bin/moshi-hook
+[ -n "$bin" ] || exit 100
+
+case "${0##*/}" in
+	moshi-permission) exec "$bin" "$flavor" 2>/dev/null ;;
+	*) exec "$bin" "$flavor" >/dev/null 2>&1 ;;
+esac
