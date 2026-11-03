@@ -93,7 +93,9 @@ doctor_check_executable() {
 }
 
 doctor_file_mode() {
-	stat -f '%Lp' "$1" 2>/dev/null || stat -c '%a' "$1" 2>/dev/null || true
+	# GNU first: macOS stat rejects -c, but GNU stat accepts -f (file-system mode)
+	# and would print a non-mode value instead of failing.
+	stat -c '%a' "$1" 2>/dev/null || stat -f '%Lp' "$1" 2>/dev/null || true
 }
 
 doctor_count_lines() {
