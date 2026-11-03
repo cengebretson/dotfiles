@@ -45,3 +45,7 @@ skills/.trash/
 skills/synced/
 state/
 feedback/
+
+# Deployed and rewritten by the context-mode plugin on every start; tracking it
+# only turned plugin upgrades into dotfile diffs. The handler skips it when absent.
+hooks/context-mode-cache-heal.mjs

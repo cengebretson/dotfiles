@@ -237,6 +237,7 @@ run_dotfiles_doctor() {
 		'.local/bin/*' '.local/lib/doctor/*.sh' '.local/lib/git-release/*.sh' \
 		'.config/*.sh' '.config/claude/*.sh' '.config/claude/hooks/*.sh' \
 		'.config/claude/hooks/handlers/*' '.config/codex/hooks/handlers/*' \
+		'.config/agents/hooks/*' '.local/lib/tests/*.sh' \
 		'.config/tmux/scripts/*' 2>/dev/null)"
 	file_count=0
 	fails_before=$DOCTOR_FAILS
@@ -260,6 +261,22 @@ run_dotfiles_doctor() {
 		dot_check_lua "$rel"
 	done < <(printf '%s\n' "$files")
 	dot_group_summary lua "$file_count files, syntax" "$fails_before" "$warns_before"
+
+	# Helper tests: the dispatcher every agent hook runs through and the
+	# git-release library behind every plugin release. Both are fast and
+	# self-contained (temp dirs only), so run them on every doctor pass.
+	doctor_section "Helper tests"
+	local test_file test_log
+	for test_file in "$HOME"/.local/lib/tests/*.test.sh; do
+		[[ -f "$test_file" ]] || continue
+		test_log="$(mktemp "${TMPDIR:-/tmp}/doctor-test.XXXXXX")"
+		if bash "$test_file" >"$test_log" 2>&1; then
+			doctor_line ok "${test_file##*/}" "$(grep -c '^ok' "$test_log" 2>/dev/null || true) checks"
+		else
+			doctor_line fail "${test_file##*/}" "$(grep -m1 'not ok' "$test_log" || tail -1 "$test_log")"
+		fi
+		rm -f "$test_log"
+	done
 
 	doctor_summary
 }
