@@ -29,7 +29,11 @@ have() { command -v "$1" >/dev/null 2>&1; }
 
 case "${fp##*.}" in
   js | jsx | ts | tsx | vue | json | jsonc | css | scss | less | html | md | yaml | yml)
-    have npx && (cd "$(dirname "$fp")" && npx --no-install prettier --write "$fp") >/dev/null 2>&1
+    # Run from the repo root, not the file's directory: prettier resolves .prettierignore from its cwd, so
+    # running from los/templates/account/ skipped the repo's `*.html` ignore and broke a Django template
+    # (FLYWL-5935, 2026-11-09). Outside a git repo, fall back to the file's directory.
+    root="$(git -C "$(dirname "$fp")" rev-parse --show-toplevel 2>/dev/null || dirname "$fp")"
+    have npx && (cd "$root" && npx --no-install prettier --write "$fp") >/dev/null 2>&1
     ;;
   py)
     have black && black -q "$fp" >/dev/null 2>&1
