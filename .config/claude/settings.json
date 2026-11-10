@@ -1,4 +1,11 @@
 {
+  "env": {
+    "GIT_EDITOR": "true"
+  },
+  "attribution": {
+    "commit": "",
+    "pr": ""
+  },
   "permissions": {
     "allow": [
       "mcp__plugin_context-mode_context-mode__*",
@@ -70,9 +77,6 @@
     ],
     "defaultMode": "auto",
     "additionalDirectories": []
-  },
-  "env": {
-    "GIT_EDITOR": "true"
   },
   "hooks": {
     "Notification": [
@@ -276,16 +280,18 @@
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
     "filesystem": {
-      "allowWrite": ["/tmp", "/private/tmp"]
-    }
+      "allowWrite": [
+        "/tmp",
+        "/private/tmp"
+      ]
+    },
+    "excludedCommands": [
+      "tmux-attention"
+    ]
   },
   "feedbackDrafts": "off",
   "spinnerTipsEnabled": false,
   "effortLevel": "medium",
-  "attribution": {
-    "commit": "",
-    "pr": ""
-  },
   "tui": "fullscreen",
   "showThinkingSummaries": false,
   "theme": "dark-ansi",
@@ -294,7 +300,13 @@
   "autoCompactEnabled": true,
   "showTurnDuration": false,
   "autoMode": {
-    "allow": ["$defaults", "Bash(acli jira read *)"],
-    "soft_deny": ["$defaults", "Bash(git push* origin develop*)"]
+    "allow": [
+      "$defaults"
+    ],
+    "soft_deny": [
+      "$defaults",
+      "Bash(git push* origin develop*)",
+      "Bash(gh pr merge:*)"
+    ]
   }
 }

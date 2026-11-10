@@ -5,6 +5,8 @@
 
 # Per-machine settings overrides (absolute paths, local-only grants)
 settings.local.json
+# Work-only auto-mode rules passed with `claude --settings` by fish/functions/claude.fish; this repo is public.
+work-settings.json
 
 # Per-machine runtime/state markers
 .last-cleanup
