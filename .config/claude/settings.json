@@ -37,8 +37,6 @@
       "Bash(gh pr comment*)",
       "Bash(gh run view*)",
       "Bash(gh run list*)",
-      "Bash(los-scripts *)",
-      "Bash(/Users/cengebretson/workspace/scripts/bin/los-scripts *)",
       "Bash(git push*)",
       "Bash(git fetch*)",
       "Bash(git pull*)",
