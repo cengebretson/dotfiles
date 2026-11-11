@@ -90,10 +90,8 @@ moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maint
    ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
      ~/.config/codex/hooks/handlers/domain-docs
    ```
-   - the `los-scripts` command on `$PATH` (absolute-target symlink):
-   ```bash
-   ln -s /Users/cengebretson/workspace/scripts/bin/los-scripts ~/.local/bin/los-scripts
-   ```
+   - any machine-only helper commands and their `$PATH` symlinks are documented in the untracked
+     `~/.config/agents/local.md`, not here.
    Skip on machines without that repo — the `settings.json`/`hooks.json` entries degrade to logged
    skips, and `doctor ai` shows which handlers are inert.
 8. **Verify:** `doctor ai` (one report: hooks, integrations, deps, skills parity) · `/health-check`
