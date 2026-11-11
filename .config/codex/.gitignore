@@ -77,11 +77,10 @@ rules/*.dotfiles-reference-*
 
 # Installed/vendored skills are managed by Codex, not personal dotfiles
 skills/.system/
-# No trailing slash: playwright is a symlink into ~/workspace/scripts/skills,
+# No trailing slash: playwright is a symlink into a machine-local skills repo,
 # and git sees a symlink as a file, so a dir-only pattern never matches it.
+# Other machine-only skill symlinks are excluded in ~/.dotfiles/info/exclude.
 skills/playwright
-# Same for reconcile-merged-jira: an LOS skill that lives in ~/workspace/scripts.
-skills/reconcile-merged-jira
 # Note: AGENTS.md and config.shared.toml are intentionally trackable.
 # Keep secrets out of shared config — use env vars, never hardcoded keys.
 

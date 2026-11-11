@@ -121,6 +121,16 @@ PY
 		[[ -d "$HOME/.agents/skills/$1" ]]
 	}
 
+	# ai_skill_is_machine_local PATH: true when PATH is a symlink whose resolved target lives outside
+	# ~/.config and ~/.agents, i.e. a skill installed from a repo that only exists on this machine.
+	ai_skill_is_machine_local() {
+		[[ -L "$1" ]] || return 1
+		local target
+		target=$(cd "$1" 2>/dev/null && pwd -P) || return 1
+		case "$target" in "$HOME"/.config/* | "$HOME"/.agents/*) return 1 ;; esac
+		return 0
+	}
+
 	ai_is_plugin() {
 		printf '%s\n' "$plugins_enabled" | grep -qx "$1"
 	}
@@ -253,14 +263,18 @@ PY
 	doctor_section "Skills parity"
 	# Documented exemptions (AI-SETUP.md): Codex-only helpers, plus Claude's
 	# own skills/synced/ copy dir, which is managed state rather than a skill.
+	# Symlinks into a machine-local repo (outside ~/.config and ~/.agents) are
+	# per-machine installs, not parity drift.
 	local parity_warns skill
 	parity_warns=$DOCTOR_WARNS
 	while IFS= read -r skill; do
-		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | reconcile-merged-jira | synced) continue ;; esac
+		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | synced) continue ;; esac
+		ai_skill_is_machine_local "$claude_dir/skills/$skill" && continue
 		[[ -n "$skill" ]] && { ai_skill_has "$codex_dir/skills" "$skill" || ai_skill_is_shared "$skill" || doctor_line warn skills "Claude-only: $skill"; }
 	done < <(ai_list_skills "$claude_dir/skills")
 	while IFS= read -r skill; do
-		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | reconcile-merged-jira | synced) continue ;; esac
+		case "$skill" in ctx-browser-debug | ctx-resume | ctx-triage | fast-loop | playwright | synced) continue ;; esac
+		ai_skill_is_machine_local "$codex_dir/skills/$skill" && continue
 		[[ -n "$skill" ]] && { ai_skill_has "$claude_dir/skills" "$skill" || ai_skill_is_shared "$skill" || doctor_line warn skills "Codex-only: $skill"; }
 	done < <(ai_list_skills "$codex_dir/skills")
 	[[ "$DOCTOR_WARNS" -eq "$parity_warns" ]] && doctor_line ok skills "in sync (documented exemptions ignored)"
