@@ -149,9 +149,25 @@ moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maint
   "sandbox": {
     "enabled": true,
     "autoAllowBashIfSandboxed": true,
-    "filesystem": { "allowWrite": ["/tmp", "/private/tmp"] }
+    "filesystem": { "allowWrite": ["/tmp", "/private/tmp", "~/.semgrep", "~/.cache", "~/.npm"] },
+    "network": {
+      "allowedDomains": ["github.com", "api.github.com", "ssh.github.com", "registry.npmjs.org", "pypi.org", "..."],
+      "allowUnixSockets": ["~/.orbstack/run/docker.sock"],
+      "allowLocalBinding": true
+    },
+    "enableWeakerNetworkIsolation": true,
+    "excludedCommands": ["tmux-attention", "orb *"]
   }
   ```
+  Why each piece exists: `~/.cache` and `~/.semgrep` let pre-commit hooks run sandboxed, `~/.npm` is the npm
+  cache, and `enableWeakerNetworkIsolation` lets Go CLIs such as `gh` and `acli` verify TLS through macOS
+  `trustd`. `allowLocalBinding` serves tests that start a localhost server, and the OrbStack socket covers the
+  `docker` CLI. `orb` cannot run sandboxed at all. `~/.docker` is deliberately absent, so buildx image builds
+  still need an unsandboxed run.
+  Work-only sandbox entries (work hosts, work checkout paths) go in the gitignored `work-settings.json`, which the
+  `claude` fish wrapper passes with `--settings`. Sandbox arrays merge across sources. The file is read only at
+  launch, so restart `claude` after editing it. A user-level `~/.config/claude/settings.local.json` is NOT loaded
+  (verified 2026-11-11); only a project's `.claude/settings.local.json` is.
 - Codex: a `prefix_rule(...)` lands in `rules/default.rules` automatically via `auto_review`
   (gitignored — machine-local on purpose; don't hand-curate the work machine's entries onto this one).
 

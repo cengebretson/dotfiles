@@ -280,11 +280,33 @@
     "filesystem": {
       "allowWrite": [
         "/tmp",
-        "/private/tmp"
+        "/private/tmp",
+        "~/.semgrep",
+        "~/.cache",
+        "~/.npm"
       ]
     },
+    "network": {
+      "allowedDomains": [
+        "api.github.com",
+        "github.com",
+        "uploads.github.com",
+        "ssh.github.com",
+        "*.githubusercontent.com",
+        "npm.pkg.github.com",
+        "registry.npmjs.org",
+        "pypi.org",
+        "files.pythonhosted.org"
+      ],
+      "allowUnixSockets": [
+        "~/.orbstack/run/docker.sock"
+      ],
+      "allowLocalBinding": true
+    },
+    "enableWeakerNetworkIsolation": true,
     "excludedCommands": [
-      "tmux-attention"
+      "tmux-attention",
+      "orb *"
     ]
   },
   "feedbackDrafts": "off",
