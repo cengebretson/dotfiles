@@ -82,17 +82,9 @@ moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maint
 6. **Plugins:** enable the same set per the [Integrations registry](#integrations-registry) (Claude:
    `enabledPlugins` in `settings.json` is already tracked, so they re-fetch on first run; Codex:
    `codex plugin add …` / `codex mcp add …` as listed). 🧑 OAuth logins there are per-machine.
-7. **Machine-local symlinks (only if `~/workspace/scripts` is cloned here)** 🤖:
-   - the domain-docs session hook, an untracked symlink per tool:
-   ```bash
-   ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
-     ~/.config/claude/hooks/handlers/domain-docs
-   ln -s ../../../../workspace/scripts/analysis/automation/claude-session-hook.sh \
-     ~/.config/codex/hooks/handlers/domain-docs
-   ```
-   - any machine-only helper commands and their `$PATH` symlinks are documented in the untracked
-     `~/.config/agents/local.md`, not here.
-   Skip on machines without that repo — the `settings.json`/`hooks.json` entries degrade to logged
+7. **Machine-local symlinks (only where `~/.config/agents/local.md` lists them)** 🤖: machine-only hook
+   handlers (such as `domain-docs`) and helper commands on `$PATH` are set up from the commands in that
+   untracked file. Skip on machines without it — the `settings.json`/`hooks.json` entries degrade to logged
    skips, and `doctor ai` shows which handlers are inert.
 8. **Verify:** `doctor ai` (one report: hooks, integrations, deps, skills parity) · `/health-check`
    (Claude) · `codex doctor`.
@@ -121,9 +113,8 @@ moshi-hook` to run the `serve` daemon at every login (user LaunchAgent — maint
   side-effect handlers must self-suppress (`>/dev/null`); exit `0` = ok, exit `100` = prerequisite
   missing on this machine (logged `skipped`), anything else = failed. Logs: `hooks/logs/hooks.log`,
   capped at 1 MiB with one rotated backup; payloads are never logged.
-- Machine-specific handlers are **untracked symlinks** (e.g. `domain-docs` →
-  `~/workspace/scripts/analysis/automation/claude-session-hook.sh`): they dangle harmlessly on
-  machines without the target repo, and `doctor ai` reports them as such. Shared shims are tracked
+- Machine-specific handlers are **untracked symlinks** (e.g. `domain-docs`, set up from
+  `~/.config/agents/local.md`): they dangle harmlessly on machines without the target repo, and `doctor ai` reports them as such. Shared shims are tracked
   and self-check their own deps — see each tool's `hooks/handlers/` for the tracked shims.
 - No per-hook doctor edits needed — `doctor ai` enumerates both handler dirs automatically.
 - **Codex additionally requires trusting each hook** before it runs 🧑. A new event added to
