@@ -47,7 +47,6 @@
 /.config/gh/hosts.yml
 
 # Installer-managed symlinks into apps, uv tools and plugin checkouts.
-/.local/bin/los-scripts
 /.local/bin/paseo
 /.local/bin/pre-commit
 /.local/bin/python3.12

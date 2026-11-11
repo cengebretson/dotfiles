@@ -52,7 +52,7 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
         printf '    • Marker: ◆ draft · \ue727 merge conflict · ● needs your action · \U000f0349 awaiting reviewer · ✓ approved  (• bullet list in --slack).\n'
         echo "    • Runs against the current repo's GitHub remote (needs gh auth)."
         echo "    • Jira statuses require authenticated acli (run 'acli jira auth login')."
-        echo "      Short output links directly to VenturesGo Jira without authenticating."
+        echo "      Short output links to the Jira site in \$PR_REPORT_JIRA_SITE without authenticating."
         echo "    • Slack skips Jira; --short keeps issue links without fetching statuses."
         echo "    • Non-drafts sort first, then drafts, each by ascending PR number."
         echo "    • Unfiltered --short uses mergeable for conflicts; filtered and JSON reports retain full merge state."
@@ -123,9 +123,10 @@ function pr-report --description "List your open PRs with merge conflicts, Copil
     end
 
     set -l jira_server ""
-    # Short output only needs public issue URLs, not an authenticated Jira session.
-    if test "$mode" = pretty; and set -q _flag_short; and not set -q _flag_no_jira
-        set jira_server "https://venturesgo.atlassian.net"
+    # Short output only needs public issue URLs, not an authenticated Jira session. The site comes from
+    # PR_REPORT_JIRA_SITE (set it in the untracked secrets.fish); without it, short output has no links.
+    if test "$mode" = pretty; and set -q _flag_short; and not set -q _flag_no_jira; and test -n "$PR_REPORT_JIRA_SITE"
+        set jira_server "https://$PR_REPORT_JIRA_SITE"
     end
 
     # Print the human header before network work so the command responds

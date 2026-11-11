@@ -20,7 +20,7 @@ class ReportTests(unittest.TestCase):
         self.root = Path(self.temp.name)
         self.rows = self.root / "rows.tsv"
         self.calls = self.root / "jira-calls"
-        self.env = dict(os.environ, PATH=f"{self.root}:{os.environ['PATH']}")
+        self.env = dict(os.environ, PATH=f"{self.root}:{os.environ['PATH']}", PR_REPORT_JIRA_SITE="example.atlassian.net")
         self.env["PR_REPORT_TEST_ROOT"] = str(self.root)
         scripts = {
             "git": '#!/bin/sh\nprintf "git@github.com:example/repo.git\\n"\n',
@@ -38,7 +38,7 @@ sys.exit(int(os.environ.get("PR_REPORT_TEST_GH_EXIT", "0")))
             "acli": '''#!/bin/sh
 printf '%s\n' "$*" >> "$PR_REPORT_TEST_ROOT/jira-calls"
 if [ "$*" = 'jira auth status' ]; then
-    printf 'Site: venturesgo.atlassian.net\n'
+    printf 'Site: example.atlassian.net\n'
 else
     printf '[{"key":"FLYWL-2","fields":{"status":{"name":"Code Review"}}}]\n'
 fi
@@ -94,7 +94,13 @@ fi
     def test_short_links_without_any_jira_calls(self):
         output = self.run_report("--short")
         self.assertEqual(self.numbers(output), [2, 10, 100])
-        self.assertIn("https://venturesgo.atlassian.net/browse/FLYWL-2", output)
+        self.assertIn("https://example.atlassian.net/browse/FLYWL-2", output)
+        self.assertFalse(self.calls.exists())
+
+    def test_short_without_site_has_no_links(self):
+        self.env.pop("PR_REPORT_JIRA_SITE")
+        output = self.run_report("--short")
+        self.assertNotIn("atlassian.net/browse", output)
         self.assertFalse(self.calls.exists())
 
     def test_unfiltered_short_skips_full_merge_state(self):
